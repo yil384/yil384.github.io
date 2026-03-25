@@ -34,7 +34,7 @@ Stays fixed at top after title screen dismisses.
 - RPG-styled bar with pixel font: `HP ████░░ | MP ████░░ | EXP ████░░ | Lv.25`
 - EXP bar fills proportionally to page scroll progress (0% at top → 100% at bottom)
 - HP and MP are decorative, fixed at ~85% and ~65%
-- Level number displayed at right
+- Level number is a static decorative value (Lv.25), hardcoded
 - Doubles as navigation: clicking HP/MP/EXP labels or a small menu icon opens a RPG-style menu overlay listing all sections (Character, Skills, Achievements, Quests, Equipment, Portal) — clicking a menu item smooth-scrolls to that section
 - Gold border, semi-transparent dark background with backdrop-filter blur
 
@@ -49,7 +49,7 @@ Displays personal information as an RPG character sheet.
   - Guild: "UC San Diego · CSE Dept"
   - Mentor: "Prof. Yufei Ding"
   - Contact: email displayed as RPG-style "messenger pigeon" item
-- Phone number included as a secondary detail
+  - Phone number: displayed as-is (same as current site, user's choice to include)
 - Scroll-triggered entrance animation: the card "materializes" with a pixel dissolve effect
 
 ### 4. Skill Tree Section (Education)
@@ -68,11 +68,11 @@ Education history as a horizontal skill tree / progression path.
 Technical skills displayed as RPG attribute/stat bars.
 
 - Each skill is a row: `SKILL_NAME [████████░░] Lv.X`
-- Skills and approximate levels (visual only, for relative comparison):
+- Skills listed in same order as current site. Levels are approximate placeholders for visual effect — user can adjust:
   - Python Lv.9 (90%)
   - C++ Lv.8 (85%)
-  - Rust Lv.7 (75%)
   - Go Lv.7 (70%)
+  - Rust Lv.7 (75%)
   - TypeScript Lv.6 (65%)
   - JavaScript Lv.6 (60%)
   - Verilog Lv.5 (50%)
@@ -91,9 +91,10 @@ Publications displayed as unlocked achievement badges.
   - Author list with user's name highlighted in gold
 - Cards have a golden glow/shimmer effect on hover
 - Scroll-triggered "Achievement Unlocked!" animation for each card (pixel notification popup style)
+- Only include publications currently visible (uncommented) in the existing index.html. Commented-out entries (CLoRA, ReDM) are intentionally excluded.
 - Publications:
-  1. "TritonGym" — Yue Guan*, **Yichen Lin***, et al. — In submission to ICLR 2026 (🏆 gold)
-  2. "(Re)²H₂O" — Haoyi Niu*, Kun Ren*, **Yichen Lin**, et al. — IV 2023 (🎖️ gold)
+  1. "TritonGym" — Yue Guan*, **Yichen Lin***, et al. — In submission to ICLR 2026 (🥈 silver, in-submission)
+  2. "(Re)²H₂O" — Haoyi Niu*, Kun Ren*, **Yichen Lin**, et al. — IV 2023 (🏆 gold, published)
 
 ### 7. Quest Log Section (Internships)
 
@@ -103,14 +104,20 @@ Internship experiences as completed quest entries.
   - Quest icon (⚔️)
   - Company name as quest title in blue pixel font
   - Role and date as quest metadata
-  - Description bullets as quest objectives
+  - Description bullets as quest objectives (preserve existing bullet text from current index.html)
   - "✓ COMPLETE" badge in green
-- Quests listed chronologically (newest first):
+- Quests listed chronologically (newest first). Bullet text preserved from current index.html:
   1. Picasso Lab (UCSD CSE) — Research Intern (Mar 2024 – Feb 2025)
+     - Developed a CXL system simulator for large model communication.
+     - Helped set up lab websites and use RAG to parse academic papers.
   2. Metabit — Quantitative Developer Intern (Sep 2024 – Nov 2024)
+     - Optimized data parsing and added streaming read support for AI Platform.
   3. Tencent Timi Studio — Game Developer Intern (Jun 2024 – Jul 2024)
+     - Developed Monster Hunter mobile game client with voice-controlled teammates.
   4. Disney+ Hotstar — Algorithm Developer Intern (Mar 2024 – Jun 2024)
+     - Optimized search page, fine-tuned recommendation model for TPUs.
   5. ByteDance Lark — Backend Developer Intern (Jun 2023 – Nov 2023)
+     - Developed AskAI assistant using Redis and RocketMQ for sales data analysis.
 - Cards stagger-animate into view when scrolling (each appears 100ms after previous)
 - Clicking a quest expands/collapses the detail bullets
 
@@ -126,9 +133,9 @@ Projects displayed as RPG equipment/inventory items.
   - Rarity border color (purple = epic, blue = rare)
 - Cards flip on hover to reveal back side with more details + GitHub link
 - Projects:
-  1. 🗡️ Starry-Next — Monolithic Kernel OS (link to GitHub)
-  2. 🛡️ IM System — WebSocket + Django Chat (link to GitHub)
-  3. 📜 CST-OJ — Rust Code Evaluation (link to GitHub)
+  1. 🗡️ Starry-Next — Monolithic Kernel OS (https://github.com/yil384/Starry-Next)
+  2. 🛡️ IM System — WebSocket + Django Chat (https://github.com/yil384/Instant-messaging-system-frontend)
+  3. 📜 CST-OJ — Rust Code Evaluation (https://github.com/yil384/CST-OJ-Rust)
   4. ⚡ TritonGym — LLM Agent Flow (no link)
 
 ### 9. Portal Section (Contact / External Links)
@@ -143,7 +150,7 @@ Contact links as magical teleportation portals.
 
 ### 10. Footer
 
-- Simple pixel-style footer: "© 2025 Yichen Lin | Crafted with ⚔️ and ✨"
+- Simple pixel-style footer: "© 2025–2026 Yichen Lin | Crafted with ⚔️ and ✨"
 - Small text: "Use arrow keys to move the adventurer!"
 
 ## Interactive Elements
