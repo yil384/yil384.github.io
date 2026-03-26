@@ -494,14 +494,16 @@
     .equip-rarity.epic { color: #c084fc; background: rgba(192,132,252,0.12); border: 1px solid rgba(192,132,252,0.25); }
     .equip-rarity.rare { color: var(--blue); background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); }
     .equip-rarity.legendary { color: var(--gold); background: var(--gold-dim); border: 1px solid rgba(255,215,0,0.25); }
+    .equip-card[data-rarity="epic"] .equip-front,
+    .equip-card[data-rarity="epic"] .equip-back { border-color: rgba(192,132,252,0.4); }
+    .equip-card[data-rarity="rare"] .equip-front,
+    .equip-card[data-rarity="rare"] .equip-back { border-color: rgba(96,165,250,0.4); }
+    .equip-card[data-rarity="legendary"] .equip-front,
+    .equip-card[data-rarity="legendary"] .equip-back { border-color: rgba(255,215,0,0.4); }
     .equip-back-title { font-size: 10px; margin-bottom: 12px; }
     .equip-back-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px; }
     .equip-link { font-size: 8px; color: var(--blue); text-decoration: none; }
     .equip-link:hover { text-decoration: underline; }
-
-    @media (max-width: 500px) {
-      .equip-grid { grid-template-columns: 1fr; }
-    }
 
     /* -- Portals -- */
     .portal-row {
@@ -632,10 +634,6 @@
     .site-footer p { font-size: 8px; color: var(--text-muted); }
     .footer-hint { margin-top: 8px; font-size: 7px; }
 
-    @media (max-width: 500px) {
-      .portal-row { flex-direction: column; align-items: center; }
-    }
-
     /* -- Responsive -- */
     @media (max-width: 768px) {
       .section { padding: 40px 16px; }
@@ -655,6 +653,8 @@
       .bar-group:nth-child(1), .bar-group:nth-child(2) { display: none; }
       .level-badge { font-size: 8px; }
       .title-name { font-size: 18px; }
+      .equip-grid { grid-template-columns: 1fr; }
+      .portal-row { flex-direction: column; align-items: center; }
     }
   </style>
 </head>
@@ -904,7 +904,7 @@
   <section id="equipment" class="section anim-target">
     <div class="section-title">EQUIPMENT</div>
     <div class="equip-grid">
-      <div class="equip-card anim-target">
+      <div class="equip-card anim-target" data-rarity="epic">
         <div class="equip-inner">
           <div class="equip-front pixel-border">
             <div class="equip-icon">🗡️</div>
@@ -919,7 +919,7 @@
           </div>
         </div>
       </div>
-      <div class="equip-card anim-target">
+      <div class="equip-card anim-target" data-rarity="rare">
         <div class="equip-inner">
           <div class="equip-front pixel-border">
             <div class="equip-icon">🛡️</div>
@@ -934,7 +934,7 @@
           </div>
         </div>
       </div>
-      <div class="equip-card anim-target">
+      <div class="equip-card anim-target" data-rarity="rare">
         <div class="equip-inner">
           <div class="equip-front pixel-border">
             <div class="equip-icon">📜</div>
@@ -949,7 +949,7 @@
           </div>
         </div>
       </div>
-      <div class="equip-card anim-target">
+      <div class="equip-card anim-target" data-rarity="legendary">
         <div class="equip-inner">
           <div class="equip-front pixel-border">
             <div class="equip-icon">⚡</div>
