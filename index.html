@@ -675,7 +675,7 @@
     .game-npc {
       position: absolute;
       width: 32px;
-      height: 32px;
+      height: 36px;
       z-index: 80;
       pointer-events: none;
     }
@@ -683,12 +683,217 @@
       display: block;
       width: 4px;
       height: 4px;
+    }
+    /* Apply bob animation to the ::after pseudo-element of iconic NPCs */
+    .npc-pikachu::after,
+    .npc-charmander::after,
+    .npc-squirtle::after,
+    .npc-mario::after,
+    .npc-kirby::after,
+    .npc-link::after {
       animation: npcBob 1.2s ease-in-out infinite;
+    }
+    .game-npc.excited.npc-pikachu::after,
+    .game-npc.excited.npc-charmander::after,
+    .game-npc.excited.npc-squirtle::after,
+    .game-npc.excited.npc-mario::after,
+    .game-npc.excited.npc-kirby::after,
+    .game-npc.excited.npc-link::after {
+      animation: npcBobFast 0.4s ease-in-out infinite;
     }
     @keyframes npcBob {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-3px); }
     }
+    @keyframes npcBobFast {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    /* NPC exclamation mark */
+    .npc-exclaim {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gold);
+      animation: exclaimBounce 0.8s ease-in-out infinite;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    @keyframes exclaimBounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-3px); }
+    }
+
+    /* -- Iconic NPC Pixel Art Sprites -- */
+    .npc-pikachu::after,
+    .npc-charmander::after,
+    .npc-squirtle::after,
+    .npc-mario::after,
+    .npc-kirby::after,
+    .npc-link::after {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 4px;
+    }
+    .npc-pikachu::after {
+      box-shadow:
+        /* ears */
+        4px 0 0 #333, 20px 0 0 #333,
+        4px 4px 0 #333, 20px 4px 0 #333,
+        4px 8px 0 #ffd700, 20px 8px 0 #ffd700,
+        /* head */
+        8px 8px 0 #ffd700, 12px 8px 0 #ffd700, 16px 8px 0 #ffd700,
+        4px 12px 0 #ffd700, 8px 12px 0 #ffd700, 12px 12px 0 #ffd700, 16px 12px 0 #ffd700, 20px 12px 0 #ffd700,
+        /* face - eyes and cheeks */
+        4px 16px 0 #ffd700, 8px 16px 0 #222, 12px 16px 0 #ffd700, 16px 16px 0 #222, 20px 16px 0 #ffd700,
+        4px 20px 0 #e53935, 8px 20px 0 #ffd700, 12px 20px 0 #ffd700, 16px 20px 0 #ffd700, 20px 20px 0 #e53935,
+        /* body */
+        8px 24px 0 #ffd700, 12px 24px 0 #ffd700, 16px 24px 0 #ffd700,
+        8px 28px 0 #ffd700, 12px 28px 0 #ffd700, 16px 28px 0 #ffd700,
+        /* feet */
+        8px 32px 0 #b8860b, 16px 32px 0 #b8860b;
+    }
+    .npc-charmander::after {
+      box-shadow:
+        /* head */
+        8px 0 0 #f97316, 12px 0 0 #f97316, 16px 0 0 #f97316,
+        4px 4px 0 #f97316, 8px 4px 0 #f97316, 12px 4px 0 #f97316, 16px 4px 0 #f97316, 20px 4px 0 #f97316,
+        /* eyes */
+        4px 8px 0 #f97316, 8px 8px 0 #60a5fa, 12px 8px 0 #f97316, 16px 8px 0 #60a5fa, 20px 8px 0 #f97316,
+        /* mouth */
+        8px 12px 0 #f97316, 12px 12px 0 #fbbf24, 16px 12px 0 #f97316,
+        /* body */
+        8px 16px 0 #f97316, 12px 16px 0 #fbbf24, 16px 16px 0 #f97316,
+        8px 20px 0 #f97316, 12px 20px 0 #fbbf24, 16px 20px 0 #f97316,
+        /* feet and tail */
+        8px 24px 0 #f97316, 16px 24px 0 #f97316, 24px 20px 0 #f97316,
+        24px 16px 0 #ef4444, 24px 12px 0 #fbbf24;
+    }
+    .npc-squirtle::after {
+      box-shadow:
+        /* head */
+        8px 0 0 #60a5fa, 12px 0 0 #60a5fa, 16px 0 0 #60a5fa,
+        4px 4px 0 #60a5fa, 8px 4px 0 #60a5fa, 12px 4px 0 #60a5fa, 16px 4px 0 #60a5fa, 20px 4px 0 #60a5fa,
+        /* face */
+        4px 8px 0 #60a5fa, 8px 8px 0 #222, 12px 8px 0 #fcd7a0, 16px 8px 0 #222, 20px 8px 0 #60a5fa,
+        8px 12px 0 #fcd7a0, 12px 12px 0 #fcd7a0, 16px 12px 0 #fcd7a0,
+        /* shell body */
+        4px 16px 0 #8b5e3c, 8px 16px 0 #60a5fa, 12px 16px 0 #fcd7a0, 16px 16px 0 #60a5fa, 20px 16px 0 #8b5e3c,
+        4px 20px 0 #8b5e3c, 8px 20px 0 #8b5e3c, 12px 20px 0 #fcd7a0, 16px 20px 0 #8b5e3c, 20px 20px 0 #8b5e3c,
+        /* feet */
+        8px 24px 0 #60a5fa, 16px 24px 0 #60a5fa;
+    }
+    .npc-mario::after {
+      box-shadow:
+        /* cap */
+        8px 0 0 #ef4444, 12px 0 0 #ef4444, 16px 0 0 #ef4444, 20px 0 0 #ef4444,
+        4px 4px 0 #ef4444, 8px 4px 0 #ef4444, 12px 4px 0 #ef4444, 16px 4px 0 #ef4444, 20px 4px 0 #ef4444,
+        /* face */
+        4px 8px 0 #8b5e3c, 8px 8px 0 #fcd7a0, 12px 8px 0 #fcd7a0, 16px 8px 0 #fcd7a0, 20px 8px 0 #8b5e3c,
+        4px 12px 0 #fcd7a0, 8px 12px 0 #222, 12px 12px 0 #fcd7a0, 16px 12px 0 #222, 20px 12px 0 #fcd7a0,
+        /* mustache */
+        4px 16px 0 #fcd7a0, 8px 16px 0 #8b5e3c, 12px 16px 0 #8b5e3c, 16px 16px 0 #8b5e3c, 20px 16px 0 #fcd7a0,
+        /* body - overalls */
+        4px 20px 0 #ef4444, 8px 20px 0 #3b82f6, 12px 20px 0 #3b82f6, 16px 20px 0 #3b82f6, 20px 20px 0 #ef4444,
+        8px 24px 0 #3b82f6, 12px 24px 0 #fbbf24, 16px 24px 0 #3b82f6,
+        /* feet */
+        4px 28px 0 #8b5e3c, 8px 28px 0 #8b5e3c, 16px 28px 0 #8b5e3c, 20px 28px 0 #8b5e3c;
+    }
+    .npc-kirby::after {
+      box-shadow:
+        /* top */
+        8px 0 0 #f9a8d4, 12px 0 0 #f9a8d4, 16px 0 0 #f9a8d4,
+        4px 4px 0 #f9a8d4, 8px 4px 0 #f9a8d4, 12px 4px 0 #f9a8d4, 16px 4px 0 #f9a8d4, 20px 4px 0 #f9a8d4,
+        /* eyes */
+        4px 8px 0 #f9a8d4, 8px 8px 0 #1e3a5f, 12px 8px 0 #f9a8d4, 16px 8px 0 #1e3a5f, 20px 8px 0 #f9a8d4,
+        4px 12px 0 #f9a8d4, 8px 12px 0 #1e3a5f, 12px 12px 0 #f9a8d4, 16px 12px 0 #1e3a5f, 20px 12px 0 #f9a8d4,
+        /* cheeks/mouth */
+        4px 16px 0 #f9a8d4, 8px 16px 0 #ec4899, 12px 16px 0 #f9a8d4, 16px 16px 0 #ec4899, 20px 16px 0 #f9a8d4,
+        4px 20px 0 #f9a8d4, 8px 20px 0 #f9a8d4, 12px 20px 0 #f472b6, 16px 20px 0 #f9a8d4, 20px 20px 0 #f9a8d4,
+        /* bottom body */
+        8px 24px 0 #f9a8d4, 12px 24px 0 #f9a8d4, 16px 24px 0 #f9a8d4,
+        /* feet */
+        4px 28px 0 #ef4444, 8px 28px 0 #ef4444, 16px 28px 0 #ef4444, 20px 28px 0 #ef4444;
+    }
+    .npc-link::after {
+      box-shadow:
+        /* cap */
+        8px 0 0 #22c55e, 12px 0 0 #22c55e, 16px 0 0 #22c55e,
+        4px 4px 0 #22c55e, 8px 4px 0 #22c55e, 12px 4px 0 #22c55e, 16px 4px 0 #22c55e, 20px 4px 0 #22c55e, 24px 4px 0 #22c55e,
+        /* hair + face */
+        4px 8px 0 #fbbf24, 8px 8px 0 #fcd7a0, 12px 8px 0 #fcd7a0, 16px 8px 0 #fcd7a0, 20px 8px 0 #fbbf24,
+        4px 12px 0 #fcd7a0, 8px 12px 0 #222, 12px 12px 0 #fcd7a0, 16px 12px 0 #222, 20px 12px 0 #fcd7a0,
+        /* tunic */
+        4px 16px 0 #22c55e, 8px 16px 0 #22c55e, 12px 16px 0 #fbbf24, 16px 16px 0 #22c55e, 20px 16px 0 #22c55e,
+        4px 20px 0 #22c55e, 8px 20px 0 #22c55e, 12px 20px 0 #22c55e, 16px 20px 0 #22c55e, 20px 20px 0 #22c55e,
+        /* shield + legs */
+        0px 20px 0 #60a5fa, 0px 24px 0 #60a5fa,
+        8px 24px 0 #8b5e3c, 16px 24px 0 #8b5e3c,
+        8px 28px 0 #22c55e, 16px 28px 0 #22c55e;
+    }
+
+    /* -- Coin particles -- */
+    .coin-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 300;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffd700;
+      animation: coinParticleFly 0.6s ease-out forwards;
+    }
+    @keyframes coinParticleFly {
+      0%   { opacity: 1; transform: translate(0,0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0.2); }
+    }
+
+    /* -- Footprint -- */
+    .footprint {
+      position: fixed;
+      pointer-events: none;
+      z-index: 70;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(129,140,248,0.5);
+      animation: footprintFade 1.2s ease-out forwards;
+    }
+    @keyframes footprintFade {
+      0%   { opacity: 0.6; }
+      100% { opacity: 0; }
+    }
+
+    /* -- Combo text -- */
+    .combo-text {
+      position: fixed;
+      pointer-events: none;
+      z-index: 310;
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255,215,0,0.8);
+      animation: comboRise 1.2s ease-out forwards;
+      white-space: nowrap;
+    }
+    @keyframes comboRise {
+      0%   { opacity: 1; transform: translateY(0) scale(0.8); }
+      20%  { opacity: 1; transform: translateY(-8px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-40px) scale(1); }
+    }
+
+    /* -- Score pop animation -- */
+    @keyframes scorePop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.6); color: var(--gold); }
+      100% { transform: scale(1); }
+    }
+    .score-pop { animation: scorePop 0.4s ease-out; }
 
     /* -- Speech Bubble -- */
     .speech-bubble {
@@ -803,6 +1008,10 @@
       .game-coin { display: none; }
       .game-npc { display: none; }
       #game-instructions { display: none; }
+      #pixel-char { display: none; }
+      .footprint { display: none; }
+      .combo-text { display: none; }
+      .coin-particle { display: none; }
     }
 
     /* -- Footer -- */
@@ -900,18 +1109,6 @@
     </div>
     <!-- Coin 1: Character section right side -->
     <div class="game-coin" data-coin-id="1" style="right:30px; top:60px;" aria-hidden="true"></div>
-    <!-- NPC 1: Mushroom -->
-    <div class="game-npc" data-npc-id="1" style="right:80px; top:40px;" aria-hidden="true">
-      <span class="npc-sprite" style="box-shadow:
-        8px 0 0 #c0392b, 12px 0 0 #c0392b,
-        4px 4px 0 #c0392b, 8px 4px 0 #e74c3c, 12px 4px 0 #e74c3c, 16px 4px 0 #c0392b,
-        4px 8px 0 #e74c3c, 8px 8px 0 #fff, 12px 8px 0 #e74c3c, 16px 8px 0 #fff, 20px 8px 0 #e74c3c,
-        4px 12px 0 #fcd7a0, 8px 12px 0 #fcd7a0, 12px 12px 0 #fcd7a0, 16px 12px 0 #fcd7a0,
-        4px 16px 0 #fcd7a0, 8px 16px 0 #fcd7a0, 12px 16px 0 #fcd7a0, 16px 16px 0 #fcd7a0,
-        8px 20px 0 #8B4513, 16px 20px 0 #8B4513,
-        8px 24px 0 #8B4513, 16px 24px 0 #8B4513;"></span>
-      <div class="speech-bubble" id="npc-bubble-1">Welcome, adventurer! This scholar's journey is just beginning...</div>
-    </div>
   </section>
 
   <!-- Skill Tree (Education) -->
@@ -938,16 +1135,11 @@
     </div>
     <!-- Coin 2: Skill tree, between nodes -->
     <div class="game-coin" data-coin-id="2" style="left:50%; top:80px; margin-left:-10px;" aria-hidden="true"></div>
-    <!-- NPC 2: Slime -->
-    <div class="game-npc" data-npc-id="2" style="left:50%; bottom:20px; margin-left:30px;" aria-hidden="true">
-      <span class="npc-sprite" style="box-shadow:
-        8px 4px 0 #2980b9, 12px 4px 0 #2980b9,
-        4px 8px 0 #3498db, 8px 8px 0 #5dade2, 12px 8px 0 #5dade2, 16px 8px 0 #3498db,
-        4px 12px 0 #3498db, 8px 12px 0 #5dade2, 12px 12px 0 #5dade2, 16px 12px 0 #3498db,
-        8px 12px 0 #1a1a1a, 12px 12px 0 #1a1a1a,
-        4px 16px 0 #3498db, 8px 16px 0 #3498db, 12px 16px 0 #3498db, 16px 16px 0 #3498db,
-        8px 20px 0 #2980b9, 12px 20px 0 #2980b9;"></span>
-      <div class="speech-bubble" id="npc-bubble-2">From Tsinghua to UCSD... that's quite the level up!</div>
+    <!-- NPC 2: Charmander -->
+    <div class="game-npc npc-charmander" data-npc-id="2" style="left:50%; bottom:20px; margin-left:30px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-2">Char! 🔥 From Tsinghua to UCSD — evolution complete!</div>
     </div>
   </section>
 
@@ -1001,17 +1193,11 @@
     </div>
     <!-- Coin 3: Attributes top right -->
     <div class="game-coin" data-coin-id="3" style="right:20px; top:20px;" aria-hidden="true"></div>
-    <!-- NPC 3: Electric mouse (generic, not exact Pikachu) -->
-    <div class="game-npc" data-npc-id="3" style="right:20px; top:60px;" aria-hidden="true">
-      <span class="npc-sprite" style="box-shadow:
-        4px 0 0 #f1c40f, 16px 0 0 #f1c40f,
-        0 4px 0 #f1c40f, 4px 4px 0 #f39c12, 8px 4px 0 #f39c12, 12px 4px 0 #f39c12, 16px 4px 0 #f39c12, 20px 4px 0 #f1c40f,
-        0 8px 0 #f39c12, 4px 8px 0 #f1c40f, 8px 8px 0 #1a1a1a, 12px 8px 0 #f1c40f, 16px 8px 0 #1a1a1a, 20px 8px 0 #f39c12,
-        0 12px 0 #f39c12, 4px 12px 0 #f1c40f, 8px 12px 0 #f1c40f, 12px 12px 0 #e74c3c, 16px 12px 0 #f1c40f, 20px 12px 0 #f39c12,
-        4px 16px 0 #f39c12, 8px 16px 0 #f39c12, 12px 16px 0 #f39c12, 16px 16px 0 #f39c12,
-        8px 20px 0 #795548, 16px 20px 0 #795548,
-        8px 24px 0 #6d4c41, 16px 24px 0 #6d4c41;"></span>
-      <div class="speech-bubble" id="npc-bubble-3">Python Lv.9?! That's super effective!</div>
+    <!-- NPC 1: Pikachu (near Attributes) -->
+    <div class="game-npc npc-pikachu" data-npc-id="1" style="right:20px; top:60px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-1">Pika pika! Python Lv.9... that's super effective! ⚡</div>
     </div>
   </section>
 
@@ -1040,6 +1226,12 @@
     </div>
     <!-- Coin 4: Achievements left side -->
     <div class="game-coin" data-coin-id="4" style="left:10px; top:80px;" aria-hidden="true"></div>
+    <!-- NPC 3: Squirtle (near Achievements) -->
+    <div class="game-npc npc-squirtle" data-npc-id="3" style="left:10px; top:120px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-3">Squirtle! 💧 These publications are a real splash!</div>
+    </div>
   </section>
 
   <!-- Quest Log (Internships) -->
@@ -1127,16 +1319,11 @@
     <div class="game-coin" data-coin-id="5" style="left:10px; top:33%;" aria-hidden="true"></div>
     <!-- Coin 6: Quest log ~2/3 down -->
     <div class="game-coin" data-coin-id="6" style="right:10px; top:66%;" aria-hidden="true"></div>
-    <!-- NPC 4: Ghost -->
-    <div class="game-npc" data-npc-id="4" style="left:10px; top:66%;" aria-hidden="true">
-      <span class="npc-sprite" style="box-shadow:
-        8px 0 0 #ecf0f1, 12px 0 0 #ecf0f1,
-        4px 4px 0 #ecf0f1, 8px 4px 0 #bdc3c7, 12px 4px 0 #bdc3c7, 16px 4px 0 #ecf0f1,
-        4px 8px 0 #ecf0f1, 8px 8px 0 #1a1a1a, 12px 8px 0 #ecf0f1, 16px 8px 0 #1a1a1a, 20px 8px 0 #ecf0f1,
-        4px 12px 0 #ecf0f1, 8px 12px 0 #ecf0f1, 12px 12px 0 #ecf0f1, 16px 12px 0 #ecf0f1,
-        4px 16px 0 #ecf0f1, 8px 16px 0 #ecf0f1, 12px 16px 0 #ecf0f1, 16px 16px 0 #ecf0f1,
-        4px 20px 0 #ecf0f1, 12px 20px 0 #ecf0f1, 20px 20px 0 #ecf0f1;"></span>
-      <div class="speech-bubble" id="npc-bubble-4">So many quests completed... I'm impressed! Boo~</div>
+    <!-- NPC 4: Mario (near Quest Log) -->
+    <div class="game-npc npc-mario" data-npc-id="4" style="left:10px; top:66%;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-4">It's-a me! So many quests completed... Mamma mia! 🍄</div>
     </div>
   </section>
 
@@ -1207,17 +1394,11 @@
     </div>
     <!-- Coin 7: Equipment center -->
     <div class="game-coin" data-coin-id="7" style="left:50%; top:50%; margin-left:-10px;" aria-hidden="true"></div>
-    <!-- NPC 5: Star sprite -->
-    <div class="game-npc" data-npc-id="5" style="right:10px; bottom:20px;" aria-hidden="true">
-      <span class="npc-sprite" style="box-shadow:
-        12px 0 0 #ffd700,
-        8px 4px 0 #ffd700, 12px 4px 0 #fff176, 16px 4px 0 #ffd700,
-        4px 8px 0 #ffd700, 8px 8px 0 #fff176, 12px 8px 0 #fff176, 16px 8px 0 #fff176, 20px 8px 0 #ffd700,
-        0 12px 0 #ffd700, 4px 12px 0 #fff176, 8px 12px 0 #fff176, 12px 12px 0 #fff176, 16px 12px 0 #fff176, 20px 12px 0 #fff176, 24px 12px 0 #ffd700,
-        4px 16px 0 #ffd700, 8px 16px 0 #fff176, 12px 16px 0 #fff176, 16px 16px 0 #fff176, 20px 16px 0 #ffd700,
-        8px 20px 0 #ffd700, 16px 20px 0 #ffd700,
-        4px 24px 0 #ffd700, 20px 24px 0 #ffd700;"></span>
-      <div class="speech-bubble" id="npc-bubble-5">These legendary items... you crafted them all yourself!</div>
+    <!-- NPC 5: Kirby (near Equipment) -->
+    <div class="game-npc npc-kirby" data-npc-id="5" style="right:10px; bottom:20px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-5">Poyo~! ⭐ These legendary items look delicious!</div>
     </div>
   </section>
 
@@ -1243,17 +1424,11 @@
     </div>
     <!-- Coin 8: Portals above the links -->
     <div class="game-coin" data-coin-id="8" style="left:50%; top:20px; margin-left:-10px;" aria-hidden="true"></div>
-    <!-- NPC 6: Dragon -->
-    <div class="game-npc" data-npc-id="6" style="right:10px; top:30px;" aria-hidden="true">
-      <span class="npc-sprite" style="box-shadow:
-        16px 0 0 #27ae60, 20px 0 0 #27ae60,
-        12px 4px 0 #2ecc71, 16px 4px 0 #27ae60, 20px 4px 0 #27ae60, 24px 4px 0 #2ecc71,
-        4px 8px 0 #27ae60, 8px 8px 0 #2ecc71, 12px 8px 0 #2ecc71, 16px 8px 0 #1a1a1a, 20px 8px 0 #2ecc71, 24px 8px 0 #e74c3c,
-        4px 12px 0 #2ecc71, 8px 12px 0 #27ae60, 12px 12px 0 #27ae60, 16px 12px 0 #27ae60, 20px 12px 0 #27ae60,
-        8px 16px 0 #27ae60, 12px 16px 0 #27ae60, 16px 16px 0 #27ae60,
-        8px 20px 0 #1a5e38, 16px 20px 0 #1a5e38,
-        4px 24px 0 #1a5e38, 20px 24px 0 #1a5e38;"></span>
-      <div class="speech-bubble" id="npc-bubble-6">The portals lead to other worlds... dare to enter?</div>
+    <!-- NPC 6: Link/Hero (near Portals) -->
+    <div class="game-npc npc-link" data-npc-id="6" style="right:10px; top:30px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-6">Hyaa! 🗡️ The portals lead to other worlds... shall we go?</div>
     </div>
   </section>
 
@@ -1421,6 +1596,20 @@
     delete keysHeld[e.key];
   });
 
+  // -- Footprints --
+  let lastFootprintTime = 0;
+  function spawnFootprint(x, y) {
+    const now = Date.now();
+    if (now - lastFootprintTime < 150) return;
+    lastFootprintTime = now;
+    const fp = document.createElement('div');
+    fp.className = 'footprint';
+    fp.style.left = (x + 14 + (Math.random() * 6 - 3)) + 'px';
+    fp.style.top = (y + 28) + 'px';
+    document.body.appendChild(fp);
+    setTimeout(() => fp.remove(), 1200);
+  }
+
   function updateChar() {
     let moved = false;
     if (keysHeld['ArrowUp'])    { charY -= charSpeed; moved = true; }
@@ -1428,8 +1617,16 @@
     if (keysHeld['ArrowLeft'])  { charX -= charSpeed; moved = true; }
     if (keysHeld['ArrowRight']) { charX += charSpeed; moved = true; }
 
+    // Scroll page when hitting viewport edges
+    if (charY < 40 && keysHeld['ArrowUp']) {
+      window.scrollBy(0, -charSpeed * 2);
+    }
+    if (charY > window.innerHeight - 60 && keysHeld['ArrowDown']) {
+      window.scrollBy(0, charSpeed * 2);
+    }
+
     charX = Math.max(0, Math.min(charX, window.innerWidth - 32));
-    charY = Math.max(0, Math.min(charY, window.innerHeight - 32));
+    charY = Math.max(8, Math.min(charY, window.innerHeight - 40));
 
     pixelChar.style.left = charX + 'px';
     pixelChar.style.top = charY + 'px';
@@ -1443,6 +1640,8 @@
       pixelChar.classList.remove('walking');
       charWalking = false;
     }
+
+    if (moved) spawnFootprint(charX, charY);
 
     requestAnimationFrame(updateChar);
   }
@@ -1509,18 +1708,64 @@
   }
 
   // -- Game state --
-  let coinsCollected = 0;
-  let score = 0;
   const totalCoins = 8;
   let victoryTriggered = false;
+
+  // Load persisted state from localStorage
+  const savedCoins = parseInt(localStorage.getItem('rpg_coins') || '0');
+  const savedScore = parseInt(localStorage.getItem('rpg_score') || '0');
+  const savedNpcs = JSON.parse(localStorage.getItem('rpg_npcs') || '[]');
+  const collectedCoinIds = JSON.parse(localStorage.getItem('rpg_coin_ids') || '[]');
+  let coinsCollected = savedCoins;
+  let score = savedScore;
+
+  // Combo state
+  let lastCoinTime = 0;
+  let comboCount = 0;
 
   const hudCoins = document.getElementById('hud-coins');
   const hudScore = document.getElementById('hud-score');
 
+  function saveProgress() {
+    localStorage.setItem('rpg_coins', coinsCollected);
+    localStorage.setItem('rpg_score', score);
+    localStorage.setItem('rpg_npcs', JSON.stringify([...talkedNpcs]));
+    localStorage.setItem('rpg_coin_ids', JSON.stringify(collectedCoinIds));
+  }
+
   function updateHUD() {
     if (hudCoins) hudCoins.textContent = coinsCollected;
-    if (hudScore) hudScore.textContent = score;
+    if (hudScore) {
+      hudScore.textContent = score;
+      hudScore.classList.remove('score-pop');
+      void hudScore.offsetWidth; // reflow to restart animation
+      hudScore.classList.add('score-pop');
+      setTimeout(() => hudScore.classList.remove('score-pop'), 400);
+    }
   }
+
+  // Track talked NPCs
+  const talkedNpcs = new Set(savedNpcs);
+
+  // Apply saved state on load
+  function applySavedState() {
+    // Mark collected coins
+    collectedCoinIds.forEach(id => {
+      const coin = document.querySelector(`.game-coin[data-coin-id="${id}"]`);
+      if (coin) coin.classList.add('collected');
+    });
+    // Mark talked NPCs
+    talkedNpcs.forEach(id => {
+      const npc = document.querySelector(`.game-npc[data-npc-id="${id}"]`);
+      if (npc) {
+        const exclaim = npc.querySelector('.npc-exclaim');
+        if (exclaim) exclaim.style.display = 'none';
+      }
+    });
+    if (coinsCollected > 0) updateHUD();
+    if (coinsCollected >= totalCoins) victoryTriggered = true;
+  }
+  onTitleDismissCallbacks.push(applySavedState);
 
   // -- Sparkle effect at viewport coords --
   function spawnSparkles(vx, vy) {
@@ -1539,6 +1784,35 @@
       document.body.appendChild(s);
       setTimeout(() => s.remove(), 800);
     }
+  }
+
+  // -- Golden coin particles --
+  function spawnCoinParticles(vx, vy) {
+    const count = 4 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'coin-particle';
+      const angle = (i / count) * Math.PI * 2 + Math.random() * 0.5;
+      const dist = 20 + Math.random() * 30;
+      p.style.left = (vx - 3) + 'px';
+      p.style.top = (vy - 3) + 'px';
+      p.style.setProperty('--px', (Math.cos(angle) * dist) + 'px');
+      p.style.setProperty('--py', (Math.sin(angle) * dist) + 'px');
+      p.style.animationDelay = (Math.random() * 0.08) + 's';
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 700);
+    }
+  }
+
+  // -- Combo text display --
+  function showComboText(count, vx, vy) {
+    const ct = document.createElement('div');
+    ct.className = 'combo-text';
+    ct.textContent = count >= 5 ? `COMBO x${count}!! 🔥` : `COMBO x${count}!`;
+    ct.style.left = (vx - 40) + 'px';
+    ct.style.top = (vy - 20) + 'px';
+    document.body.appendChild(ct);
+    setTimeout(() => ct.remove(), 1200);
   }
 
   // -- Confetti burst --
@@ -1580,17 +1854,48 @@
     if (coinEl.classList.contains('collected')) return;
     coinEl.classList.add('collected');
     coinsCollected++;
-    score += 100;
+
+    // Combo system
+    const now = Date.now();
+    if (now - lastCoinTime < 2000) {
+      comboCount++;
+    } else {
+      comboCount = 1;
+    }
+    lastCoinTime = now;
+
+    // Score with combo multiplier
+    const basePoints = 100;
+    const multiplier = comboCount >= 2 ? comboCount : 1;
+    score += basePoints * multiplier;
+
     updateHUD();
     const rect = coinEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     spawnSparkles(cx, cy);
+    spawnCoinParticles(cx, cy);
     playCoinSound();
+
+    // Show combo text
+    if (comboCount >= 2) {
+      showComboText(comboCount, cx, cy);
+    }
+
+    // Track collected coin id for persistence
+    const coinId = coinEl.dataset.coinId;
+    if (coinId && !collectedCoinIds.includes(coinId)) {
+      collectedCoinIds.push(coinId);
+    }
+    saveProgress();
+
     if (coinsCollected >= totalCoins) {
       setTimeout(triggerVictory, 400);
     }
   }
+
+  // -- Coin magnet offsets (keyed by coin element) --
+  const coinMagnetOffsets = new WeakMap();
 
   // -- Collision detection loop (only on desktop) --
   function runGameLoop() {
@@ -1605,10 +1910,39 @@
 
     coins.forEach(coin => {
       const r = coin.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dist = Math.hypot(px - cx, py - cy);
-      if (dist < 24) collectCoin(coin);
+      const baseCx = r.left + r.width / 2;
+      const baseCy = r.top + r.height / 2;
+
+      const dist = Math.hypot(px - baseCx, py - baseCy);
+
+      // Magnet effect: when within 40px, move coin towards player via CSS translate offset
+      if (dist < 40 && dist > 1) {
+        if (!coinMagnetOffsets.has(coin)) coinMagnetOffsets.set(coin, {dx: 0, dy: 0});
+        const offset = coinMagnetOffsets.get(coin);
+        const pullStrength = 0.08;
+        offset.dx += (px - baseCx) * pullStrength;
+        offset.dy += (py - baseCy) * pullStrength;
+        coin.style.transform = `translate(${offset.dx}px, ${offset.dy}px)`;
+      } else if (dist >= 40) {
+        if (coinMagnetOffsets.has(coin)) {
+          const offset = coinMagnetOffsets.get(coin);
+          offset.dx *= 0.85;
+          offset.dy *= 0.85;
+          if (Math.abs(offset.dx) < 0.5 && Math.abs(offset.dy) < 0.5) {
+            coinMagnetOffsets.delete(coin);
+            coin.style.transform = '';
+          } else {
+            coin.style.transform = `translate(${offset.dx}px, ${offset.dy}px)`;
+          }
+        }
+      }
+
+      // Actual collection uses the current visual position (with magnet offset)
+      const magnet = coinMagnetOffsets.get(coin);
+      const visualCx = baseCx + (magnet ? magnet.dx : 0);
+      const visualCy = baseCy + (magnet ? magnet.dy : 0);
+      const collectDist = Math.hypot(px - visualCx, py - visualCy);
+      if (collectDist < 24) collectCoin(coin);
     });
 
     npcs.forEach(npc => {
@@ -1617,12 +1951,21 @@
       const ny = r.top + r.height / 2;
       const dist = Math.hypot(px - nx, py - ny);
       const bubble = npc.querySelector('.speech-bubble');
-      if (bubble) {
-        if (dist < 60) {
-          bubble.classList.add('visible');
-        } else {
-          bubble.classList.remove('visible');
+      const exclaim = npc.querySelector('.npc-exclaim');
+      const npcId = npc.dataset.npcId;
+
+      if (dist < 60) {
+        if (bubble) bubble.classList.add('visible');
+        npc.classList.add('excited');
+        // Mark NPC as talked to
+        if (npcId && !talkedNpcs.has(npcId)) {
+          talkedNpcs.add(npcId);
+          if (exclaim) exclaim.style.display = 'none';
+          saveProgress();
         }
+      } else {
+        if (bubble) bubble.classList.remove('visible');
+        npc.classList.remove('excited');
       }
     });
 
