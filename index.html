@@ -1,151 +1,396 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Yichen Lin | UC San Diego</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yichen Lin | RPG Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f9fafb; }
-    .section-title { font-size: 1.4rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem; }
-    .card { background: white; border-radius: 1rem; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    .card:hover { transform: translateY(-3px); box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+    /* -- Reset & Base -- */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0f0f23;
+      --bg-card: rgba(255,255,255,0.03);
+      --border: #334155;
+      --gold: #ffd700;
+      --gold-dim: rgba(255,215,0,0.15);
+      --green: #4ade80;
+      --blue: #60a5fa;
+      --purple: #818cf8;
+      --orange: #f97316;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+      --font-pixel: 'Press Start 2P', monospace;
+      --font-body: 'Segoe UI', system-ui, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+    /* -- Utility -- */
+    .pixel-font { font-family: var(--font-pixel); }
+    .gold { color: var(--gold); }
+    .section {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+    .section-title {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--gold);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .pixel-border {
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+      border-radius: 4px;
+    }
+
+    /* -- Title Screen -- */
+    #title-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: radial-gradient(ellipse at center, #1a1a3e 0%, var(--bg) 70%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    #title-screen.dismissed {
+      opacity: 0;
+      transform: translateY(-40px);
+      pointer-events: none;
+    }
+    #stars {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle var(--duration) ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+    .title-content { text-align: center; z-index: 1; }
+    .title-name {
+      font-family: var(--font-pixel);
+      font-size: clamp(20px, 5vw, 36px);
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.2);
+      animation: glow 3s ease-in-out infinite;
+    }
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 20px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.2); }
+      50% { text-shadow: 0 0 30px rgba(255,215,0,0.6), 0 0 80px rgba(255,215,0,0.3); }
+    }
+    .title-subtitle {
+      font-family: var(--font-pixel);
+      font-size: clamp(8px, 2vw, 12px);
+      color: var(--purple);
+      margin-top: 16px;
+    }
+    .title-prompt {
+      font-family: var(--font-pixel);
+      font-size: clamp(8px, 1.5vw, 11px);
+      color: var(--text-muted);
+      margin-top: 40px;
+      animation: blink 1.2s step-end infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    #music-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 16px;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      z-index: 1;
+    }
+    #music-toggle:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* -- Status Bar -- */
+    #status-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15,15,35,0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid var(--gold);
+      padding: 8px 16px;
+    }
+    .status-bar-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .bar-group { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .bar-label {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      min-width: 24px;
+    }
+    .bar-label.green { color: var(--green); }
+    .bar-label.purple { color: var(--purple); }
+    .bar-label.gold { color: var(--gold); }
+    .bar-track {
+      flex: 1;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    .level-badge {
+      font-size: 9px;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+    #menu-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--gold);
+      font-size: 12px;
+      padding: 4px 8px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #menu-btn:hover { border-color: var(--gold); }
+
+    /* -- Nav Menu -- */
+    #nav-menu {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+    #nav-menu.hidden { display: none; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .nav-menu-inner {
+      padding: 24px 32px;
+      min-width: 240px;
+    }
+    .nav-menu-title {
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-item {
+      display: block;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--text);
+      text-decoration: none;
+      padding: 10px 8px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .nav-item:hover {
+      background: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    /* -- Character Card -- */
+    .char-card {
+      display: flex;
+      gap: 24px;
+      padding: 24px;
+      align-items: center;
+    }
+    .char-avatar-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+    }
+    .char-avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 4px;
+      image-rendering: pixelated;
+      filter: contrast(1.1);
+      transition: image-rendering 0.3s, filter 0.3s;
+    }
+    .char-avatar-wrap:hover .char-avatar {
+      image-rendering: auto;
+      filter: none;
+    }
+    .char-avatar-border {
+      position: absolute;
+      inset: -4px;
+      border: 3px solid var(--gold);
+      border-radius: 6px;
+      pointer-events: none;
+      box-shadow: 0 0 12px rgba(255,215,0,0.2);
+    }
+    .char-info { flex: 1; }
+    .char-name { font-size: 16px; margin-bottom: 12px; }
+    .char-class { font-family: var(--font-pixel); font-size: 10px; margin-bottom: 8px; color: var(--text); }
+    .char-detail { font-size: 14px; margin-bottom: 4px; color: var(--text); }
+    .char-link { color: var(--blue); text-decoration: none; }
+    .char-link:hover { text-decoration: underline; }
+    .text-dim { color: var(--text-dim); }
+    .purple { color: var(--purple); }
+    .blue { color: var(--blue); }
   </style>
 </head>
-<body class="text-gray-800">
+<body>
 
-  <!-- Header -->
-  <header class="max-w-4xl mx-auto mt-10 mb-6 p-6 bg-white rounded-2xl shadow-md flex flex-col md:flex-row items-center gap-6">
-    <img src="./static/selfpic_yichenlin.jpg" alt="Profile" class="w-32 h-32 rounded-full object-cover border-4 border-blue-200">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">Yichen Lin</h1>
-      <p class="text-gray-600">Ph.D. Student in Computer Science and Engineering<br>University of California, San Diego</p>
-      <p class="mt-2 text-gray-700">
-        📞 (858) 319-7361 | ✉️ <a href="mailto:yil384@ucsd.edu" class="text-blue-600 hover:underline">yil384@ucsd.edu</a>
-      </p>
-      <div class="mt-3 flex gap-4">
-        <a href="https://github.com/yil384" class="text-gray-700 hover:text-blue-600">GitHub</a>
-        <a href="https://www.linkedin.com/in/yichen-lin-206293384" class="text-gray-700 hover:text-blue-600">LinkedIn</a>
-        <a href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" class="text-gray-700 hover:text-blue-600">Google Scholar</a>
-      </div>
+<!-- Title Screen -->
+<div id="title-screen">
+  <div id="stars"></div>
+  <div class="title-content">
+    <h1 class="title-name">YICHEN LIN</h1>
+    <p class="title-subtitle">PhD Student · UCSD CSE</p>
+    <p class="title-prompt">— PRESS ENTER —</p>
+  </div>
+  <button id="music-toggle" class="pixel-font" aria-label="Toggle music" title="Music (no audio loaded)">🔇</button>
+</div>
+
+<!-- Main Content (hidden initially) -->
+<div id="main-content" style="display:none;">
+
+  <!-- Status Bar -->
+  <nav id="status-bar">
+    <div class="status-bar-inner">
+      <span class="bar-group"><span class="bar-label green">HP</span><span class="bar-track"><span class="bar-fill" id="hp-bar" style="width:85%;background:var(--green);"></span></span></span>
+      <span class="bar-group"><span class="bar-label purple">MP</span><span class="bar-track"><span class="bar-fill" id="mp-bar" style="width:65%;background:var(--purple);"></span></span></span>
+      <span class="bar-group"><span class="bar-label gold">EXP</span><span class="bar-track"><span class="bar-fill" id="exp-bar" style="width:0%;background:var(--gold);"></span></span></span>
+      <span class="level-badge pixel-font">Lv.25</span>
+      <button id="menu-btn" class="pixel-font" aria-label="Menu">☰</button>
     </div>
-  </header>
+  </nav>
 
-  <!-- Education -->
-  <section class="max-w-4xl mx-auto p-6">
-    <div class="section-title">🎓 Education</div>
-    <div class="card space-y-3">
-      <div>
-        <b>Ph.D. in Computer Science and Engineering</b>, UC San Diego (2025 – Now)  
-        <div class="text-gray-600">Advisor: Prof. Yufei Ding</div>
-      </div>
-      <div>
-        <b>B.S. in Computer Science and Technology</b>, Tsinghua University (2021 – 2025)
-      </div>
+  <!-- Navigation Menu Overlay -->
+  <div id="nav-menu" class="hidden">
+    <div class="nav-menu-inner pixel-border">
+      <div class="nav-menu-title pixel-font gold">MENU</div>
+      <a href="#character" class="nav-item" data-close>▶ Character</a>
+      <a href="#skill-tree" class="nav-item" data-close>▶ Skill Tree</a>
+      <a href="#attributes" class="nav-item" data-close>▶ Attributes</a>
+      <a href="#achievements" class="nav-item" data-close>▶ Achievements</a>
+      <a href="#quests" class="nav-item" data-close>▶ Quest Log</a>
+      <a href="#equipment" class="nav-item" data-close>▶ Equipment</a>
+      <a href="#portals" class="nav-item" data-close>▶ Portals</a>
     </div>
-  </section>
+  </div>
 
-  <!-- Publications -->
-  <section class="max-w-4xl mx-auto p-6">
-    <div class="section-title">🧠 Publications</div>
-    <div class="grid md:grid-cols-2 gap-4">
-      <div class="card">
-        <b>TritonGym: A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation</b><br>
-        Yue Guan*, <b>Yichen Lin*</b>, et al. <br>
-        <span class="text-gray-500">[In submission to ICLR 2026]</span>
+  <!-- Character Card -->
+  <section id="character" class="section anim-target">
+    <div class="section-title">CHARACTER</div>
+    <div class="char-card pixel-border">
+      <div class="char-avatar-wrap">
+        <img src="./static/selfpic_yichenlin.jpg" alt="Yichen Lin" class="char-avatar">
+        <div class="char-avatar-border"></div>
       </div>
-      <!-- <div class="card">
-        <b>CLoRA: A CXL-Based System for Cost-Efficient Multi-LoRA Serving</b><br>
-        Zhongkai Yu, <b>Yichen Lin</b>, et al. <br>
-        <span class="text-gray-500">[In submission to HPCA 2026]</span>
-      </div>
-      <div class="card">
-        <b>ReDM: Efficient Training System for Large-Scale Recommendation Models on Disaggregated Memory</b><br>
-        Zheng Wang*, <b>Yichen Lin</b>, et al. <br>
-        <span class="text-gray-500">[In submission to HPCA 2026]</span>
-      </div> -->
-      <div class="card">
-        <b>(Re)²H₂O: Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning</b><br>
-        Haoyi Niu*, Kun Ren*, <b>Yichen Lin</b>, et al. <br>
-        <span class="text-gray-500">IEEE Intelligent Vehicles Symposium (IV), 2023</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- Internships -->
-  <section class="max-w-4xl mx-auto p-6">
-    <div class="section-title">💼 Internships</div>
-    <div class="space-y-4">
-      <div class="card">
-        <b>Picasso Lab (UCSD CSE)</b> — Research Intern <span class="text-gray-500">(Mar 2024 – Feb 2025, Hybrid)</span>
-        <ul class="list-disc list-inside mt-2 text-gray-700">
-          <li>Developed a CXL system simulator for large model communication.</li>
-          <li>Helped set up lab websites and use RAG to parse academic papers.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <b>Metabit</b> — Quantitative Developer Intern <span class="text-gray-500">(Sep 2024 – Nov 2024, Shanghai)</span>
-        <ul class="list-disc list-inside mt-2 text-gray-700">
-          <li>Optimized data parsing and added streaming read support for AI Platform.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <b>Tencent (Timi Studio)</b> — Game Developer Intern <span class="text-gray-500">(Jun 2024 – Jul 2024, Beijing)</span>
-        <ul class="list-disc list-inside mt-2 text-gray-700">
-          <li>Developed Monster Hunter mobile game client with voice-controlled teammates.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <b>Disney+ Hotstar</b> — Algorithm Developer Intern <span class="text-gray-500">(Mar 2024 – Jun 2024, Beijing)</span>
-        <ul class="list-disc list-inside mt-2 text-gray-700">
-          <li>Optimized search page, fine-tuned recommendation model for TPUs.</li>
-        </ul>
-      </div>
-      <div class="card">
-        <b>ByteDance Lark</b> — Backend Developer Intern <span class="text-gray-500">(Jun 2023 – Nov 2023, Beijing)</span>
-        <ul class="list-disc list-inside mt-2 text-gray-700">
-          <li>Developed AskAI assistant using Redis and RocketMQ for sales data analysis.</li>
-        </ul>
+      <div class="char-info">
+        <div class="char-name pixel-font gold">YICHEN LIN</div>
+        <div class="char-class"><span class="purple">Class:</span> Scholar ✦✦✦</div>
+        <div class="char-detail"><span class="text-dim">Guild:</span> UC San Diego · CSE Dept</div>
+        <div class="char-detail"><span class="text-dim">Mentor:</span> Prof. Yufei Ding</div>
+        <div class="char-detail"><span class="text-dim">Phone:</span> (858) 319-7361</div>
+        <div class="char-detail"><span class="blue">✉</span> <a href="mailto:yil384@ucsd.edu" class="char-link">yil384@ucsd.edu</a></div>
       </div>
     </div>
   </section>
 
-  <!-- Projects -->
-  <section class="max-w-4xl mx-auto p-6">
-    <div class="section-title">🚀 Projects</div>
-    <div class="grid md:grid-cols-2 gap-4">
-      <a href="https://github.com/yil384/Starry-Next" target="_blank" class="block card hover:shadow-lg">
-        <b>Starry-Next (Monolithic Kernel OS)</b><br>
-        Implemented networking component as a graduation project.
-      </a>
-      <a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" class="block card hover:shadow-lg">
-        <b>Instant Messaging System</b><br>
-        Built real-time chat website with WebSocket and Django.
-      </a>
-      <a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" class="block card hover:shadow-lg">
-        <b>OJ (Code Evaluation System)</b><br>
-        Built Rust-based platform for data structure assignment grading.
-      </a>
-      <div class="card">
-        <b>LLM Agent Flow (TritonGym)</b><br>
-        Proposed new algorithm for tool-augmented LLMs in GPU code generation.
-      </div>
-    </div>
-  </section>
+</div>
 
-  <!-- Skills -->
-  <section class="max-w-4xl mx-auto p-6 mb-16">
-    <div class="section-title">🧩 Skills</div>
-    <div class="card">
-      <p><b>Languages:</b> Python, C++, Go, Rust, TypeScript, JavaScript, Verilog</p>
-      <p><b>Tools:</b> Linux, Vim, LaTeX, WebSocket, Django, MongoDB</p>
-    </div>
-  </section>
+<script>
+  // -- Stars --
+  (function createStars() {
+    const container = document.getElementById('stars');
+    for (let i = 0; i < 50; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.setProperty('--duration', (2 + Math.random() * 3) + 's');
+      star.style.animationDelay = Math.random() * 3 + 's';
+      container.appendChild(star);
+    }
+  })();
 
-  <footer class="text-center text-gray-500 text-sm pb-10">
-    © 2025 Yichen Lin | Last updated Oct 2025
-  </footer>
+  // -- Title Screen Dismiss --
+  let titleDismissed = false;
+  const onTitleDismissCallbacks = [];
+  function dismissTitle() {
+    if (titleDismissed) return;
+    titleDismissed = true;
+    const ts = document.getElementById('title-screen');
+    const mc = document.getElementById('main-content');
+    ts.classList.add('dismissed');
+    mc.style.display = 'block';
+    setTimeout(() => ts.style.display = 'none', 800);
+    onTitleDismissCallbacks.forEach(cb => cb());
+  }
 
+  document.getElementById('title-screen').addEventListener('click', dismissTitle);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !titleDismissed) dismissTitle();
+  });
+  setTimeout(dismissTitle, 3000);
+
+  // -- EXP bar scroll tracking --
+  window.addEventListener('scroll', () => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = docHeight > 0 ? Math.min(scrollTop / docHeight * 100, 100) : 0;
+    document.getElementById('exp-bar').style.width = progress + '%';
+  });
+
+  // -- Menu toggle --
+  const menuBtn = document.getElementById('menu-btn');
+  const navMenu = document.getElementById('nav-menu');
+  menuBtn.addEventListener('click', () => navMenu.classList.toggle('hidden'));
+  navMenu.addEventListener('click', (e) => {
+    if (e.target === navMenu || e.target.hasAttribute('data-close')) {
+      navMenu.classList.add('hidden');
+    }
+  });
+</script>
 </body>
 </html>
