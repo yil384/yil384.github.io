@@ -1002,6 +1002,257 @@
       100% { opacity: 0; transform: translate(var(--cx), var(--cy)) rotate(720deg); }
     }
 
+    /* -- Enemy sprites -- */
+    .game-enemy { position: absolute; z-index: 80; pointer-events: none; }
+    .enemy-sprite { position: relative; width: 28px; height: 24px; }
+    .enemy-hp-bar { width: 28px; height: 4px; background: #1e293b; border-radius: 1px; margin-bottom: 2px; overflow: hidden; }
+    .enemy-hp-fill { height: 100%; background: var(--red); border-radius: 1px; transition: width 0.2s; }
+    .game-enemy.hit .enemy-sprite { filter: brightness(10); }
+    .game-enemy.dead { opacity: 0; transition: opacity 0.5s; pointer-events: none; }
+
+    .enemy-slime-green::after {
+      content: ''; display: block; width: 4px; height: 4px;
+      box-shadow:
+        8px 0 0 #22c55e, 12px 0 0 #22c55e,
+        4px 4px 0 #22c55e, 8px 4px 0 #4ade80, 12px 4px 0 #4ade80, 16px 4px 0 #22c55e,
+        4px 8px 0 #22c55e, 8px 8px 0 #fff, 12px 8px 0 #4ade80, 16px 8px 0 #fff, 20px 8px 0 #22c55e,
+        4px 12px 0 #16a34a, 8px 12px 0 #22c55e, 12px 12px 0 #22c55e, 16px 12px 0 #22c55e, 20px 12px 0 #16a34a,
+        8px 16px 0 #16a34a, 12px 16px 0 #16a34a, 16px 16px 0 #16a34a;
+    }
+    .enemy-slime-red::after {
+      content: ''; display: block; width: 4px; height: 4px;
+      box-shadow:
+        8px 0 0 #ef4444, 12px 0 0 #ef4444,
+        4px 4px 0 #ef4444, 8px 4px 0 #f87171, 12px 4px 0 #f87171, 16px 4px 0 #ef4444,
+        4px 8px 0 #ef4444, 8px 8px 0 #fff, 12px 8px 0 #f87171, 16px 8px 0 #fff, 20px 8px 0 #ef4444,
+        4px 12px 0 #dc2626, 8px 12px 0 #ef4444, 12px 12px 0 #ef4444, 16px 12px 0 #ef4444, 20px 12px 0 #dc2626,
+        8px 16px 0 #dc2626, 12px 16px 0 #dc2626, 16px 16px 0 #dc2626;
+    }
+    .enemy-bat::after {
+      content: ''; display: block; width: 4px; height: 4px;
+      box-shadow:
+        0px 0 0 #6b21a8, 24px 0 0 #6b21a8,
+        0px 4px 0 #7c3aed, 4px 4px 0 #7c3aed, 20px 4px 0 #7c3aed, 24px 4px 0 #7c3aed,
+        4px 8px 0 #7c3aed, 8px 8px 0 #333, 12px 8px 0 #7c3aed, 16px 8px 0 #333, 20px 8px 0 #7c3aed,
+        8px 12px 0 #6b21a8, 12px 12px 0 #7c3aed, 16px 12px 0 #6b21a8,
+        12px 16px 0 #6b21a8;
+    }
+    .enemy-skeleton::after {
+      content: ''; display: block; width: 4px; height: 4px;
+      box-shadow:
+        8px 0 0 #e2e8f0, 12px 0 0 #e2e8f0, 16px 0 0 #e2e8f0,
+        4px 4px 0 #e2e8f0, 8px 4px 0 #e2e8f0, 12px 4px 0 #e2e8f0, 16px 4px 0 #e2e8f0, 20px 4px 0 #e2e8f0,
+        4px 8px 0 #e2e8f0, 8px 8px 0 #333, 12px 8px 0 #e2e8f0, 16px 8px 0 #333, 20px 8px 0 #e2e8f0,
+        8px 12px 0 #e2e8f0, 12px 12px 0 #94a3b8, 16px 12px 0 #e2e8f0,
+        8px 16px 0 #94a3b8, 12px 16px 0 #e2e8f0, 16px 16px 0 #94a3b8,
+        4px 20px 0 #94a3b8, 12px 20px 0 #94a3b8, 20px 20px 0 #94a3b8,
+        8px 24px 0 #64748b, 16px 24px 0 #64748b;
+    }
+    .enemy-slime-dark::after {
+      content: ''; display: block; width: 4px; height: 4px;
+      box-shadow:
+        8px 0 0 #334155, 12px 0 0 #334155,
+        4px 4px 0 #334155, 8px 4px 0 #475569, 12px 4px 0 #475569, 16px 4px 0 #334155,
+        4px 8px 0 #334155, 8px 8px 0 #fff, 12px 8px 0 #475569, 16px 8px 0 #fff, 20px 8px 0 #334155,
+        4px 12px 0 #1e293b, 8px 12px 0 #334155, 12px 12px 0 #334155, 16px 12px 0 #334155, 20px 12px 0 #1e293b,
+        8px 16px 0 #1e293b, 12px 16px 0 #1e293b, 16px 16px 0 #1e293b;
+    }
+
+    /* -- Boss -- */
+    .boss-container { display: flex; flex-direction: column; align-items: center; padding: 24px; }
+    .boss-hp-bar { width: 300px; max-width: 80%; height: 12px; background: #1e293b; border: 2px solid var(--red); border-radius: 2px; overflow: hidden; margin-bottom: 8px; }
+    .boss-hp-fill { height: 100%; background: linear-gradient(90deg, #dc2626, #ef4444); transition: width 0.3s; width: 100%; }
+    .boss-enemy { position: relative !important; }
+    .boss-dragon::after {
+      content: ''; display: block; width: 4px; height: 4px;
+      box-shadow:
+        4px 0 0 #854d0e, 40px 0 0 #854d0e,
+        8px 0 0 #854d0e, 36px 0 0 #854d0e,
+        12px 4px 0 #dc2626, 16px 4px 0 #dc2626, 20px 4px 0 #dc2626, 24px 4px 0 #dc2626, 28px 4px 0 #dc2626, 32px 4px 0 #dc2626,
+        8px 8px 0 #dc2626, 12px 8px 0 #dc2626, 16px 8px 0 #fbbf24, 20px 8px 0 #dc2626, 24px 8px 0 #dc2626, 28px 8px 0 #fbbf24, 32px 8px 0 #dc2626, 36px 8px 0 #dc2626,
+        8px 12px 0 #dc2626, 12px 12px 0 #dc2626, 16px 12px 0 #dc2626, 20px 12px 0 #dc2626, 24px 12px 0 #dc2626, 28px 12px 0 #dc2626, 32px 12px 0 #dc2626, 36px 12px 0 #dc2626,
+        12px 16px 0 #b91c1c, 16px 16px 0 #fbbf24, 20px 16px 0 #333, 24px 16px 0 #333, 28px 16px 0 #fbbf24, 32px 16px 0 #b91c1c,
+        4px 20px 0 #dc2626, 8px 20px 0 #ef4444, 12px 20px 0 #ef4444, 16px 20px 0 #ef4444, 20px 20px 0 #fbbf24, 24px 20px 0 #ef4444, 28px 20px 0 #ef4444, 32px 20px 0 #ef4444, 36px 20px 0 #ef4444, 40px 20px 0 #dc2626,
+        4px 24px 0 #dc2626, 8px 24px 0 #ef4444, 12px 24px 0 #fbbf24, 16px 24px 0 #ef4444, 20px 24px 0 #fbbf24, 24px 24px 0 #ef4444, 28px 24px 0 #fbbf24, 32px 24px 0 #ef4444, 36px 24px 0 #ef4444, 40px 24px 0 #dc2626,
+        0px 16px 0 #b91c1c, 0px 20px 0 #dc2626, 44px 16px 0 #b91c1c, 44px 20px 0 #dc2626,
+        8px 28px 0 #b91c1c, 12px 28px 0 #b91c1c, 32px 28px 0 #b91c1c, 36px 28px 0 #b91c1c,
+        8px 32px 0 #854d0e, 12px 32px 0 #854d0e, 32px 32px 0 #854d0e, 36px 32px 0 #854d0e,
+        40px 24px 0 #dc2626, 44px 24px 0 #b91c1c, 44px 28px 0 #ef4444;
+    }
+    .boss-enemy.hit .enemy-sprite { filter: brightness(10); }
+
+    /* -- Attack animation -- */
+    #pixel-char.attacking::before {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 4px;
+      background: var(--gold);
+      top: 12px;
+      left: 28px;
+      animation: slashAnim 0.2s ease-out forwards;
+      box-shadow: 0 0 8px rgba(255,215,0,0.6);
+    }
+    @keyframes slashAnim {
+      0% { transform: scaleX(0); opacity: 1; }
+      50% { transform: scaleX(1); opacity: 1; }
+      100% { transform: scaleX(0); opacity: 0; }
+    }
+
+    /* -- Fireball -- */
+    .fireball {
+      position: fixed;
+      width: 12px;
+      height: 12px;
+      background: radial-gradient(circle, #fbbf24, #f97316, #dc2626);
+      border-radius: 50%;
+      z-index: 85;
+      box-shadow: 0 0 8px rgba(249,115,22,0.8);
+      pointer-events: none;
+    }
+
+    /* -- Damage number -- */
+    .damage-number {
+      position: fixed;
+      pointer-events: none;
+      z-index: 310;
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--red);
+      text-shadow: 0 0 4px rgba(239,68,68,0.6);
+      animation: dmgRise 0.8s ease-out forwards;
+    }
+    .damage-number.heal { color: var(--green); text-shadow: 0 0 4px rgba(74,222,128,0.6); }
+    @keyframes dmgRise {
+      0%   { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-30px); }
+    }
+
+    /* -- HP bar flash -- */
+    @keyframes hpFlash {
+      0%, 100% { background: var(--green); }
+      50% { background: var(--red); }
+    }
+    #hp-bar.flash { animation: hpFlash 0.3s ease 2; }
+
+    /* -- Bar numbers -- */
+    .bar-numbers {
+      font-family: var(--font-pixel);
+      font-size: 6px;
+      color: var(--text-dim);
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* -- Level up notification -- */
+    .level-up-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-pixel);
+      font-size: 20px;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,215,0,0.8);
+      z-index: 350;
+      pointer-events: none;
+      animation: levelUpPop 1.5s ease-out forwards;
+    }
+    @keyframes levelUpPop {
+      0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.5); }
+      20%  { opacity: 1; transform: translate(-50%,-50%) scale(1.3); }
+      40%  { transform: translate(-50%,-50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%,-50%) translateY(-40px); }
+    }
+    @keyframes levelBadgeFlash {
+      0%, 100% { color: var(--gold); }
+      50% { color: #fff; text-shadow: 0 0 12px rgba(255,215,0,0.8); }
+    }
+    .level-badge.flash { animation: levelBadgeFlash 0.5s ease 3; }
+
+    /* -- Shop overlay -- */
+    #shop-menu {
+      position: fixed; inset: 0; z-index: 250;
+      background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #shop-menu.hidden { display: none; }
+    .shop-inner {
+      padding: 24px 28px; min-width: 280px; max-width: 350px;
+    }
+    .shop-title { font-size: 12px; text-align: center; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .shop-item {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 10px 8px; border-radius: 4px; cursor: pointer; transition: background 0.15s;
+      font-size: 12px;
+    }
+    .shop-item:hover { background: var(--gold-dim); }
+    .shop-item .text-dim { font-size: 9px; }
+    .shop-close {
+      display: block; width: 100%; margin-top: 12px; padding: 8px;
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      cursor: pointer; border-radius: 4px; font-size: 9px;
+    }
+    .shop-close:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* -- Typing game overlay -- */
+    #typing-game {
+      position: fixed; inset: 0; z-index: 250;
+      background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #typing-game.hidden { display: none; }
+    .typing-inner {
+      padding: 28px 32px; min-width: 320px; max-width: 420px; text-align: center;
+    }
+    .typing-title { font-size: 11px; color: var(--gold); margin-bottom: 16px; }
+    .typing-prompt {
+      font-family: 'Courier New', monospace; font-size: 14px; color: var(--green);
+      background: #0f172a; padding: 12px; border-radius: 4px; margin: 12px 0;
+      border: 1px solid var(--green);
+    }
+    .typing-input {
+      width: 100%; padding: 10px; font-family: 'Courier New', monospace; font-size: 14px;
+      background: #1e293b; border: 2px solid var(--border); color: var(--text);
+      border-radius: 4px; outline: none;
+    }
+    .typing-input:focus { border-color: var(--gold); }
+    .typing-input.correct { border-color: var(--green); background: rgba(74,222,128,0.1); }
+    .typing-input.wrong { border-color: var(--red); }
+    .typing-stats { margin-top: 12px; font-size: 9px; color: var(--text-dim); }
+    .typing-result { margin-top: 12px; font-size: 10px; }
+    .typing-close {
+      display: inline-block; margin-top: 12px; padding: 8px 20px;
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      cursor: pointer; border-radius: 4px; font-size: 9px; font-family: var(--font-pixel);
+    }
+    .typing-close:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* -- Game Over overlay -- */
+    #game-over {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #game-over.hidden { display: none; }
+    .game-over-inner { text-align: center; }
+    .game-over-inner p { color: var(--text-dim); font-size: 11px; }
+    .respawn-btn {
+      margin-top: 20px; padding: 12px 32px;
+      background: none; border: 2px solid var(--gold); color: var(--gold);
+      cursor: pointer; border-radius: 4px; font-size: 11px; font-family: var(--font-pixel);
+      transition: background 0.2s;
+    }
+    .respawn-btn:hover { background: var(--gold-dim); }
+
+    /* -- Active buffs display -- */
+    .buff-indicator {
+      position: fixed; top: 50px; right: 10px; z-index: 90;
+      font-family: var(--font-pixel); font-size: 7px; color: var(--text-dim);
+      text-align: right; pointer-events: none;
+    }
+    .buff-indicator div { margin-bottom: 4px; }
+
     /* Hide game elements on mobile */
     @media (max-width: 768px) {
       #game-hud { display: none; }
@@ -1012,6 +1263,14 @@
       .footprint { display: none; }
       .combo-text { display: none; }
       .coin-particle { display: none; }
+      .game-enemy { display: none; }
+      #boss-area .boss-container { pointer-events: none; }
+      .boss-enemy { display: none; }
+      .fireball { display: none; }
+      #shop-menu { display: none; }
+      #typing-game { display: none; }
+      #game-over { display: none; }
+      .buff-indicator { display: none; }
     }
 
     /* -- Footer -- */
@@ -1068,10 +1327,10 @@
   <!-- Status Bar -->
   <nav id="status-bar">
     <div class="status-bar-inner">
-      <span class="bar-group"><span class="bar-label green">HP</span><span class="bar-track"><span class="bar-fill" id="hp-bar" style="width:85%;background:var(--green);"></span></span></span>
-      <span class="bar-group"><span class="bar-label purple">MP</span><span class="bar-track"><span class="bar-fill" id="mp-bar" style="width:65%;background:var(--purple);"></span></span></span>
+      <span class="bar-group"><span class="bar-label green">HP</span><span class="bar-track"><span class="bar-fill" id="hp-bar" style="width:100%;background:var(--green);"></span></span><span class="bar-numbers" id="hp-numbers">100/100</span></span>
+      <span class="bar-group"><span class="bar-label purple">MP</span><span class="bar-track"><span class="bar-fill" id="mp-bar" style="width:100%;background:var(--purple);"></span></span><span class="bar-numbers" id="mp-numbers">100/100</span></span>
       <span class="bar-group"><span class="bar-label gold">EXP</span><span class="bar-track"><span class="bar-fill" id="exp-bar" style="width:0%;background:var(--gold);"></span></span></span>
-      <span class="level-badge pixel-font">Lv.25</span>
+      <span class="level-badge pixel-font" id="level-badge">Lv.1</span>
       <button id="menu-btn" class="pixel-font" aria-label="Menu">☰</button>
     </div>
   </nav>
@@ -1109,6 +1368,11 @@
     </div>
     <!-- Coin 1: Character section right side -->
     <div class="game-coin" data-coin-id="1" style="right:30px; top:60px;" aria-hidden="true"></div>
+    <!-- Enemy: Green Slime -->
+    <div class="game-enemy" data-type="slime-green" data-hp="30" data-max-hp="30" data-speed="1" data-section="character" data-damage="10" style="position:absolute; right:30px; top:40%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-slime-green"></div>
+    </div>
   </section>
 
   <!-- Skill Tree (Education) -->
@@ -1193,6 +1457,11 @@
     </div>
     <!-- Coin 3: Attributes top right -->
     <div class="game-coin" data-coin-id="3" style="right:20px; top:20px;" aria-hidden="true"></div>
+    <!-- Enemy: Red Slime -->
+    <div class="game-enemy" data-type="slime-red" data-hp="40" data-max-hp="40" data-speed="1.5" data-section="attributes" data-damage="10" style="position:absolute; left:30px; top:50%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-slime-red"></div>
+    </div>
     <!-- NPC 1: Pikachu (near Attributes) -->
     <div class="game-npc npc-pikachu" data-npc-id="1" style="right:20px; top:60px;" aria-hidden="true">
       <span class="npc-sprite"></span>
@@ -1226,6 +1495,11 @@
     </div>
     <!-- Coin 4: Achievements left side -->
     <div class="game-coin" data-coin-id="4" style="left:10px; top:80px;" aria-hidden="true"></div>
+    <!-- Enemy: Bat -->
+    <div class="game-enemy" data-type="bat" data-hp="25" data-max-hp="25" data-speed="2.5" data-section="achievements" data-damage="10" style="position:absolute; right:60px; top:30%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-bat"></div>
+    </div>
     <!-- NPC 3: Squirtle (near Achievements) -->
     <div class="game-npc npc-squirtle" data-npc-id="3" style="left:10px; top:120px;" aria-hidden="true">
       <span class="npc-sprite"></span>
@@ -1317,6 +1591,11 @@
     </div>
     <!-- Coin 5: Quest log ~1/3 down -->
     <div class="game-coin" data-coin-id="5" style="left:10px; top:33%;" aria-hidden="true"></div>
+    <!-- Enemy: Skeleton -->
+    <div class="game-enemy" data-type="skeleton" data-hp="50" data-max-hp="50" data-speed="1.5" data-section="quests" data-damage="10" style="position:absolute; right:20px; top:25%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-skeleton"></div>
+    </div>
     <!-- Coin 6: Quest log ~2/3 down -->
     <div class="game-coin" data-coin-id="6" style="right:10px; top:66%;" aria-hidden="true"></div>
     <!-- NPC 4: Mario (near Quest Log) -->
@@ -1394,11 +1673,29 @@
     </div>
     <!-- Coin 7: Equipment center -->
     <div class="game-coin" data-coin-id="7" style="left:50%; top:50%; margin-left:-10px;" aria-hidden="true"></div>
+    <!-- Enemy: Dark Slime -->
+    <div class="game-enemy" data-type="slime-dark" data-hp="45" data-max-hp="45" data-speed="1.5" data-section="equipment" data-damage="10" style="position:absolute; left:20px; top:35%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-slime-dark"></div>
+    </div>
     <!-- NPC 5: Kirby (near Equipment) -->
     <div class="game-npc npc-kirby" data-npc-id="5" style="right:10px; bottom:20px;" aria-hidden="true">
       <span class="npc-sprite"></span>
       <div class="npc-exclaim">!</div>
       <div class="speech-bubble" id="npc-bubble-5">Poyo~! ⭐ These legendary items look delicious!</div>
+    </div>
+  </section>
+
+  <!-- Boss Area -->
+  <section id="boss-area" class="section anim-target" style="position:relative; text-align:center;">
+    <div class="section-title">DANGER ZONE</div>
+    <div class="boss-container">
+      <div class="boss-hp-bar"><div class="boss-hp-fill" id="boss-hp-fill"></div></div>
+      <div class="boss-name pixel-font" style="color:var(--red);font-size:10px;margin-bottom:8px;">DRAGON KING</div>
+      <div class="game-enemy boss-enemy" data-hp="200" data-max-hp="200" id="boss-enemy">
+        <div class="enemy-sprite boss-dragon"></div>
+      </div>
+      <p class="pixel-font" style="font-size:7px;color:var(--text-muted);margin-top:16px;">Press SPACE to attack!</p>
     </div>
   </section>
 
@@ -1451,16 +1748,73 @@
 
 <!-- Game Instructions Overlay -->
 <div id="game-instructions" aria-hidden="true">
-  <div class="inst-title">🎮 GAME MODE</div>
-  <div>Arrow keys: Move character</div>
-  <div>Collect coins: 🪙 × 8</div>
-  <div>Talk to NPCs: Walk close!</div>
+  <div class="inst-title">CONTROLS</div>
+  <div>Arrow Keys: Move</div>
+  <div>Space: Attack</div>
+  <div>Walk near NPCs to interact</div>
+  <div>Collect coins, defeat enemies,</div>
+  <div>challenge the Dragon King!</div>
 </div>
 
 <!-- Victory Banner -->
 <div id="victory-banner" aria-hidden="true">
-  🎉 ALL COINS COLLECTED!<br>+500 BONUS
+  ALL COINS COLLECTED!<br>+500 BONUS
 </div>
+
+<!-- Shop Menu -->
+<div id="shop-menu" class="hidden">
+  <div class="shop-inner pixel-border">
+    <div class="shop-title pixel-font gold">MARIO'S SHOP</div>
+    <div class="shop-item" onclick="buyItem('potion')">
+      <span>Health Potion</span>
+      <span class="pixel-font gold">50</span>
+      <span class="text-dim">Restore 50 HP</span>
+    </div>
+    <div class="shop-item" onclick="buyItem('mana')">
+      <span>Mana Crystal</span>
+      <span class="pixel-font gold">30</span>
+      <span class="text-dim">Restore 50 MP</span>
+    </div>
+    <div class="shop-item" onclick="buyItem('power')">
+      <span>Power Boost</span>
+      <span class="pixel-font gold">100</span>
+      <span class="text-dim">2x damage 30s</span>
+    </div>
+    <div class="shop-item" onclick="buyItem('shield')">
+      <span>Shield</span>
+      <span class="pixel-font gold">80</span>
+      <span class="text-dim">Block 3 hits</span>
+    </div>
+    <button class="shop-close pixel-font" onclick="closeShop()">Close</button>
+  </div>
+</div>
+
+<!-- Typing Game -->
+<div id="typing-game" class="hidden">
+  <div class="typing-inner pixel-border">
+    <div class="typing-title pixel-font">PIKACHU'S CODING CHALLENGE</div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Type this code as fast as you can!</p>
+    <div class="typing-prompt" id="typing-prompt">def hello_world():</div>
+    <input class="typing-input" id="typing-input" type="text" autocomplete="off" spellcheck="false" placeholder="Start typing...">
+    <div class="typing-stats pixel-font">Time: <span id="typing-time">0.0</span>s | Best: <span id="typing-best">--</span></div>
+    <div class="typing-result pixel-font" id="typing-result"></div>
+    <button class="typing-close" id="typing-replay" onclick="startTypingGame()" style="display:none;">Next Challenge</button>
+    <button class="typing-close" onclick="closeTypingGame()">Close</button>
+  </div>
+</div>
+
+<!-- Game Over -->
+<div id="game-over" class="hidden">
+  <div class="game-over-inner">
+    <div class="pixel-font gold" style="font-size:24px;">GAME OVER</div>
+    <p class="pixel-font" style="font-size:9px;margin-top:16px;">You were defeated!</p>
+    <p style="margin-top:8px;">Score: <span id="go-score">0</span> | Level: <span id="go-level">1</span></p>
+    <button class="respawn-btn pixel-font" onclick="respawn()">RESPAWN</button>
+  </div>
+</div>
+
+<!-- Buff Indicator -->
+<div class="buff-indicator" id="buff-indicator"></div>
 
 <script>
   // -- Stars --
@@ -1476,6 +1830,22 @@
       container.appendChild(star);
     }
   })();
+
+  // ===== GAME STATE =====
+  let playerHP = 100, playerMaxHP = 100;
+  let playerMP = 100, playerMaxMP = 100;
+  let playerLevel = parseInt(localStorage.getItem('rpg_level') || '1');
+  let playerXP = parseInt(localStorage.getItem('rpg_xp') || '0');
+  let shieldHits = 0;
+  let powerBoostActive = false;
+  let powerBoostTimer = null;
+  let lastEnemyDamageTime = 0;
+  let lastAttackTime = 0;
+  let bossDefeated = localStorage.getItem('rpg_boss_dead') === 'true';
+  let typingBestTime = parseFloat(localStorage.getItem('rpg_typing_best') || '0');
+  let gameOverActive = false;
+  let shopOpen = false;
+  let typingOpen = false;
 
   // -- Title Screen Dismiss --
   let titleDismissed = false;
@@ -1496,14 +1866,6 @@
     if (e.key === 'Enter' && !titleDismissed) dismissTitle();
   });
   setTimeout(dismissTitle, 3000);
-
-  // -- EXP bar scroll tracking --
-  window.addEventListener('scroll', () => {
-    const scrollTop = window.scrollY;
-    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = docHeight > 0 ? Math.min(scrollTop / docHeight * 100, 100) : 0;
-    document.getElementById('exp-bar').style.width = progress + '%';
-  });
 
   // -- Menu toggle --
   const menuBtn = document.getElementById('menu-btn');
@@ -1573,7 +1935,7 @@
   const achSection = document.getElementById('achievements');
   if (achSection) achObserver.observe(achSection);
 
-  // Observe all anim-targets after title is dismissed so elements are visible
+  // Observe all anim-targets after title is dismissed
   onTitleDismissCallbacks.push(() => {
     document.querySelectorAll('.anim-target').forEach(el => animObserver.observe(el));
   });
@@ -1590,6 +1952,11 @@
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
       e.preventDefault();
       keysHeld[e.key] = true;
+    }
+    // Space to attack
+    if (e.key === ' ' || e.code === 'Space') {
+      e.preventDefault();
+      playerAttack();
     }
   });
   document.addEventListener('keyup', (e) => {
@@ -1611,13 +1978,13 @@
   }
 
   function updateChar() {
+    if (gameOverActive) return;
     let moved = false;
     if (keysHeld['ArrowUp'])    { charY -= charSpeed; moved = true; }
     if (keysHeld['ArrowDown'])  { charY += charSpeed; moved = true; }
     if (keysHeld['ArrowLeft'])  { charX -= charSpeed; moved = true; }
     if (keysHeld['ArrowRight']) { charX += charSpeed; moved = true; }
 
-    // Scroll page when hitting viewport edges
     if (charY < 40 && keysHeld['ArrowUp']) {
       window.scrollBy(0, -charSpeed * 2);
     }
@@ -1642,15 +2009,12 @@
     }
 
     if (moved) spawnFootprint(charX, charY);
-
-    requestAnimationFrame(updateChar);
   }
 
   // Start after title screen dismisses
   pixelChar.classList.add('hidden');
   onTitleDismissCallbacks.push(() => {
     pixelChar.classList.remove('hidden');
-    requestAnimationFrame(updateChar);
   });
 
   // Hide on mobile
@@ -1659,10 +2023,8 @@
   }
 
   // =============================================
-  // GAME LAYER: Coins, NPCs, HUD, Sounds, Victory
+  // AUDIO
   // =============================================
-
-  // -- Web Audio context (lazy init) --
   let audioCtx = null;
   function getAudioCtx() {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1674,16 +2036,14 @@
       const ctx = getAudioCtx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+      osc.connect(gain); gain.connect(ctx.destination);
       osc.type = 'square';
       osc.frequency.setValueAtTime(523, ctx.currentTime);
       osc.frequency.setValueAtTime(784, ctx.currentTime + 0.08);
       osc.frequency.setValueAtTime(1047, ctx.currentTime + 0.16);
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.35);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.35);
     } catch(e) {}
   }
 
@@ -1694,43 +2054,137 @@
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(ctx.destination);
         osc.type = 'square';
         const t = ctx.currentTime + i * 0.12;
         osc.frequency.setValueAtTime(freq, t);
         gain.gain.setValueAtTime(0.15, t);
         gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-        osc.start(t);
-        osc.stop(t + 0.25);
+        osc.start(t); osc.stop(t + 0.25);
       });
     } catch(e) {}
   }
 
-  // -- Game state --
+  function playAttackSound() {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(200, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
+    } catch(e) {}
+  }
+
+  function playDefeatSound() {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(400, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.4);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
+    } catch(e) {}
+  }
+
+  function playBossVictorySound() {
+    try {
+      const ctx = getAudioCtx();
+      const notes = [523, 659, 784, 1047, 784, 1047, 1319, 1568];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        const t = ctx.currentTime + i * 0.15;
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        osc.start(t); osc.stop(t + 0.3);
+      });
+    } catch(e) {}
+  }
+
+  function playPurchaseSound() {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.25);
+    } catch(e) {}
+  }
+
+  function playLevelUpSound() {
+    try {
+      const ctx = getAudioCtx();
+      const notes = [523, 659, 784, 1047];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        const t = ctx.currentTime + i * 0.1;
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        osc.start(t); osc.stop(t + 0.3);
+      });
+    } catch(e) {}
+  }
+
+  function playHitSound() {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.12);
+    } catch(e) {}
+  }
+
+  // =============================================
+  // GAME STATE & HUD
+  // =============================================
   const totalCoins = 8;
   let victoryTriggered = false;
-
-  // Load persisted state from localStorage
   const savedCoins = parseInt(localStorage.getItem('rpg_coins') || '0');
   const savedScore = parseInt(localStorage.getItem('rpg_score') || '0');
   const savedNpcs = JSON.parse(localStorage.getItem('rpg_npcs') || '[]');
   const collectedCoinIds = JSON.parse(localStorage.getItem('rpg_coin_ids') || '[]');
   let coinsCollected = savedCoins;
   let score = savedScore;
-
-  // Combo state
   let lastCoinTime = 0;
   let comboCount = 0;
-
   const hudCoins = document.getElementById('hud-coins');
   const hudScore = document.getElementById('hud-score');
+  const talkedNpcs = new Set(savedNpcs);
 
   function saveProgress() {
     localStorage.setItem('rpg_coins', coinsCollected);
     localStorage.setItem('rpg_score', score);
     localStorage.setItem('rpg_npcs', JSON.stringify([...talkedNpcs]));
     localStorage.setItem('rpg_coin_ids', JSON.stringify(collectedCoinIds));
+    localStorage.setItem('rpg_level', playerLevel);
+    localStorage.setItem('rpg_xp', playerXP);
+    localStorage.setItem('rpg_boss_dead', bossDefeated);
   }
 
   function updateHUD() {
@@ -1738,38 +2192,565 @@
     if (hudScore) {
       hudScore.textContent = score;
       hudScore.classList.remove('score-pop');
-      void hudScore.offsetWidth; // reflow to restart animation
+      void hudScore.offsetWidth;
       hudScore.classList.add('score-pop');
       setTimeout(() => hudScore.classList.remove('score-pop'), 400);
     }
   }
 
-  // Track talked NPCs
-  const talkedNpcs = new Set(savedNpcs);
+  // =============================================
+  // HP / MP / LEVEL SYSTEM
+  // =============================================
+  const hpBar = document.getElementById('hp-bar');
+  const mpBar = document.getElementById('mp-bar');
+  const expBar = document.getElementById('exp-bar');
+  const hpNumbers = document.getElementById('hp-numbers');
+  const mpNumbers = document.getElementById('mp-numbers');
+  const levelBadge = document.getElementById('level-badge');
 
-  // Apply saved state on load
-  function applySavedState() {
-    // Mark collected coins
-    collectedCoinIds.forEach(id => {
-      const coin = document.querySelector(`.game-coin[data-coin-id="${id}"]`);
-      if (coin) coin.classList.add('collected');
-    });
-    // Mark talked NPCs
-    talkedNpcs.forEach(id => {
-      const npc = document.querySelector(`.game-npc[data-npc-id="${id}"]`);
-      if (npc) {
-        const exclaim = npc.querySelector('.npc-exclaim');
-        if (exclaim) exclaim.style.display = 'none';
+  function updateBars() {
+    const hpPct = Math.max(0, playerHP / playerMaxHP * 100);
+    const mpPct = Math.max(0, playerMP / playerMaxMP * 100);
+    if (hpBar) hpBar.style.width = hpPct + '%';
+    if (mpBar) mpBar.style.width = mpPct + '%';
+    if (hpNumbers) hpNumbers.textContent = Math.round(playerHP) + '/' + playerMaxHP;
+    if (mpNumbers) mpNumbers.textContent = Math.round(playerMP) + '/' + playerMaxMP;
+    updateExpBar();
+    if (levelBadge) levelBadge.textContent = 'Lv.' + playerLevel;
+  }
+
+  function updateExpBar() {
+    const xpNeeded = playerLevel * 50;
+    const pct = Math.min(playerXP / xpNeeded * 100, 100);
+    if (expBar) expBar.style.width = pct + '%';
+  }
+
+  function gainXP(amount) {
+    if (playerLevel >= 99) return;
+    playerXP += amount;
+    let xpNeeded = playerLevel * 50;
+    while (playerXP >= xpNeeded && playerLevel < 99) {
+      playerXP -= xpNeeded;
+      playerLevel++;
+      xpNeeded = playerLevel * 50;
+      onLevelUp();
+    }
+    updateBars();
+    saveProgress();
+  }
+
+  function onLevelUp() {
+    playLevelUpSound();
+    if (levelBadge) {
+      levelBadge.classList.remove('flash');
+      void levelBadge.offsetWidth;
+      levelBadge.classList.add('flash');
+      setTimeout(() => levelBadge.classList.remove('flash'), 1500);
+    }
+    const lu = document.createElement('div');
+    lu.className = 'level-up-text';
+    lu.textContent = 'LEVEL UP! Lv.' + playerLevel;
+    document.body.appendChild(lu);
+    setTimeout(() => lu.remove(), 1500);
+  }
+
+  function takeDamage(amount) {
+    if (gameOverActive) return;
+    if (shieldHits > 0) {
+      shieldHits--;
+      showDamageNumber(charX + 16, charY, 'BLOCK', true);
+      updateBuffDisplay();
+      return;
+    }
+    playerHP = Math.max(0, playerHP - amount);
+    updateBars();
+    if (hpBar) {
+      hpBar.classList.remove('flash');
+      void hpBar.offsetWidth;
+      hpBar.classList.add('flash');
+      setTimeout(() => hpBar.classList.remove('flash'), 600);
+    }
+    showDamageNumber(charX + 16, charY, '-' + amount, false);
+    playHitSound();
+    if (playerHP <= 0) {
+      triggerGameOver();
+    }
+  }
+
+  function showDamageNumber(x, y, text, isHeal) {
+    const d = document.createElement('div');
+    d.className = 'damage-number' + (isHeal ? ' heal' : '');
+    d.textContent = text;
+    d.style.left = x + 'px';
+    d.style.top = y + 'px';
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 800);
+  }
+
+  // MP regen
+  setInterval(() => {
+    if (gameOverActive) return;
+    if (playerMP < playerMaxMP) {
+      playerMP = Math.min(playerMaxMP, playerMP + 1);
+      updateBars();
+    }
+  }, 1000);
+
+  // =============================================
+  // GAME OVER / RESPAWN
+  // =============================================
+  function triggerGameOver() {
+    gameOverActive = true;
+    const goEl = document.getElementById('game-over');
+    const goScore = document.getElementById('go-score');
+    const goLevel = document.getElementById('go-level');
+    if (goScore) goScore.textContent = score;
+    if (goLevel) goLevel.textContent = playerLevel;
+    if (goEl) goEl.classList.remove('hidden');
+  }
+
+  function respawn() {
+    gameOverActive = false;
+    playerHP = playerMaxHP;
+    playerMP = playerMaxMP;
+    score = Math.max(0, score - 100);
+    updateBars();
+    updateHUD();
+    saveProgress();
+    const goEl = document.getElementById('game-over');
+    if (goEl) goEl.classList.add('hidden');
+    window.scrollTo(0, 0);
+    charX = window.innerWidth / 2;
+    charY = window.innerHeight / 2;
+  }
+  window.respawn = respawn;
+
+  // =============================================
+  // ENEMY SYSTEM
+  // =============================================
+  const enemyEls = document.querySelectorAll('.game-enemy:not(.boss-enemy)');
+  const enemyStates = [];
+
+  enemyEls.forEach(el => {
+    const section = document.getElementById(el.dataset.section);
+    const hp = parseInt(el.dataset.hp);
+    const maxHp = parseInt(el.dataset.maxHp);
+    const speed = parseFloat(el.dataset.speed);
+    const damage = parseInt(el.dataset.damage || '10');
+    const state = {
+      el: el,
+      section: section,
+      hp: hp,
+      maxHp: maxHp,
+      speed: speed,
+      damage: damage,
+      dead: false,
+      respawnTimer: 0,
+      patrolDir: 1,
+      patrolOffset: 0,
+      patrolRange: 100,
+      lastDamageToPlayer: 0,
+      baseRight: el.style.right ? parseInt(el.style.right) : null,
+      baseLeft: el.style.left ? parseInt(el.style.left) : null,
+    };
+    enemyStates.push(state);
+  });
+
+  function updateEnemies() {
+    const now = Date.now();
+    const px = charX + 16;
+    const py = charY + 16;
+
+    enemyStates.forEach(state => {
+      if (state.dead) {
+        if (now > state.respawnTimer) {
+          state.dead = false;
+          state.hp = state.maxHp;
+          state.el.classList.remove('dead');
+          state.el.querySelector('.enemy-hp-fill').style.width = '100%';
+        }
+        return;
+      }
+
+      const r = state.el.getBoundingClientRect();
+      const ex = r.left + r.width / 2;
+      const ey = r.top + r.height / 2;
+      const dist = Math.hypot(px - ex, py - ey);
+
+      if (dist < 120) {
+        // Chase mode
+        const dx = px - ex;
+        const moveX = Math.sign(dx) * state.speed * 0.5;
+        state.patrolOffset += moveX;
+      } else {
+        // Patrol mode
+        state.patrolOffset += state.patrolDir * state.speed * 0.3;
+        if (Math.abs(state.patrolOffset) > state.patrolRange) {
+          state.patrolDir *= -1;
+        }
+      }
+
+      state.el.style.transform = `translateX(${state.patrolOffset}px)`;
+
+      // Damage player
+      if (dist < 24 && now - state.lastDamageToPlayer > 1000) {
+        state.lastDamageToPlayer = now;
+        takeDamage(state.damage);
       }
     });
-    if (coinsCollected > 0) updateHUD();
-    if (coinsCollected >= totalCoins) victoryTriggered = true;
   }
-  onTitleDismissCallbacks.push(applySavedState);
 
-  // -- Sparkle effect at viewport coords --
+  function damageEnemy(state, amount) {
+    if (state.dead) return;
+    state.hp -= amount;
+    const hpPct = Math.max(0, state.hp / state.maxHp * 100);
+    state.el.querySelector('.enemy-hp-fill').style.width = hpPct + '%';
+    state.el.classList.add('hit');
+    setTimeout(() => state.el.classList.remove('hit'), 150);
+
+    const r = state.el.getBoundingClientRect();
+    showDamageNumber(r.left + r.width / 2, r.top - 10, '-' + amount, false);
+
+    if (state.hp <= 0) {
+      killEnemy(state);
+    }
+  }
+
+  function killEnemy(state) {
+    state.dead = true;
+    state.respawnTimer = Date.now() + 15000;
+    state.el.classList.add('dead');
+    playDefeatSound();
+    score += 50;
+    updateHUD();
+    gainXP(30);
+
+    const r = state.el.getBoundingClientRect();
+    spawnCoinParticles(r.left + r.width / 2, r.top + r.height / 2);
+    saveProgress();
+  }
+
+  // =============================================
+  // BOSS SYSTEM
+  // =============================================
+  const bossEl = document.getElementById('boss-enemy');
+  const bossHpFill = document.getElementById('boss-hp-fill');
+  let bossHP = bossDefeated ? 0 : 200;
+  const bossMaxHP = 200;
+  let lastFireballTime = 0;
+  const fireballs = [];
+
+  if (bossDefeated && bossEl) {
+    bossEl.classList.add('dead');
+    if (bossHpFill) bossHpFill.style.width = '0%';
+  }
+
+  function updateBoss() {
+    if (bossDefeated || !bossEl) return;
+    const now = Date.now();
+    const r = bossEl.getBoundingClientRect();
+    const bx = r.left + r.width / 2;
+    const by = r.top + r.height / 2;
+
+    // Fire fireballs every 3 seconds
+    if (now - lastFireballTime > 3000 && by > 0 && by < window.innerHeight) {
+      lastFireballTime = now;
+      spawnFireball(bx, by);
+    }
+  }
+
+  function spawnFireball(fromX, fromY) {
+    const fb = document.createElement('div');
+    fb.className = 'fireball';
+    fb.style.left = fromX + 'px';
+    fb.style.top = fromY + 'px';
+    document.body.appendChild(fb);
+    const targetX = charX + 16;
+    const targetY = charY + 16;
+    const dx = targetX - fromX;
+    const dy = targetY - fromY;
+    const dist = Math.hypot(dx, dy) || 1;
+    const speed = 3;
+    fireballs.push({
+      el: fb,
+      x: fromX, y: fromY,
+      vx: (dx / dist) * speed,
+      vy: (dy / dist) * speed,
+      born: Date.now()
+    });
+  }
+
+  function updateFireballs() {
+    const now = Date.now();
+    const px = charX + 16;
+    const py = charY + 16;
+    for (let i = fireballs.length - 1; i >= 0; i--) {
+      const fb = fireballs[i];
+      fb.x += fb.vx;
+      fb.y += fb.vy;
+      fb.el.style.left = fb.x + 'px';
+      fb.el.style.top = fb.y + 'px';
+
+      const dist = Math.hypot(px - fb.x, py - fb.y);
+      if (dist < 20) {
+        takeDamage(20);
+        fb.el.remove();
+        fireballs.splice(i, 1);
+        continue;
+      }
+      if (now - fb.born > 3000) {
+        fb.el.remove();
+        fireballs.splice(i, 1);
+      }
+    }
+  }
+
+  function damageBoss(amount) {
+    if (bossDefeated || !bossEl) return;
+    const dmg = 10; // boss takes fixed 10 per hit
+    bossHP = Math.max(0, bossHP - dmg);
+    if (bossHpFill) bossHpFill.style.width = (bossHP / bossMaxHP * 100) + '%';
+    bossEl.classList.add('hit');
+    setTimeout(() => bossEl.classList.remove('hit'), 150);
+
+    const r = bossEl.getBoundingClientRect();
+    showDamageNumber(r.left + r.width / 2, r.top - 10, '-' + dmg, false);
+
+    if (bossHP <= 0) {
+      bossDefeated = true;
+      bossEl.classList.add('dead');
+      playBossVictorySound();
+      score += 500;
+      updateHUD();
+      gainXP(100);
+      // Drop 3 coins worth of particles
+      const br = bossEl.getBoundingClientRect();
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => spawnCoinParticles(br.left + br.width / 2 + (i - 1) * 20, br.top), i * 200);
+      }
+      spawnConfetti(window.innerWidth / 2, window.innerHeight / 2);
+      saveProgress();
+    }
+  }
+
+  // =============================================
+  // COMBAT / ATTACK
+  // =============================================
+  function playerAttack() {
+    if (gameOverActive || shopOpen || typingOpen) return;
+    const now = Date.now();
+    if (now - lastAttackTime < 400) return;
+    lastAttackTime = now;
+
+    playAttackSound();
+    pixelChar.classList.add('attacking');
+    setTimeout(() => pixelChar.classList.remove('attacking'), 200);
+
+    const baseDamage = powerBoostActive ? 20 : 10;
+    const comboDamage = comboCount >= 2 ? 5 : 0;
+    const totalDamage = baseDamage + comboDamage;
+
+    const px = charX + 16;
+    const py = charY + 16;
+
+    // Check enemies
+    enemyStates.forEach(state => {
+      if (state.dead) return;
+      const r = state.el.getBoundingClientRect();
+      const ex = r.left + r.width / 2;
+      const ey = r.top + r.height / 2;
+      const dist = Math.hypot(px - ex, py - ey);
+      if (dist < 40) {
+        damageEnemy(state, totalDamage);
+      }
+    });
+
+    // Check boss
+    if (!bossDefeated && bossEl) {
+      const r = bossEl.getBoundingClientRect();
+      const bx = r.left + r.width / 2;
+      const by = r.top + r.height / 2;
+      const dist = Math.hypot(px - bx, py - by);
+      if (dist < 50) {
+        damageBoss(totalDamage);
+      }
+    }
+  }
+
+  // =============================================
+  // SHOP SYSTEM
+  // =============================================
+  let shopCooldown = 0;
+  let typingCooldown = 0;
+
+  function openShop() {
+    shopOpen = true;
+    document.getElementById('shop-menu').classList.remove('hidden');
+  }
+  function closeShop() {
+    shopOpen = false;
+    shopCooldown = Date.now() + 2000;
+    document.getElementById('shop-menu').classList.add('hidden');
+  }
+  window.closeShop = closeShop;
+
+  function buyItem(type) {
+    const costs = { potion: 50, mana: 30, power: 100, shield: 80 };
+    const cost = costs[type];
+    if (score < cost) {
+      showNotification('Not enough coins!');
+      return;
+    }
+    score -= cost;
+    updateHUD();
+    playPurchaseSound();
+
+    if (type === 'potion') {
+      playerHP = Math.min(playerMaxHP, playerHP + 50);
+      showDamageNumber(charX + 16, charY, '+50 HP', true);
+    } else if (type === 'mana') {
+      playerMP = Math.min(playerMaxMP, playerMP + 50);
+      showDamageNumber(charX + 16, charY, '+50 MP', true);
+    } else if (type === 'power') {
+      powerBoostActive = true;
+      if (powerBoostTimer) clearTimeout(powerBoostTimer);
+      powerBoostTimer = setTimeout(() => { powerBoostActive = false; updateBuffDisplay(); }, 30000);
+      showNotification('Power Boost active for 30s!');
+    } else if (type === 'shield') {
+      shieldHits = 3;
+      showNotification('Shield: 3 hits blocked!');
+    }
+    updateBars();
+    updateBuffDisplay();
+    saveProgress();
+  }
+  window.buyItem = buyItem;
+
+  function showNotification(text) {
+    const notif = document.getElementById('ach-unlock');
+    if (notif) {
+      notif.textContent = text;
+      notif.classList.add('show');
+      clearTimeout(achNotifyTimeout);
+      achNotifyTimeout = setTimeout(() => notif.classList.remove('show'), 2000);
+    }
+  }
+
+  function updateBuffDisplay() {
+    const el = document.getElementById('buff-indicator');
+    if (!el) return;
+    let html = '';
+    if (powerBoostActive) html += '<div style="color:var(--orange);">PWR 2x</div>';
+    if (shieldHits > 0) html += '<div style="color:var(--blue);">SHIELD x' + shieldHits + '</div>';
+    el.innerHTML = html;
+  }
+
+  // =============================================
+  // TYPING GAME
+  // =============================================
+  const typingSnippets = [
+    'def hello_world():',
+    'for i in range(10):',
+    'console.log("GG")',
+    'fn main() -> Result',
+    'git push origin main',
+    'import torch.nn as nn'
+  ];
+  let typingStartTime = 0;
+  let typingActive = false;
+  let typingTimerInterval = null;
+  let currentSnippet = '';
+
+  function openTypingGame() {
+    typingOpen = true;
+    document.getElementById('typing-game').classList.remove('hidden');
+    startTypingGame();
+  }
+
+  function startTypingGame() {
+    currentSnippet = typingSnippets[Math.floor(Math.random() * typingSnippets.length)];
+    document.getElementById('typing-prompt').textContent = currentSnippet;
+    const input = document.getElementById('typing-input');
+    input.value = '';
+    input.className = 'typing-input';
+    input.disabled = false;
+    input.focus();
+    typingStartTime = 0;
+    typingActive = true;
+    document.getElementById('typing-time').textContent = '0.0';
+    document.getElementById('typing-result').textContent = '';
+    document.getElementById('typing-replay').style.display = 'none';
+    if (typingBestTime > 0) {
+      document.getElementById('typing-best').textContent = typingBestTime.toFixed(1) + 's';
+    }
+    if (typingTimerInterval) clearInterval(typingTimerInterval);
+  }
+  window.startTypingGame = startTypingGame;
+
+  function closeTypingGame() {
+    typingOpen = false;
+    typingActive = false;
+    typingCooldown = Date.now() + 2000;
+    if (typingTimerInterval) clearInterval(typingTimerInterval);
+    document.getElementById('typing-game').classList.add('hidden');
+  }
+  window.closeTypingGame = closeTypingGame;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('typing-input');
+    if (!input) return;
+    input.addEventListener('input', () => {
+      if (!typingActive) return;
+      if (typingStartTime === 0) {
+        typingStartTime = Date.now();
+        typingTimerInterval = setInterval(() => {
+          const elapsed = (Date.now() - typingStartTime) / 1000;
+          document.getElementById('typing-time').textContent = elapsed.toFixed(1);
+        }, 100);
+      }
+      if (input.value === currentSnippet) {
+        typingActive = false;
+        if (typingTimerInterval) clearInterval(typingTimerInterval);
+        const elapsed = (Date.now() - typingStartTime) / 1000;
+        document.getElementById('typing-time').textContent = elapsed.toFixed(1);
+        input.className = 'typing-input correct';
+        input.disabled = true;
+
+        let reward = 0;
+        if (elapsed < 3) reward = 200;
+        else if (elapsed < 5) reward = 100;
+        else if (elapsed < 8) reward = 50;
+        else reward = 20;
+
+        score += reward;
+        updateHUD();
+        gainXP(20);
+
+        if (typingBestTime === 0 || elapsed < typingBestTime) {
+          typingBestTime = elapsed;
+          localStorage.setItem('rpg_typing_best', typingBestTime.toFixed(1));
+          document.getElementById('typing-best').textContent = typingBestTime.toFixed(1) + 's';
+        }
+
+        document.getElementById('typing-result').innerHTML =
+          '<span style="color:var(--green);">' + elapsed.toFixed(1) + 's! +' + reward + ' coins</span>';
+        document.getElementById('typing-replay').style.display = 'inline-block';
+        saveProgress();
+      } else if (!currentSnippet.startsWith(input.value)) {
+        input.className = 'typing-input wrong';
+      } else {
+        input.className = 'typing-input';
+      }
+    });
+  });
+
+  // =============================================
+  // COINS, NPCS, EFFECTS
+  // =============================================
+  const coinMagnetOffsets = new WeakMap();
+
   function spawnSparkles(vx, vy) {
-    const symbols = ['✦','★','✧','✨'];
+    const symbols = ['*','*','*','*'];
     for (let i = 0; i < 6; i++) {
       const s = document.createElement('div');
       s.className = 'sparkle';
@@ -1786,7 +2767,6 @@
     }
   }
 
-  // -- Golden coin particles --
   function spawnCoinParticles(vx, vy) {
     const count = 4 + Math.floor(Math.random() * 2);
     for (let i = 0; i < count; i++) {
@@ -1804,18 +2784,16 @@
     }
   }
 
-  // -- Combo text display --
   function showComboText(count, vx, vy) {
     const ct = document.createElement('div');
     ct.className = 'combo-text';
-    ct.textContent = count >= 5 ? `COMBO x${count}!! 🔥` : `COMBO x${count}!`;
+    ct.textContent = count >= 5 ? 'COMBO x' + count + '!!' : 'COMBO x' + count + '!';
     ct.style.left = (vx - 40) + 'px';
     ct.style.top = (vy - 20) + 'px';
     document.body.appendChild(ct);
     setTimeout(() => ct.remove(), 1200);
   }
 
-  // -- Confetti burst --
   function spawnConfetti(vx, vy) {
     const colors = ['#ffd700','#ff6b6b','#4ade80','#818cf8','#60a5fa','#f97316'];
     for (let i = 0; i < 30; i++) {
@@ -1834,7 +2812,6 @@
     }
   }
 
-  // -- Victory --
   function triggerVictory() {
     if (victoryTriggered) return;
     victoryTriggered = true;
@@ -1849,13 +2826,11 @@
     spawnConfetti(window.innerWidth / 2, window.innerHeight / 2);
   }
 
-  // -- Coin collection --
   function collectCoin(coinEl) {
     if (coinEl.classList.contains('collected')) return;
     coinEl.classList.add('collected');
     coinsCollected++;
 
-    // Combo system
     const now = Date.now();
     if (now - lastCoinTime < 2000) {
       comboCount++;
@@ -1864,12 +2839,12 @@
     }
     lastCoinTime = now;
 
-    // Score with combo multiplier
     const basePoints = 100;
     const multiplier = comboCount >= 2 ? comboCount : 1;
     score += basePoints * multiplier;
 
     updateHUD();
+    gainXP(10);
     const rect = coinEl.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
@@ -1877,12 +2852,10 @@
     spawnCoinParticles(cx, cy);
     playCoinSound();
 
-    // Show combo text
     if (comboCount >= 2) {
       showComboText(comboCount, cx, cy);
     }
 
-    // Track collected coin id for persistence
     const coinId = coinEl.dataset.coinId;
     if (coinId && !collectedCoinIds.includes(coinId)) {
       collectedCoinIds.push(coinId);
@@ -1894,57 +2867,74 @@
     }
   }
 
-  // -- Coin magnet offsets (keyed by coin element) --
-  const coinMagnetOffsets = new WeakMap();
+  function applySavedState() {
+    collectedCoinIds.forEach(id => {
+      const coin = document.querySelector('.game-coin[data-coin-id="' + id + '"]');
+      if (coin) coin.classList.add('collected');
+    });
+    talkedNpcs.forEach(id => {
+      const npc = document.querySelector('.game-npc[data-npc-id="' + id + '"]');
+      if (npc) {
+        const exclaim = npc.querySelector('.npc-exclaim');
+        if (exclaim) exclaim.style.display = 'none';
+      }
+    });
+    if (coinsCollected > 0) updateHUD();
+    if (coinsCollected >= totalCoins) victoryTriggered = true;
+    updateBars();
+  }
+  onTitleDismissCallbacks.push(applySavedState);
 
-  // -- Collision detection loop (only on desktop) --
+  // =============================================
+  // MAIN GAME LOOP
+  // =============================================
   function runGameLoop() {
     if (window.innerWidth < 768) return;
 
+    updateChar();
+
+    if (gameOverActive) {
+      requestAnimationFrame(runGameLoop);
+      return;
+    }
+
     const coins = document.querySelectorAll('.game-coin:not(.collected)');
     const npcs = document.querySelectorAll('.game-npc');
-
-    // Player center in viewport coords
     const px = charX + 16;
     const py = charY + 16;
 
+    // Coin collection
     coins.forEach(coin => {
       const r = coin.getBoundingClientRect();
       const baseCx = r.left + r.width / 2;
       const baseCy = r.top + r.height / 2;
-
       const dist = Math.hypot(px - baseCx, py - baseCy);
 
-      // Magnet effect: when within 40px, move coin towards player via CSS translate offset
       if (dist < 40 && dist > 1) {
         if (!coinMagnetOffsets.has(coin)) coinMagnetOffsets.set(coin, {dx: 0, dy: 0});
         const offset = coinMagnetOffsets.get(coin);
-        const pullStrength = 0.08;
-        offset.dx += (px - baseCx) * pullStrength;
-        offset.dy += (py - baseCy) * pullStrength;
-        coin.style.transform = `translate(${offset.dx}px, ${offset.dy}px)`;
-      } else if (dist >= 40) {
-        if (coinMagnetOffsets.has(coin)) {
-          const offset = coinMagnetOffsets.get(coin);
-          offset.dx *= 0.85;
-          offset.dy *= 0.85;
-          if (Math.abs(offset.dx) < 0.5 && Math.abs(offset.dy) < 0.5) {
-            coinMagnetOffsets.delete(coin);
-            coin.style.transform = '';
-          } else {
-            coin.style.transform = `translate(${offset.dx}px, ${offset.dy}px)`;
-          }
+        offset.dx += (px - baseCx) * 0.08;
+        offset.dy += (py - baseCy) * 0.08;
+        coin.style.transform = 'translate(' + offset.dx + 'px,' + offset.dy + 'px)';
+      } else if (dist >= 40 && coinMagnetOffsets.has(coin)) {
+        const offset = coinMagnetOffsets.get(coin);
+        offset.dx *= 0.85;
+        offset.dy *= 0.85;
+        if (Math.abs(offset.dx) < 0.5 && Math.abs(offset.dy) < 0.5) {
+          coinMagnetOffsets.delete(coin);
+          coin.style.transform = '';
+        } else {
+          coin.style.transform = 'translate(' + offset.dx + 'px,' + offset.dy + 'px)';
         }
       }
 
-      // Actual collection uses the current visual position (with magnet offset)
       const magnet = coinMagnetOffsets.get(coin);
       const visualCx = baseCx + (magnet ? magnet.dx : 0);
       const visualCy = baseCy + (magnet ? magnet.dy : 0);
-      const collectDist = Math.hypot(px - visualCx, py - visualCy);
-      if (collectDist < 24) collectCoin(coin);
+      if (Math.hypot(px - visualCx, py - visualCy) < 24) collectCoin(coin);
     });
 
+    // NPC interaction
     npcs.forEach(npc => {
       const r = npc.getBoundingClientRect();
       const nx = r.left + r.width / 2;
@@ -1955,9 +2945,17 @@
       const npcId = npc.dataset.npcId;
 
       if (dist < 60) {
+        // Mario NPC (#4) opens shop
+        if (npcId === '4' && !shopOpen && !typingOpen && Date.now() > shopCooldown) {
+          openShop();
+        }
+        // Pikachu NPC (#1) opens typing game
+        if (npcId === '1' && !typingOpen && !shopOpen && Date.now() > typingCooldown) {
+          openTypingGame();
+        }
+
         if (bubble) bubble.classList.add('visible');
         npc.classList.add('excited');
-        // Mark NPC as talked to
         if (npcId && !talkedNpcs.has(npcId)) {
           talkedNpcs.add(npcId);
           if (exclaim) exclaim.style.display = 'none';
@@ -1969,6 +2967,15 @@
       }
     });
 
+    // Enemies
+    updateEnemies();
+
+    // Boss
+    updateBoss();
+
+    // Fireballs
+    updateFireballs();
+
     requestAnimationFrame(runGameLoop);
   }
 
@@ -1978,10 +2985,13 @@
     const inst = document.getElementById('game-instructions');
     if (inst) {
       inst.classList.add('show');
-      setTimeout(() => inst.classList.remove('show'), 3000);
+      setTimeout(() => inst.classList.remove('show'), 4000);
     }
     requestAnimationFrame(runGameLoop);
   });
+
+  // Initialize bars on load
+  updateBars();
 </script>
 </body>
 </html>
