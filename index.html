@@ -25,6 +25,12 @@
       --font-pixel: 'Press Start 2P', monospace;
       --font-body: 'Segoe UI', system-ui, sans-serif;
     }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
     html { scroll-behavior: smooth; }
     body {
       background: var(--bg);
@@ -539,6 +545,82 @@
     }
     .portal-name { font-size: 9px; color: var(--purple); }
 
+    /* -- Scroll Animations -- */
+    .anim-target { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .anim-target.visible { opacity: 1; transform: translateY(0); }
+
+    /* Achievement unlock notification */
+    .ach-unlock {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--gold);
+      background: rgba(15,15,35,0.95);
+      border: 2px solid var(--gold);
+      padding: 10px 24px;
+      border-radius: 4px;
+      z-index: 150;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+    }
+    .ach-unlock.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Quest stagger */
+    .quest-card.anim-target { transition-delay: var(--stagger); }
+
+    /* -- Pixel Character -- */
+    #pixel-char {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      width: 32px;
+      height: 32px;
+      z-index: 90;
+      pointer-events: none;
+      image-rendering: pixelated;
+    }
+    #pixel-char::after {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 4px;
+      box-shadow:
+        /* hat */
+        8px 0 0 var(--purple), 12px 0 0 var(--purple), 16px 0 0 var(--purple),
+        4px 4px 0 var(--purple), 8px 4px 0 var(--purple), 12px 4px 0 var(--purple), 16px 4px 0 var(--purple), 20px 4px 0 var(--purple),
+        /* head */
+        8px 8px 0 #fcd7a0, 12px 8px 0 #fcd7a0, 16px 8px 0 #fcd7a0,
+        8px 12px 0 #fcd7a0, 12px 12px 0 #333, 16px 12px 0 #fcd7a0,
+        /* body */
+        4px 16px 0 var(--blue), 8px 16px 0 var(--blue), 12px 16px 0 var(--blue), 16px 16px 0 var(--blue), 20px 16px 0 var(--blue),
+        8px 20px 0 var(--blue), 12px 20px 0 var(--gold), 16px 20px 0 var(--blue),
+        /* legs */
+        8px 24px 0 #555, 16px 24px 0 #555,
+        8px 28px 0 #444, 16px 28px 0 #444;
+      animation: charIdle 1s step-end infinite;
+    }
+    @keyframes charIdle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+    }
+    #pixel-char.walking::after {
+      animation: charWalk 0.3s step-end infinite;
+    }
+    @keyframes charWalk {
+      0% { transform: translateY(0); }
+      25% { transform: translateY(-2px) translateX(1px); }
+      50% { transform: translateY(0); }
+      75% { transform: translateY(-2px) translateX(-1px); }
+    }
+    #pixel-char.hidden { display: none; }
+
     /* -- Footer -- */
     .site-footer {
       text-align: center;
@@ -552,6 +634,27 @@
 
     @media (max-width: 500px) {
       .portal-row { flex-direction: column; align-items: center; }
+    }
+
+    /* -- Responsive -- */
+    @media (max-width: 768px) {
+      .section { padding: 40px 16px; }
+      .section-title { font-size: 11px; }
+      .char-card { flex-direction: column; text-align: center; }
+      .char-avatar-wrap { width: 100px; height: 100px; }
+      .char-name { font-size: 13px; }
+      .attr-name { min-width: 70px; font-size: 7px; }
+      .quest-header { flex-wrap: wrap; }
+      .quest-badge { margin-top: 4px; }
+      .achievement-card { flex-direction: column; text-align: center; }
+      .footer-hint { display: none; }
+    }
+
+    @media (max-width: 500px) {
+      .status-bar-inner { gap: 6px; }
+      .bar-group:nth-child(1), .bar-group:nth-child(2) { display: none; }
+      .level-badge { font-size: 8px; }
+      .title-name { font-size: 18px; }
     }
   </style>
 </head>
@@ -894,6 +997,9 @@
 
 </div>
 
+<div id="ach-unlock" class="ach-unlock">🏆 Achievement Unlocked!</div>
+<div id="pixel-char" aria-hidden="true"></div>
+
 <script>
   // -- Stars --
   (function createStars() {
@@ -947,32 +1053,124 @@
     }
   });
 
-  // -- Scroll animations (skill tree lines + attribute bars) --
-  function runAnimations(entries) {
+  // -- General section fade-in --
+  const animObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const el = entry.target;
-
-      // Animate tree lines inside this section
-      el.querySelectorAll('.tree-line').forEach(line => line.classList.add('animated'));
-
-      // Animate attribute bars inside this section
-      el.querySelectorAll('.attr-row').forEach(row => {
-        const level = parseInt(row.dataset.level, 10);
-        const fill = row.querySelector('.attr-fill');
-        if (fill) fill.style.width = level + '%';
-      });
-
-      observer.unobserve(el);
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        animObserver.unobserve(entry.target);
+      }
     });
+  }, { threshold: 0.15 });
+
+  // -- Skill bar fill animation --
+  const attrObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('.attr-row').forEach(row => {
+          const level = row.dataset.level;
+          row.querySelector('.attr-fill').style.width = level + '%';
+        });
+        attrObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  const attrSection = document.getElementById('attributes');
+  if (attrSection) attrObserver.observe(attrSection);
+
+  // -- Tree line animation --
+  const treeObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelector('.tree-line')?.classList.add('animated');
+        treeObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  const treeSection = document.getElementById('skill-tree');
+  if (treeSection) treeObserver.observe(treeSection);
+
+  // -- Quest stagger delays --
+  document.querySelectorAll('.quest-card.anim-target').forEach((card, i) => {
+    card.style.setProperty('--stagger', (i * 0.1) + 's');
+  });
+
+  // -- Achievement unlock notification --
+  let achNotifyTimeout;
+  const achObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const notif = document.getElementById('ach-unlock');
+        notif.classList.add('show');
+        clearTimeout(achNotifyTimeout);
+        achNotifyTimeout = setTimeout(() => notif.classList.remove('show'), 2000);
+        achObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  const achSection = document.getElementById('achievements');
+  if (achSection) achObserver.observe(achSection);
+
+  // Observe all anim-targets after title is dismissed so elements are visible
+  onTitleDismissCallbacks.push(() => {
+    document.querySelectorAll('.anim-target').forEach(el => animObserver.observe(el));
+  });
+
+  // -- Pixel Character Movement --
+  const pixelChar = document.getElementById('pixel-char');
+  let charX = window.innerWidth - 72;
+  let charY = window.innerHeight - 72;
+  const charSpeed = 4;
+  const keysHeld = {};
+  let charWalking = false;
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      keysHeld[e.key] = true;
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    delete keysHeld[e.key];
+  });
+
+  function updateChar() {
+    let moved = false;
+    if (keysHeld['ArrowUp'])    { charY -= charSpeed; moved = true; }
+    if (keysHeld['ArrowDown'])  { charY += charSpeed; moved = true; }
+    if (keysHeld['ArrowLeft'])  { charX -= charSpeed; moved = true; }
+    if (keysHeld['ArrowRight']) { charX += charSpeed; moved = true; }
+
+    charX = Math.max(0, Math.min(charX, window.innerWidth - 32));
+    charY = Math.max(0, Math.min(charY, window.innerHeight - 32));
+
+    pixelChar.style.left = charX + 'px';
+    pixelChar.style.top = charY + 'px';
+    pixelChar.style.bottom = 'auto';
+    pixelChar.style.right = 'auto';
+
+    if (moved && !charWalking) {
+      pixelChar.classList.add('walking');
+      charWalking = true;
+    } else if (!moved && charWalking) {
+      pixelChar.classList.remove('walking');
+      charWalking = false;
+    }
+
+    requestAnimationFrame(updateChar);
   }
 
-  const observer = new IntersectionObserver(runAnimations, { threshold: 0.15 });
-
-  // Observe after title is dismissed so elements are visible
+  // Start after title screen dismisses
+  pixelChar.classList.add('hidden');
   onTitleDismissCallbacks.push(() => {
-    document.querySelectorAll('.anim-target').forEach(el => observer.observe(el));
+    pixelChar.classList.remove('hidden');
+    requestAnimationFrame(updateChar);
   });
+
+  // Hide on mobile
+  if (window.innerWidth < 768) {
+    pixelChar.style.display = 'none';
+  }
 </script>
 </body>
 </html>
