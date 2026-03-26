@@ -623,6 +623,188 @@
     }
     #pixel-char.hidden { display: none; }
 
+    /* -- Game HUD -- */
+    #game-hud {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 90;
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      background: rgba(15,15,35,0.9);
+      border: 2px solid var(--gold);
+      border-radius: 4px;
+      padding: 8px 14px;
+      line-height: 1.8;
+      pointer-events: none;
+    }
+    #game-hud .hud-line { display: block; }
+
+    /* -- Game Coin -- */
+    .game-coin {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle at 35% 35%, #fff176, #ffd700, #f9a825);
+      border-radius: 50%;
+      animation: coinSpin 1s linear infinite, coinFloat 2s ease-in-out infinite;
+      cursor: pointer;
+      z-index: 80;
+      box-shadow: 0 0 8px rgba(255,215,0,0.4);
+      transition: transform 0.2s, opacity 0.3s;
+    }
+    .game-coin.collected {
+      transform: scale(1.8) !important;
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+    @keyframes coinSpin {
+      0%   { box-shadow: 0 0 8px rgba(255,215,0,0.5); transform: scaleX(1); }
+      25%  { transform: scaleX(0.6); }
+      50%  { transform: scaleX(0.1); }
+      75%  { transform: scaleX(0.6); }
+      100% { box-shadow: 0 0 8px rgba(255,215,0,0.5); transform: scaleX(1); }
+    }
+    @keyframes coinFloat {
+      0%, 100% { margin-top: 0; }
+      50% { margin-top: -4px; }
+    }
+
+    /* -- Game NPC -- */
+    .game-npc {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      z-index: 80;
+      pointer-events: none;
+    }
+    .npc-sprite {
+      display: block;
+      width: 4px;
+      height: 4px;
+      animation: npcBob 1.2s ease-in-out infinite;
+    }
+    @keyframes npcBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    /* -- Speech Bubble -- */
+    .speech-bubble {
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 200px;
+      max-width: 280px;
+      background: rgba(15,15,35,0.97);
+      border: 2px solid var(--gold);
+      border-radius: 4px;
+      padding: 10px 14px;
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text);
+      line-height: 1.7;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: normal;
+      z-index: 200;
+    }
+    .speech-bubble.visible { opacity: 1; }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--gold);
+    }
+
+    /* -- Game Instructions Overlay -- */
+    #game-instructions {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 180;
+      background: rgba(15,15,35,0.97);
+      border: 2px solid var(--gold);
+      border-radius: 4px;
+      padding: 20px 28px;
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--text);
+      line-height: 2;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    #game-instructions.show { opacity: 1; }
+    #game-instructions .inst-title { color: var(--gold); font-size: 11px; margin-bottom: 10px; }
+
+    /* -- Victory Notification -- */
+    #victory-banner {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      z-index: 160;
+      background: rgba(15,15,35,0.97);
+      border: 2px solid var(--gold);
+      border-radius: 4px;
+      padding: 14px 28px;
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--gold);
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    #victory-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* -- Sparkle particle -- */
+    .sparkle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 300;
+      font-size: 14px;
+      animation: sparkleFly 0.7s ease-out forwards;
+    }
+    @keyframes sparkleFly {
+      0%   { opacity: 1; transform: translate(0,0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0.3); }
+    }
+
+    /* -- Confetti particle -- */
+    .confetti-piece {
+      position: fixed;
+      pointer-events: none;
+      z-index: 300;
+      width: 8px;
+      height: 8px;
+      animation: confettiFall 1.5s ease-in forwards;
+    }
+    @keyframes confettiFall {
+      0%   { opacity: 1; transform: translate(0,0) rotate(0deg); }
+      100% { opacity: 0; transform: translate(var(--cx), var(--cy)) rotate(720deg); }
+    }
+
+    /* Hide game elements on mobile */
+    @media (max-width: 768px) {
+      #game-hud { display: none; }
+      .game-coin { display: none; }
+      .game-npc { display: none; }
+      #game-instructions { display: none; }
+    }
+
     /* -- Footer -- */
     .site-footer {
       text-align: center;
@@ -700,7 +882,7 @@
   </div>
 
   <!-- Character Card -->
-  <section id="character" class="section anim-target">
+  <section id="character" class="section anim-target" style="position:relative;">
     <div class="section-title">CHARACTER</div>
     <div class="char-card pixel-border">
       <div class="char-avatar-wrap">
@@ -716,10 +898,24 @@
         <div class="char-detail"><span class="blue">✉</span> <a href="mailto:yil384@ucsd.edu" class="char-link">yil384@ucsd.edu</a></div>
       </div>
     </div>
+    <!-- Coin 1: Character section right side -->
+    <div class="game-coin" data-coin-id="1" style="right:30px; top:60px;" aria-hidden="true"></div>
+    <!-- NPC 1: Mushroom -->
+    <div class="game-npc" data-npc-id="1" style="right:80px; top:40px;" aria-hidden="true">
+      <span class="npc-sprite" style="box-shadow:
+        8px 0 0 #c0392b, 12px 0 0 #c0392b,
+        4px 4px 0 #c0392b, 8px 4px 0 #e74c3c, 12px 4px 0 #e74c3c, 16px 4px 0 #c0392b,
+        4px 8px 0 #e74c3c, 8px 8px 0 #fff, 12px 8px 0 #e74c3c, 16px 8px 0 #fff, 20px 8px 0 #e74c3c,
+        4px 12px 0 #fcd7a0, 8px 12px 0 #fcd7a0, 12px 12px 0 #fcd7a0, 16px 12px 0 #fcd7a0,
+        4px 16px 0 #fcd7a0, 8px 16px 0 #fcd7a0, 12px 16px 0 #fcd7a0, 16px 16px 0 #fcd7a0,
+        8px 20px 0 #8B4513, 16px 20px 0 #8B4513,
+        8px 24px 0 #8B4513, 16px 24px 0 #8B4513;"></span>
+      <div class="speech-bubble" id="npc-bubble-1">Welcome, adventurer! This scholar's journey is just beginning...</div>
+    </div>
   </section>
 
   <!-- Skill Tree (Education) -->
-  <section id="skill-tree" class="section anim-target">
+  <section id="skill-tree" class="section anim-target" style="position:relative;">
     <div class="section-title">SKILL TREE</div>
     <div class="tree-path">
       <div class="tree-node pixel-border">
@@ -740,10 +936,23 @@
         <div class="tree-node-date">2025 – Now</div>
       </div>
     </div>
+    <!-- Coin 2: Skill tree, between nodes -->
+    <div class="game-coin" data-coin-id="2" style="left:50%; top:80px; margin-left:-10px;" aria-hidden="true"></div>
+    <!-- NPC 2: Slime -->
+    <div class="game-npc" data-npc-id="2" style="left:50%; bottom:20px; margin-left:30px;" aria-hidden="true">
+      <span class="npc-sprite" style="box-shadow:
+        8px 4px 0 #2980b9, 12px 4px 0 #2980b9,
+        4px 8px 0 #3498db, 8px 8px 0 #5dade2, 12px 8px 0 #5dade2, 16px 8px 0 #3498db,
+        4px 12px 0 #3498db, 8px 12px 0 #5dade2, 12px 12px 0 #5dade2, 16px 12px 0 #3498db,
+        8px 12px 0 #1a1a1a, 12px 12px 0 #1a1a1a,
+        4px 16px 0 #3498db, 8px 16px 0 #3498db, 12px 16px 0 #3498db, 16px 16px 0 #3498db,
+        8px 20px 0 #2980b9, 12px 20px 0 #2980b9;"></span>
+      <div class="speech-bubble" id="npc-bubble-2">From Tsinghua to UCSD... that's quite the level up!</div>
+    </div>
   </section>
 
   <!-- Attributes (Skills) -->
-  <section id="attributes" class="section anim-target">
+  <section id="attributes" class="section anim-target" style="position:relative;">
     <div class="section-title">ATTRIBUTES</div>
     <div class="pixel-border" style="padding:24px;">
       <div class="attr-row" data-level="90">
@@ -790,10 +999,24 @@
         <span class="tool-badge pixel-font">MongoDB</span>
       </div>
     </div>
+    <!-- Coin 3: Attributes top right -->
+    <div class="game-coin" data-coin-id="3" style="right:20px; top:20px;" aria-hidden="true"></div>
+    <!-- NPC 3: Electric mouse (generic, not exact Pikachu) -->
+    <div class="game-npc" data-npc-id="3" style="right:20px; top:60px;" aria-hidden="true">
+      <span class="npc-sprite" style="box-shadow:
+        4px 0 0 #f1c40f, 16px 0 0 #f1c40f,
+        0 4px 0 #f1c40f, 4px 4px 0 #f39c12, 8px 4px 0 #f39c12, 12px 4px 0 #f39c12, 16px 4px 0 #f39c12, 20px 4px 0 #f1c40f,
+        0 8px 0 #f39c12, 4px 8px 0 #f1c40f, 8px 8px 0 #1a1a1a, 12px 8px 0 #f1c40f, 16px 8px 0 #1a1a1a, 20px 8px 0 #f39c12,
+        0 12px 0 #f39c12, 4px 12px 0 #f1c40f, 8px 12px 0 #f1c40f, 12px 12px 0 #e74c3c, 16px 12px 0 #f1c40f, 20px 12px 0 #f39c12,
+        4px 16px 0 #f39c12, 8px 16px 0 #f39c12, 12px 16px 0 #f39c12, 16px 16px 0 #f39c12,
+        8px 20px 0 #795548, 16px 20px 0 #795548,
+        8px 24px 0 #6d4c41, 16px 24px 0 #6d4c41;"></span>
+      <div class="speech-bubble" id="npc-bubble-3">Python Lv.9?! That's super effective!</div>
+    </div>
   </section>
 
   <!-- Achievements (Publications) -->
-  <section id="achievements" class="section anim-target">
+  <section id="achievements" class="section anim-target" style="position:relative;">
     <div class="section-title">ACHIEVEMENTS</div>
     <div class="achievement-list">
       <div class="achievement-card pixel-border anim-target" data-rarity="silver">
@@ -815,10 +1038,12 @@
         </div>
       </div>
     </div>
+    <!-- Coin 4: Achievements left side -->
+    <div class="game-coin" data-coin-id="4" style="left:10px; top:80px;" aria-hidden="true"></div>
   </section>
 
   <!-- Quest Log (Internships) -->
-  <section id="quests" class="section anim-target">
+  <section id="quests" class="section anim-target" style="position:relative;">
     <div class="section-title">QUEST LOG</div>
     <div class="quest-list">
       <div class="quest-card pixel-border anim-target">
@@ -898,10 +1123,25 @@
         </div>
       </div>
     </div>
+    <!-- Coin 5: Quest log ~1/3 down -->
+    <div class="game-coin" data-coin-id="5" style="left:10px; top:33%;" aria-hidden="true"></div>
+    <!-- Coin 6: Quest log ~2/3 down -->
+    <div class="game-coin" data-coin-id="6" style="right:10px; top:66%;" aria-hidden="true"></div>
+    <!-- NPC 4: Ghost -->
+    <div class="game-npc" data-npc-id="4" style="left:10px; top:66%;" aria-hidden="true">
+      <span class="npc-sprite" style="box-shadow:
+        8px 0 0 #ecf0f1, 12px 0 0 #ecf0f1,
+        4px 4px 0 #ecf0f1, 8px 4px 0 #bdc3c7, 12px 4px 0 #bdc3c7, 16px 4px 0 #ecf0f1,
+        4px 8px 0 #ecf0f1, 8px 8px 0 #1a1a1a, 12px 8px 0 #ecf0f1, 16px 8px 0 #1a1a1a, 20px 8px 0 #ecf0f1,
+        4px 12px 0 #ecf0f1, 8px 12px 0 #ecf0f1, 12px 12px 0 #ecf0f1, 16px 12px 0 #ecf0f1,
+        4px 16px 0 #ecf0f1, 8px 16px 0 #ecf0f1, 12px 16px 0 #ecf0f1, 16px 16px 0 #ecf0f1,
+        4px 20px 0 #ecf0f1, 12px 20px 0 #ecf0f1, 20px 20px 0 #ecf0f1;"></span>
+      <div class="speech-bubble" id="npc-bubble-4">So many quests completed... I'm impressed! Boo~</div>
+    </div>
   </section>
 
   <!-- Equipment (Projects) -->
-  <section id="equipment" class="section anim-target">
+  <section id="equipment" class="section anim-target" style="position:relative;">
     <div class="section-title">EQUIPMENT</div>
     <div class="equip-grid">
       <div class="equip-card anim-target" data-rarity="epic">
@@ -965,10 +1205,24 @@
         </div>
       </div>
     </div>
+    <!-- Coin 7: Equipment center -->
+    <div class="game-coin" data-coin-id="7" style="left:50%; top:50%; margin-left:-10px;" aria-hidden="true"></div>
+    <!-- NPC 5: Star sprite -->
+    <div class="game-npc" data-npc-id="5" style="right:10px; bottom:20px;" aria-hidden="true">
+      <span class="npc-sprite" style="box-shadow:
+        12px 0 0 #ffd700,
+        8px 4px 0 #ffd700, 12px 4px 0 #fff176, 16px 4px 0 #ffd700,
+        4px 8px 0 #ffd700, 8px 8px 0 #fff176, 12px 8px 0 #fff176, 16px 8px 0 #fff176, 20px 8px 0 #ffd700,
+        0 12px 0 #ffd700, 4px 12px 0 #fff176, 8px 12px 0 #fff176, 12px 12px 0 #fff176, 16px 12px 0 #fff176, 20px 12px 0 #fff176, 24px 12px 0 #ffd700,
+        4px 16px 0 #ffd700, 8px 16px 0 #fff176, 12px 16px 0 #fff176, 16px 16px 0 #fff176, 20px 16px 0 #ffd700,
+        8px 20px 0 #ffd700, 16px 20px 0 #ffd700,
+        4px 24px 0 #ffd700, 20px 24px 0 #ffd700;"></span>
+      <div class="speech-bubble" id="npc-bubble-5">These legendary items... you crafted them all yourself!</div>
+    </div>
   </section>
 
   <!-- Portals (Contact Links) -->
-  <section id="portals" class="section anim-target">
+  <section id="portals" class="section anim-target" style="position:relative;">
     <div class="section-title">PORTALS</div>
     <div class="portal-row">
       <a href="https://github.com/yil384" target="_blank" class="portal-link pixel-border anim-target">
@@ -987,6 +1241,20 @@
         <div class="portal-name pixel-font">Scholar</div>
       </a>
     </div>
+    <!-- Coin 8: Portals above the links -->
+    <div class="game-coin" data-coin-id="8" style="left:50%; top:20px; margin-left:-10px;" aria-hidden="true"></div>
+    <!-- NPC 6: Dragon -->
+    <div class="game-npc" data-npc-id="6" style="right:10px; top:30px;" aria-hidden="true">
+      <span class="npc-sprite" style="box-shadow:
+        16px 0 0 #27ae60, 20px 0 0 #27ae60,
+        12px 4px 0 #2ecc71, 16px 4px 0 #27ae60, 20px 4px 0 #27ae60, 24px 4px 0 #2ecc71,
+        4px 8px 0 #27ae60, 8px 8px 0 #2ecc71, 12px 8px 0 #2ecc71, 16px 8px 0 #1a1a1a, 20px 8px 0 #2ecc71, 24px 8px 0 #e74c3c,
+        4px 12px 0 #2ecc71, 8px 12px 0 #27ae60, 12px 12px 0 #27ae60, 16px 12px 0 #27ae60, 20px 12px 0 #27ae60,
+        8px 16px 0 #27ae60, 12px 16px 0 #27ae60, 16px 16px 0 #27ae60,
+        8px 20px 0 #1a5e38, 16px 20px 0 #1a5e38,
+        4px 24px 0 #1a5e38, 20px 24px 0 #1a5e38;"></span>
+      <div class="speech-bubble" id="npc-bubble-6">The portals lead to other worlds... dare to enter?</div>
+    </div>
   </section>
 
   <!-- Footer -->
@@ -999,6 +1267,25 @@
 
 <div id="ach-unlock" class="ach-unlock">🏆 Achievement Unlocked!</div>
 <div id="pixel-char" aria-hidden="true"></div>
+
+<!-- Game HUD -->
+<div id="game-hud" aria-hidden="true">
+  <span class="hud-line">🪙 <span id="hud-coins">0</span>/8</span>
+  <span class="hud-line">SCORE: <span id="hud-score">0</span></span>
+</div>
+
+<!-- Game Instructions Overlay -->
+<div id="game-instructions" aria-hidden="true">
+  <div class="inst-title">🎮 GAME MODE</div>
+  <div>Arrow keys: Move character</div>
+  <div>Collect coins: 🪙 × 8</div>
+  <div>Talk to NPCs: Walk close!</div>
+</div>
+
+<!-- Victory Banner -->
+<div id="victory-banner" aria-hidden="true">
+  🎉 ALL COINS COLLECTED!<br>+500 BONUS
+</div>
 
 <script>
   // -- Stars --
@@ -1171,6 +1458,187 @@
   if (window.innerWidth < 768) {
     pixelChar.style.display = 'none';
   }
+
+  // =============================================
+  // GAME LAYER: Coins, NPCs, HUD, Sounds, Victory
+  // =============================================
+
+  // -- Web Audio context (lazy init) --
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function playCoinSound() {
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.08);
+      osc.frequency.setValueAtTime(1047, ctx.currentTime + 0.16);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.35);
+    } catch(e) {}
+  }
+
+  function playCompleteSound() {
+    try {
+      const ctx = getAudioCtx();
+      const notes = [523, 659, 784, 1047, 1319];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.type = 'square';
+        const t = ctx.currentTime + i * 0.12;
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.start(t);
+        osc.stop(t + 0.25);
+      });
+    } catch(e) {}
+  }
+
+  // -- Game state --
+  let coinsCollected = 0;
+  let score = 0;
+  const totalCoins = 8;
+  let victoryTriggered = false;
+
+  const hudCoins = document.getElementById('hud-coins');
+  const hudScore = document.getElementById('hud-score');
+
+  function updateHUD() {
+    if (hudCoins) hudCoins.textContent = coinsCollected;
+    if (hudScore) hudScore.textContent = score;
+  }
+
+  // -- Sparkle effect at viewport coords --
+  function spawnSparkles(vx, vy) {
+    const symbols = ['✦','★','✧','✨'];
+    for (let i = 0; i < 6; i++) {
+      const s = document.createElement('div');
+      s.className = 'sparkle';
+      s.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 30 + Math.random() * 40;
+      s.style.left = (vx - 7) + 'px';
+      s.style.top = (vy - 7) + 'px';
+      s.style.setProperty('--sx', (Math.cos(angle) * dist) + 'px');
+      s.style.setProperty('--sy', (Math.sin(angle) * dist) + 'px');
+      s.style.animationDelay = (Math.random() * 0.1) + 's';
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 800);
+    }
+  }
+
+  // -- Confetti burst --
+  function spawnConfetti(vx, vy) {
+    const colors = ['#ffd700','#ff6b6b','#4ade80','#818cf8','#60a5fa','#f97316'];
+    for (let i = 0; i < 30; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 80 + Math.random() * 120;
+      c.style.left = vx + 'px';
+      c.style.top = vy + 'px';
+      c.style.setProperty('--cx', (Math.cos(angle) * dist) + 'px');
+      c.style.setProperty('--cy', (Math.sin(angle) * dist) + 'px');
+      c.style.animationDelay = (Math.random() * 0.3) + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 1800);
+    }
+  }
+
+  // -- Victory --
+  function triggerVictory() {
+    if (victoryTriggered) return;
+    victoryTriggered = true;
+    score += 500;
+    updateHUD();
+    playCompleteSound();
+    const banner = document.getElementById('victory-banner');
+    if (banner) {
+      banner.classList.add('show');
+      setTimeout(() => banner.classList.remove('show'), 4000);
+    }
+    spawnConfetti(window.innerWidth / 2, window.innerHeight / 2);
+  }
+
+  // -- Coin collection --
+  function collectCoin(coinEl) {
+    if (coinEl.classList.contains('collected')) return;
+    coinEl.classList.add('collected');
+    coinsCollected++;
+    score += 100;
+    updateHUD();
+    const rect = coinEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    spawnSparkles(cx, cy);
+    playCoinSound();
+    if (coinsCollected >= totalCoins) {
+      setTimeout(triggerVictory, 400);
+    }
+  }
+
+  // -- Collision detection loop (only on desktop) --
+  function runGameLoop() {
+    if (window.innerWidth < 768) return;
+
+    const coins = document.querySelectorAll('.game-coin:not(.collected)');
+    const npcs = document.querySelectorAll('.game-npc');
+
+    // Player center in viewport coords
+    const px = charX + 16;
+    const py = charY + 16;
+
+    coins.forEach(coin => {
+      const r = coin.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      const dist = Math.hypot(px - cx, py - cy);
+      if (dist < 24) collectCoin(coin);
+    });
+
+    npcs.forEach(npc => {
+      const r = npc.getBoundingClientRect();
+      const nx = r.left + r.width / 2;
+      const ny = r.top + r.height / 2;
+      const dist = Math.hypot(px - nx, py - ny);
+      const bubble = npc.querySelector('.speech-bubble');
+      if (bubble) {
+        if (dist < 60) {
+          bubble.classList.add('visible');
+        } else {
+          bubble.classList.remove('visible');
+        }
+      }
+    });
+
+    requestAnimationFrame(runGameLoop);
+  }
+
+  // -- Show game instructions after title dismiss --
+  onTitleDismissCallbacks.push(() => {
+    if (window.innerWidth < 768) return;
+    const inst = document.getElementById('game-instructions');
+    if (inst) {
+      inst.classList.add('show');
+      setTimeout(() => inst.classList.remove('show'), 3000);
+    }
+    requestAnimationFrame(runGameLoop);
+  });
 </script>
 </body>
 </html>
