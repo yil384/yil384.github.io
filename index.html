@@ -868,6 +868,29 @@
       0%   { opacity: 0.6; }
       100% { opacity: 0; }
     }
+    /* -- Click-to-move target -- */
+    .move-target {
+      position: fixed;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+      z-index: 85;
+      border: 2px solid var(--green);
+      border-radius: 50%;
+      animation: moveTargetPulse 0.6s ease-out forwards;
+    }
+    .move-target::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border: 1px solid var(--green);
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+    @keyframes moveTargetPulse {
+      0% { transform: scale(2); opacity: 0.8; }
+      100% { transform: scale(0.5); opacity: 0; }
+    }
 
     /* -- Combo text -- */
     .combo-text {
@@ -1005,8 +1028,8 @@
     /* -- Enemy sprites -- */
     .game-enemy { position: absolute; z-index: 80; pointer-events: none; }
     .enemy-sprite { position: relative; width: 28px; height: 24px; }
-    .enemy-hp-bar { width: 28px; height: 4px; background: #1e293b; border-radius: 1px; margin-bottom: 2px; overflow: hidden; }
-    .enemy-hp-fill { height: 100%; background: var(--red); border-radius: 1px; transition: width 0.2s; }
+    .enemy-hp-bar { width: 28px; height: 4px; background: #1e293b; border-radius: 1px; margin-bottom: 2px; overflow: hidden; position: relative; z-index: 5; }
+    .enemy-hp-fill { height: 100%; width: 100%; background: #ef4444; border-radius: 1px; transition: width 0.2s; }
     .game-enemy.hit .enemy-sprite { filter: brightness(10); }
     .game-enemy.dead { opacity: 0; transition: opacity 0.5s; pointer-events: none; }
 
@@ -1081,22 +1104,38 @@
     }
     .boss-enemy.hit .enemy-sprite { filter: brightness(10); }
 
-    /* -- Attack animation -- */
-    #pixel-char.attacking::before {
-      content: '';
-      position: absolute;
-      width: 24px;
-      height: 4px;
-      background: var(--gold);
-      top: 12px;
-      left: 28px;
-      animation: slashAnim 0.2s ease-out forwards;
-      box-shadow: 0 0 8px rgba(255,215,0,0.6);
+    /* -- Attack animation (radial slash) -- */
+    .slash-effect {
+      position: fixed;
+      width: 40px;
+      height: 40px;
+      pointer-events: none;
+      z-index: 95;
+      border: 3px solid var(--gold);
+      border-radius: 50%;
+      animation: slashRadial 0.25s ease-out forwards;
+      box-shadow: 0 0 12px rgba(255,215,0,0.5), inset 0 0 8px rgba(255,215,0,0.3);
     }
-    @keyframes slashAnim {
-      0% { transform: scaleX(0); opacity: 1; }
-      50% { transform: scaleX(1); opacity: 1; }
-      100% { transform: scaleX(0); opacity: 0; }
+    @keyframes slashRadial {
+      0% { transform: scale(0.3); opacity: 1; }
+      60% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+    /* directional slash line */
+    .slash-line {
+      position: fixed;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      pointer-events: none;
+      z-index: 95;
+      animation: slashLineFade 0.2s ease-out forwards;
+      box-shadow: 0 0 8px rgba(255,215,0,0.6);
+      transform-origin: left center;
+    }
+    @keyframes slashLineFade {
+      0% { opacity: 1; width: 0px; }
+      50% { opacity: 1; width: 36px; }
+      100% { opacity: 0; width: 36px; }
     }
 
     /* -- Fireball -- */
@@ -1749,6 +1788,7 @@
 <!-- Game Instructions Overlay -->
 <div id="game-instructions" aria-hidden="true">
   <div class="inst-title">CONTROLS</div>
+  <div>Click / Right-Click: Move (LOL style!)</div>
   <div>Arrow Keys: Move</div>
   <div>Space: Attack</div>
   <div>Walk near NPCs to interact</div>
@@ -1948,6 +1988,46 @@
   const keysHeld = {};
   let charWalking = false;
 
+  // -- Click-to-move (LOL style) --
+  let moveTargetX = null, moveTargetY = null;
+  let isClickMoving = false;
+
+  document.addEventListener('click', (e) => {
+    if (gameOverActive || !titleDismissed) return;
+    // Don't trigger on UI elements
+    if (e.target.closest('#shop-menu, #typing-game, #game-over, #nav-menu, .quest-header, .equip-card, .portal-link, a, button, #status-bar')) return;
+    if (window.innerWidth < 768) return;
+
+    moveTargetX = e.clientX - 16;
+    moveTargetY = e.clientY - 16;
+    isClickMoving = true;
+
+    // Show target indicator
+    const marker = document.createElement('div');
+    marker.className = 'move-target';
+    marker.style.left = (e.clientX - 8) + 'px';
+    marker.style.top = (e.clientY - 8) + 'px';
+    document.body.appendChild(marker);
+    setTimeout(() => marker.remove(), 600);
+  });
+
+  // Right-click also sets move target (like LOL)
+  document.addEventListener('contextmenu', (e) => {
+    if (gameOverActive || !titleDismissed) return;
+    if (window.innerWidth < 768) return;
+    e.preventDefault();
+    moveTargetX = e.clientX - 16;
+    moveTargetY = e.clientY - 16;
+    isClickMoving = true;
+
+    const marker = document.createElement('div');
+    marker.className = 'move-target';
+    marker.style.left = (e.clientX - 8) + 'px';
+    marker.style.top = (e.clientY - 8) + 'px';
+    document.body.appendChild(marker);
+    setTimeout(() => marker.remove(), 600);
+  });
+
   document.addEventListener('keydown', (e) => {
     if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
       e.preventDefault();
@@ -1980,15 +2060,41 @@
   function updateChar() {
     if (gameOverActive) return;
     let moved = false;
+
+    // Keyboard movement (arrow keys cancel click-move)
+    const anyKey = keysHeld['ArrowUp'] || keysHeld['ArrowDown'] || keysHeld['ArrowLeft'] || keysHeld['ArrowRight'];
+    if (anyKey) isClickMoving = false;
+
     if (keysHeld['ArrowUp'])    { charY -= charSpeed; moved = true; }
     if (keysHeld['ArrowDown'])  { charY += charSpeed; moved = true; }
     if (keysHeld['ArrowLeft'])  { charX -= charSpeed; moved = true; }
     if (keysHeld['ArrowRight']) { charX += charSpeed; moved = true; }
 
-    if (charY < 40 && keysHeld['ArrowUp']) {
+    // Click-to-move (LOL style pathfinding)
+    if (isClickMoving && moveTargetX !== null) {
+      const dx = moveTargetX - charX;
+      const dy = moveTargetY - charY;
+      const dist = Math.hypot(dx, dy);
+      if (dist < charSpeed + 2) {
+        // Arrived
+        charX = moveTargetX;
+        charY = moveTargetY;
+        isClickMoving = false;
+        moveTargetX = null;
+        moveTargetY = null;
+      } else {
+        // Move toward target
+        charX += (dx / dist) * charSpeed;
+        charY += (dy / dist) * charSpeed;
+        moved = true;
+      }
+    }
+
+    // Edge scrolling — push page when near viewport edges
+    if (charY < 40 && (keysHeld['ArrowUp'] || (isClickMoving && moveTargetY < charY))) {
       window.scrollBy(0, -charSpeed * 2);
     }
-    if (charY > window.innerHeight - 60 && keysHeld['ArrowDown']) {
+    if (charY > window.innerHeight - 60 && (keysHeld['ArrowDown'] || (isClickMoving && moveTargetY > charY))) {
       window.scrollBy(0, charSpeed * 2);
     }
 
@@ -2543,15 +2649,45 @@
     lastAttackTime = now;
 
     playAttackSound();
-    pixelChar.classList.add('attacking');
-    setTimeout(() => pixelChar.classList.remove('attacking'), 200);
+
+    // Radial slash effect at player position
+    const slash = document.createElement('div');
+    slash.className = 'slash-effect';
+    slash.style.left = (charX + 16 - 20) + 'px';
+    slash.style.top = (charY + 16 - 20) + 'px';
+    document.body.appendChild(slash);
+    setTimeout(() => slash.remove(), 250);
+
+    // Find nearest target for directional slash line
+    let nearestDist = Infinity;
+    let nearestX = charX + 40, nearestY = charY + 16; // default: right
+    const px = charX + 16, py = charY + 16;
+
+    enemyStates.forEach(state => {
+      if (state.dead) return;
+      const r = state.el.getBoundingClientRect();
+      const d = Math.hypot(px - (r.left + r.width/2), py - (r.top + r.height/2));
+      if (d < nearestDist) { nearestDist = d; nearestX = r.left + r.width/2; nearestY = r.top + r.height/2; }
+    });
+    if (!bossDefeated && bossEl) {
+      const r = bossEl.getBoundingClientRect();
+      const d = Math.hypot(px - (r.left + r.width/2), py - (r.top + r.height/2));
+      if (d < nearestDist) { nearestDist = d; nearestX = r.left + r.width/2; nearestY = r.top + r.height/2; }
+    }
+
+    // Directional slash line toward nearest target
+    const angle = Math.atan2(nearestY - py, nearestX - px);
+    const line = document.createElement('div');
+    line.className = 'slash-line';
+    line.style.left = px + 'px';
+    line.style.top = (py - 2) + 'px';
+    line.style.transform = `rotate(${angle}rad)`;
+    document.body.appendChild(line);
+    setTimeout(() => line.remove(), 200);
 
     const baseDamage = powerBoostActive ? 20 : 10;
     const comboDamage = comboCount >= 2 ? 5 : 0;
     const totalDamage = baseDamage + comboDamage;
-
-    const px = charX + 16;
-    const py = charY + 16;
 
     // Check enemies
     enemyStates.forEach(state => {
