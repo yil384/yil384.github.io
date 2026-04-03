@@ -3662,8 +3662,8 @@
   function updateBars() {
     const hpPct = Math.max(0, playerHP / playerMaxHP * 100);
     const mpPct = Math.max(0, playerMP / playerMaxMP * 100);
-    if (hpBar) hpBar.style.width = hpPct + '%';
-    if (mpBar) mpBar.style.width = mpPct + '%';
+    if (hpBar) { hpBar.style.width = hpPct + '%'; hpBar.style.background = '#4ade80'; hpBar.style.boxShadow = '0 0 8px rgba(74,222,128,0.6)'; }
+    if (mpBar) { mpBar.style.width = mpPct + '%'; mpBar.style.background = '#818cf8'; mpBar.style.boxShadow = '0 0 8px rgba(129,140,248,0.6)'; }
     if (hpNumbers) hpNumbers.textContent = Math.round(playerHP) + '/' + playerMaxHP;
     if (mpNumbers) mpNumbers.textContent = Math.round(playerMP) + '/' + playerMaxMP;
     updateExpBar();
@@ -3673,7 +3673,7 @@
   function updateExpBar() {
     const xpNeeded = playerLevel * 50;
     const pct = Math.min(playerXP / xpNeeded * 100, 100);
-    if (expBar) expBar.style.width = pct + '%';
+    if (expBar) { expBar.style.width = pct + '%'; expBar.style.background = '#ffd700'; expBar.style.boxShadow = '0 0 8px rgba(255,215,0,0.6)'; }
   }
 
   function gainXP(amount) {
