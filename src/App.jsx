@@ -76,6 +76,7 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Wait for engine initialization
   if (!state || !engine) return null;
 
   return (
