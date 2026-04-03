@@ -1688,6 +1688,239 @@
       #world-bg-far, #world-bg-mid, #world-particles { display: none; }
       .pixel-torch { display: none; }
       #skill-bar { display: none; }
+      #minimap { display: none; }
+      #companion-pet { display: none; }
+      #achievement-panel { display: none; }
+      #memory-game { display: none; }
+      .ach-hud-btn { display: none !important; }
+    }
+
+    /* ========== ACHIEVEMENT SYSTEM ========== */
+    #achievement-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #achievement-panel.hidden { display: none; }
+    .ach-panel-inner {
+      background: var(--bg);
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .ach-panel-title {
+      font-family: var(--font-pixel);
+      font-size: 14px;
+      color: var(--gold);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .ach-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .ach-item {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px;
+      text-align: center;
+      opacity: 0.4;
+      transition: opacity 0.3s, border-color 0.3s;
+    }
+    .ach-item.unlocked {
+      opacity: 1;
+      border-color: var(--gold);
+      background: rgba(255,215,0,0.05);
+    }
+    .ach-item-icon { font-size: 24px; margin-bottom: 4px; }
+    .ach-item-name { font-family: var(--font-pixel); font-size: 7px; color: var(--text); }
+    .ach-item-desc { font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+    .ach-counter { font-family: var(--font-pixel); font-size: 9px; color: var(--text-muted); text-align: center; margin-top: 12px; }
+    .ach-hud-btn {
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 0 4px;
+      pointer-events: auto;
+    }
+    .ach-notification {
+      position: fixed;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--gold);
+      background: rgba(15,15,35,0.97);
+      border: 2px solid var(--gold);
+      padding: 12px 24px;
+      border-radius: 4px;
+      z-index: 400;
+      pointer-events: none;
+      transition: top 0.4s ease-out;
+      box-shadow: 0 0 16px rgba(255,215,0,0.3);
+      white-space: nowrap;
+    }
+    .ach-notification.show { top: 60px; }
+
+    /* ========== MINI-MAP ========== */
+    #minimap {
+      position: fixed;
+      top: 52px;
+      right: 12px;
+      width: 60px;
+      height: 120px;
+      background: rgba(15,15,35,0.85);
+      border: 2px solid var(--gold);
+      border-radius: 4px;
+      z-index: 95;
+      overflow: hidden;
+    }
+    #minimap-viewport {
+      position: absolute;
+      border: 1px solid var(--green);
+      background: rgba(74,222,128,0.1);
+      pointer-events: none;
+      transition: top 0.2s;
+      left: 0;
+      width: 100%;
+    }
+    .minimap-dot {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+    }
+    .minimap-dot.player { background: var(--green); box-shadow: 0 0 4px var(--green); }
+    .minimap-dot.enemy { background: var(--red); }
+    .minimap-dot.npc { background: var(--blue); }
+    .minimap-dot.boss { background: var(--gold); width: 5px; height: 5px; }
+    .minimap-dot.coin { background: var(--gold); width: 2px; height: 2px; }
+
+    /* ========== MEMORY MATCH MINI-GAME ========== */
+    #memory-game {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #memory-game.hidden { display: none; }
+    .memory-inner {
+      background: var(--bg);
+      border: 2px solid var(--purple);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+    }
+    .memory-title { font-family: var(--font-pixel); font-size: 12px; color: var(--purple); margin-bottom: 16px; }
+    .memory-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 60px);
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .memory-card {
+      width: 60px;
+      height: 60px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.03);
+      transition: transform 0.3s, border-color 0.2s;
+      user-select: none;
+    }
+    .memory-card.flipped { border-color: var(--purple); background: rgba(129,140,248,0.1); }
+    .memory-card.matched { border-color: var(--green); background: rgba(74,222,128,0.1); opacity: 0.6; }
+    .memory-card:not(.flipped):not(.matched) { font-size: 0; }
+    .memory-card:not(.flipped):not(.matched)::after { content: '?'; font-size: 20px; color: var(--text-muted); font-family: var(--font-pixel); }
+    .memory-stats { font-family: var(--font-pixel); font-size: 8px; color: var(--text-dim); }
+    .memory-close {
+      display: inline-block; margin-top: 12px; padding: 8px 20px;
+      background: none; border: 1px solid var(--border); color: var(--text-muted);
+      cursor: pointer; border-radius: 4px; font-size: 9px; font-family: var(--font-pixel);
+    }
+    .memory-close:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ========== COMPANION PET ========== */
+    #companion-pet {
+      position: fixed;
+      width: 24px;
+      height: 24px;
+      z-index: 89;
+      pointer-events: none;
+      transform: scale(0.7);
+    }
+    #companion-pet.hidden { display: none; }
+    .pet-heart {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      animation: petHeartRise 1.5s ease-out forwards;
+      pointer-events: none;
+    }
+    @keyframes petHeartRise {
+      0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+    }
+    .pet-fireball {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background: radial-gradient(circle, #fbbf24, #f97316);
+      border-radius: 50%;
+      z-index: 88;
+      box-shadow: 0 0 6px rgba(249,115,22,0.7);
+      pointer-events: none;
+    }
+
+    /* ========== ENHANCED GAME OVER ========== */
+    #game-over { background: rgba(80,0,0,0.85) !important; }
+    .game-over-title {
+      font-family: var(--font-pixel);
+      font-size: 24px;
+      color: var(--gold);
+      animation: gameOverGlitch 0.5s step-end infinite;
+    }
+    @keyframes gameOverGlitch {
+      0% { text-shadow: 2px 0 var(--red), -2px 0 var(--blue); }
+      25% { text-shadow: -2px 0 var(--red), 2px 0 var(--blue); }
+      50% { text-shadow: 2px 2px var(--red), -2px -2px var(--blue); }
+      75% { text-shadow: -2px 2px var(--red), 2px -2px var(--blue); }
+      100% { text-shadow: 2px 0 var(--red), -2px 0 var(--blue); }
+    }
+    .game-over-stats {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-dim);
+      margin-top: 16px;
+      line-height: 2;
+    }
+    .respawn-btn {
+      animation: respawnPulse 1.5s ease-in-out infinite !important;
+    }
+    @keyframes respawnPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.4); }
+      50% { box-shadow: 0 0 16px 4px rgba(255,215,0,0.3); }
     }
   </style>
 </head>
@@ -2158,7 +2391,7 @@
 
 <!-- Game HUD -->
 <div id="game-hud" aria-hidden="true">
-  <span class="hud-line">🪙 <span id="hud-coins">0</span>/8</span>
+  <span class="hud-line">🪙 <span id="hud-coins">0</span>/8 <button class="ach-hud-btn" onclick="toggleAchievementPanel()" title="Achievements">🏆</button></span>
   <span class="hud-line">SCORE: <span id="hud-score">0</span></span>
 </div>
 
@@ -2224,15 +2457,50 @@
 <!-- Game Over -->
 <div id="game-over" class="hidden">
   <div class="game-over-inner">
-    <div class="pixel-font gold" style="font-size:24px;">GAME OVER</div>
+    <div class="game-over-title">GAME OVER</div>
     <p class="pixel-font" style="font-size:9px;margin-top:16px;">You were defeated!</p>
-    <p style="margin-top:8px;">Score: <span id="go-score">0</span> | Level: <span id="go-level">1</span></p>
+    <div class="game-over-stats">
+      <div>Enemies Defeated: <span id="go-enemies" style="color:var(--gold);">0</span></div>
+      <div>Coins Collected: <span id="go-coins" style="color:var(--gold);">0</span></div>
+      <div>Score: <span id="go-score" style="color:var(--gold);">0</span></div>
+      <div>Level: <span id="go-level" style="color:var(--gold);">1</span></div>
+      <div>Time Played: <span id="go-time" style="color:var(--gold);">0:00</span></div>
+      <div>Achievements: <span id="go-achs" style="color:var(--gold);">0</span>/12</div>
+    </div>
     <button class="respawn-btn pixel-font" onclick="respawn()">RESPAWN</button>
   </div>
 </div>
 
 <!-- Buff Indicator -->
 <div class="buff-indicator" id="buff-indicator"></div>
+
+<!-- Achievement Panel -->
+<div id="achievement-panel" class="hidden"></div>
+
+<!-- Achievement Notification Banner -->
+<div id="ach-notification" class="ach-notification"></div>
+
+<!-- Mini-Map -->
+<div id="minimap">
+  <div id="minimap-viewport"></div>
+</div>
+
+<!-- Memory Match Game -->
+<div id="memory-game" class="hidden">
+  <div class="memory-inner pixel-border">
+    <div class="memory-title pixel-font">KIRBY'S MEMORY MATCH</div>
+    <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Match the programming language pairs!</p>
+    <div class="memory-grid" id="memory-grid"></div>
+    <div class="memory-stats pixel-font">Time: <span id="memory-time">0.0</span>s | Pairs: <span id="memory-pairs">0</span>/6</div>
+    <div id="memory-result" style="margin-top:8px;font-family:var(--font-pixel);font-size:10px;"></div>
+    <button class="memory-close" onclick="closeMemoryGame()">Close</button>
+  </div>
+</div>
+
+<!-- Companion Pet -->
+<div id="companion-pet" class="hidden" aria-hidden="true">
+  <div class="pet-sprite npc-charmander"></div>
+</div>
 
 <script>
   // -- Stars --
@@ -2264,6 +2532,7 @@
   let gameOverActive = false;
   let shopOpen = false;
   let typingOpen = false;
+  var memoryGameOpen = false;
 
   // -- Title Screen Dismiss --
   let titleDismissed = false;
@@ -2373,7 +2642,7 @@
   document.addEventListener('click', (e) => {
     if (gameOverActive || !titleDismissed) return;
     // Don't trigger on UI elements
-    if (e.target.closest('#shop-menu, #typing-game, #game-over, #nav-menu, .quest-header, .equip-card, .portal-link, a, button, #status-bar')) return;
+    if (e.target.closest('#shop-menu, #typing-game, #game-over, #nav-menu, #achievement-panel, #memory-game, .quest-header, .equip-card, .portal-link, a, button, #status-bar')) return;
     if (window.innerWidth < 768) return;
 
     moveTargetX = e.clientX - 16;
@@ -3029,7 +3298,7 @@
   // COMBAT / ATTACK
   // =============================================
   function playerAttack() {
-    if (gameOverActive || shopOpen || typingOpen) return;
+    if (gameOverActive || shopOpen || typingOpen || memoryGameOpen) return;
     const now = Date.now();
     if (now - lastAttackTime < 400) return;
     lastAttackTime = now;
@@ -3636,7 +3905,7 @@
   };
 
   function castSkill(name) {
-    if (gameOverActive || shopOpen || typingOpen) return;
+    if (gameOverActive || shopOpen || typingOpen || memoryGameOpen) return;
     if (!titleDismissed) return;
     if (window.innerWidth < 768) return;
     const skill = skills[name];
@@ -4237,6 +4506,671 @@
     if (window.innerWidth >= 768 && skillBarEl) {
       skillBarEl.style.display = 'flex';
     }
+  });
+
+  // =============================================
+  // ACHIEVEMENT SYSTEM
+  // =============================================
+  const achievements = {
+    firstBlood: { name: 'First Blood', icon: '\u{1F5E1}\uFE0F', desc: 'Defeat your first enemy', unlocked: false },
+    coinCollector: { name: 'Coin Collector', icon: '\u{1FA99}', desc: 'Collect 4 coins', unlocked: false },
+    treasureHunter: { name: 'Treasure Hunter', icon: '\u{1F48E}', desc: 'Collect all 8 coins', unlocked: false },
+    dragonSlayer: { name: 'Dragon Slayer', icon: '\u{1F409}', desc: 'Defeat the Dragon King', unlocked: false },
+    speedTyper: { name: 'Speed Typer', icon: '\u2328\uFE0F', desc: 'Type challenge < 3 seconds', unlocked: false },
+    shoppingSoree: { name: 'Shopping Spree', icon: '\u{1F6D2}', desc: 'Buy 3 items', unlocked: false },
+    level5: { name: 'Level 5', icon: '\u2B50', desc: 'Reach level 5', unlocked: false },
+    level10: { name: 'Level 10', icon: '\u{1F31F}', desc: 'Reach level 10', unlocked: false },
+    spellMaster: { name: 'Spell Master', icon: '\u{1F52E}', desc: 'Use all 4 skills', unlocked: false },
+    critical: { name: 'Critical!', icon: '\u{1F4A5}', desc: 'Land a critical hit', unlocked: false },
+    survivor: { name: 'Survivor', icon: '\u{1F480}', desc: 'Respawn after game over', unlocked: false },
+    explorer: { name: 'Explorer', icon: '\u{1F5FA}\uFE0F', desc: 'Talk to all 6 NPCs', unlocked: false },
+  };
+
+  // Achievement tracking state
+  let totalEnemiesDefeated = parseInt(localStorage.getItem('rpg_enemies_defeated') || '0');
+  let totalPurchases = parseInt(localStorage.getItem('rpg_purchases') || '0');
+  let skillsUsed = JSON.parse(localStorage.getItem('rpg_skills_used') || '{}');
+  let gameStartTime = Date.now();
+  // memoryGameOpen declared earlier as var
+  let memoryCooldown = 0;
+
+  // Load saved achievements
+  const savedAchievements = JSON.parse(localStorage.getItem('rpg_achievements') || '{}');
+  Object.keys(savedAchievements).forEach(key => {
+    if (achievements[key]) achievements[key].unlocked = savedAchievements[key];
+  });
+
+  function saveAchievements() {
+    const data = {};
+    Object.keys(achievements).forEach(k => data[k] = achievements[k].unlocked);
+    localStorage.setItem('rpg_achievements', JSON.stringify(data));
+  }
+
+  function getAchievementCount() {
+    return Object.values(achievements).filter(a => a.unlocked).length;
+  }
+
+  function playAchievementSound() {
+    try {
+      const ctx = getAudioCtx();
+      const notes = [659, 784, 1047, 1319, 1568];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'triangle';
+        const t = ctx.currentTime + i * 0.1;
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.18, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.start(t); osc.stop(t + 0.25);
+      });
+    } catch(e) {}
+  }
+
+  function unlockAchievement(key) {
+    if (!achievements[key] || achievements[key].unlocked) return;
+    achievements[key].unlocked = true;
+    saveAchievements();
+    playAchievementSound();
+
+    const notif = document.getElementById('ach-notification');
+    if (notif) {
+      notif.textContent = '\u{1F3C6} Achievement Unlocked: ' + achievements[key].name + '!';
+      notif.classList.add('show');
+      setTimeout(() => notif.classList.remove('show'), 3000);
+    }
+  }
+
+  function checkAchievements() {
+    // Coin achievements
+    if (coinsCollected >= 4) unlockAchievement('coinCollector');
+    if (coinsCollected >= 8) unlockAchievement('treasureHunter');
+    // Level achievements
+    if (playerLevel >= 5) unlockAchievement('level5');
+    if (playerLevel >= 10) unlockAchievement('level10');
+    // Explorer
+    if (talkedNpcs.size >= 6) unlockAchievement('explorer');
+    // Spell master
+    if (skillsUsed.fireball && skillsUsed.heal && skillsUsed.lightning && skillsUsed.ultimate) {
+      unlockAchievement('spellMaster');
+    }
+    // Shopping spree
+    if (totalPurchases >= 3) unlockAchievement('shoppingSoree');
+  }
+
+  function toggleAchievementPanel() {
+    const panel = document.getElementById('achievement-panel');
+    if (!panel) return;
+    if (panel.classList.contains('hidden')) {
+      renderAchievementPanel();
+      panel.classList.remove('hidden');
+    } else {
+      panel.classList.add('hidden');
+    }
+  }
+  window.toggleAchievementPanel = toggleAchievementPanel;
+
+  function renderAchievementPanel() {
+    const panel = document.getElementById('achievement-panel');
+    if (!panel) return;
+    const count = getAchievementCount();
+    let html = '<div class="ach-panel-inner">';
+    html += '<div class="ach-panel-title">ACHIEVEMENTS</div>';
+    html += '<div class="ach-grid">';
+    Object.keys(achievements).forEach(key => {
+      const a = achievements[key];
+      html += '<div class="ach-item' + (a.unlocked ? ' unlocked' : '') + '">';
+      html += '<div class="ach-item-icon">' + a.icon + '</div>';
+      html += '<div class="ach-item-name">' + a.name + '</div>';
+      html += '<div class="ach-item-desc">' + a.desc + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '<div class="ach-counter">' + count + ' / 12 Unlocked</div>';
+    html += '<button class="memory-close" style="margin-top:12px;display:block;width:100%;" onclick="toggleAchievementPanel()">Close</button>';
+    html += '</div>';
+    panel.innerHTML = html;
+  }
+
+  // Close achievement panel when clicking outside
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('achievement-panel');
+    if (panel && !panel.classList.contains('hidden') && e.target === panel) {
+      panel.classList.add('hidden');
+    }
+  });
+
+  // =============================================
+  // MINI-MAP SYSTEM
+  // =============================================
+  function updateMinimap() {
+    if (window.innerWidth < 768) return;
+    const minimap = document.getElementById('minimap');
+    if (!minimap || !titleDismissed) return;
+
+    const docH = document.documentElement.scrollHeight;
+    const vh = window.innerHeight;
+    const scrollY = window.scrollY;
+    const mapH = 120;
+    const mapW = 60;
+
+    // Update viewport indicator
+    const vpEl = document.getElementById('minimap-viewport');
+    if (vpEl) {
+      const vpTop = (scrollY / docH) * mapH;
+      const vpH = Math.max(8, (vh / docH) * mapH);
+      vpEl.style.top = vpTop + 'px';
+      vpEl.style.height = vpH + 'px';
+    }
+
+    // Remove old dots
+    minimap.querySelectorAll('.minimap-dot').forEach(d => d.remove());
+
+    // Player dot
+    const playerDocY = scrollY + charY;
+    const playerMapY = (playerDocY / docH) * mapH;
+    const playerMapX = (charX / window.innerWidth) * mapW;
+    const pDot = document.createElement('div');
+    pDot.className = 'minimap-dot player';
+    pDot.style.left = Math.max(0, Math.min(mapW - 3, playerMapX)) + 'px';
+    pDot.style.top = Math.max(0, Math.min(mapH - 3, playerMapY)) + 'px';
+    minimap.appendChild(pDot);
+
+    // Enemy dots
+    enemyStates.forEach(state => {
+      if (state.dead) return;
+      const r = state.el.getBoundingClientRect();
+      const eDocY = scrollY + r.top + r.height / 2;
+      const eMapY = (eDocY / docH) * mapH;
+      const eMapX = ((r.left + r.width / 2) / window.innerWidth) * mapW;
+      const dot = document.createElement('div');
+      dot.className = 'minimap-dot enemy';
+      dot.style.left = Math.max(0, Math.min(mapW - 3, eMapX)) + 'px';
+      dot.style.top = Math.max(0, Math.min(mapH - 3, eMapY)) + 'px';
+      minimap.appendChild(dot);
+    });
+
+    // Boss dot
+    if (!bossDefeated && bossEl) {
+      const r = bossEl.getBoundingClientRect();
+      const bDocY = scrollY + r.top + r.height / 2;
+      const bMapY = (bDocY / docH) * mapH;
+      const bMapX = ((r.left + r.width / 2) / window.innerWidth) * mapW;
+      const dot = document.createElement('div');
+      dot.className = 'minimap-dot boss';
+      dot.style.left = Math.max(0, Math.min(mapW - 5, bMapX)) + 'px';
+      dot.style.top = Math.max(0, Math.min(mapH - 5, bMapY)) + 'px';
+      minimap.appendChild(dot);
+    }
+
+    // NPC dots
+    document.querySelectorAll('.game-npc').forEach(npc => {
+      const r = npc.getBoundingClientRect();
+      const nDocY = scrollY + r.top + r.height / 2;
+      const nMapY = (nDocY / docH) * mapH;
+      const nMapX = ((r.left + r.width / 2) / window.innerWidth) * mapW;
+      const dot = document.createElement('div');
+      dot.className = 'minimap-dot npc';
+      dot.style.left = Math.max(0, Math.min(mapW - 3, nMapX)) + 'px';
+      dot.style.top = Math.max(0, Math.min(mapH - 3, nMapY)) + 'px';
+      minimap.appendChild(dot);
+    });
+
+    // Coin dots
+    document.querySelectorAll('.game-coin:not(.collected)').forEach(coin => {
+      const r = coin.getBoundingClientRect();
+      const cDocY = scrollY + r.top + r.height / 2;
+      const cMapY = (cDocY / docH) * mapH;
+      const cMapX = ((r.left + r.width / 2) / window.innerWidth) * mapW;
+      const dot = document.createElement('div');
+      dot.className = 'minimap-dot coin';
+      dot.style.left = Math.max(0, Math.min(mapW - 2, cMapX)) + 'px';
+      dot.style.top = Math.max(0, Math.min(mapH - 2, cMapY)) + 'px';
+      minimap.appendChild(dot);
+    });
+  }
+
+  // Hide minimap until title dismissed
+  const minimapEl = document.getElementById('minimap');
+  if (minimapEl) minimapEl.style.display = 'none';
+  onTitleDismissCallbacks.push(() => {
+    if (window.innerWidth >= 768 && minimapEl) minimapEl.style.display = 'block';
+  });
+
+  // =============================================
+  // MEMORY MATCH MINI-GAME
+  // =============================================
+  const memorySymbols = ['\u{1F40D}', '\u2699\uFE0F', '\u{1F980}', '\u{1F537}', '\u{1F4DC}', '\u26A1'];
+  let memoryCards = [];
+  let memoryFlipped = [];
+  let memoryMatched = 0;
+  let memoryLocked = false;
+  let memoryStartTime = 0;
+  let memoryTimerInterval = null;
+
+  function openMemoryGame() {
+    memoryGameOpen = true;
+    document.getElementById('memory-game').classList.remove('hidden');
+    startMemoryGame();
+  }
+
+  function startMemoryGame() {
+    memoryMatched = 0;
+    memoryFlipped = [];
+    memoryLocked = false;
+    memoryStartTime = 0;
+    if (memoryTimerInterval) clearInterval(memoryTimerInterval);
+    document.getElementById('memory-time').textContent = '0.0';
+    document.getElementById('memory-pairs').textContent = '0';
+    document.getElementById('memory-result').textContent = '';
+
+    // Create shuffled deck
+    const deck = [];
+    memorySymbols.forEach(sym => { deck.push(sym); deck.push(sym); });
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    memoryCards = deck;
+
+    const grid = document.getElementById('memory-grid');
+    grid.innerHTML = '';
+    deck.forEach((sym, idx) => {
+      const card = document.createElement('div');
+      card.className = 'memory-card';
+      card.textContent = sym;
+      card.dataset.index = idx;
+      card.addEventListener('click', () => flipMemoryCard(card, idx));
+      grid.appendChild(card);
+    });
+  }
+
+  function flipMemoryCard(card, idx) {
+    if (memoryLocked) return;
+    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    if (memoryFlipped.length >= 2) return;
+
+    if (memoryStartTime === 0) {
+      memoryStartTime = Date.now();
+      memoryTimerInterval = setInterval(() => {
+        document.getElementById('memory-time').textContent = ((Date.now() - memoryStartTime) / 1000).toFixed(1);
+      }, 100);
+    }
+
+    card.classList.add('flipped');
+    memoryFlipped.push({ card, idx, sym: memoryCards[idx] });
+
+    if (memoryFlipped.length === 2) {
+      const [a, b] = memoryFlipped;
+      if (a.sym === b.sym) {
+        // Match!
+        a.card.classList.add('matched');
+        b.card.classList.add('matched');
+        memoryMatched++;
+        document.getElementById('memory-pairs').textContent = memoryMatched;
+        memoryFlipped = [];
+        playCoinSound();
+
+        if (memoryMatched === 6) {
+          if (memoryTimerInterval) clearInterval(memoryTimerInterval);
+          const elapsed = (Date.now() - memoryStartTime) / 1000;
+          document.getElementById('memory-time').textContent = elapsed.toFixed(1);
+          let reward, xpReward;
+          if (elapsed < 30) {
+            reward = 150; xpReward = 20;
+          } else {
+            reward = 80; xpReward = 10;
+          }
+          score += reward;
+          updateHUD();
+          gainXP(xpReward);
+          saveProgress();
+          document.getElementById('memory-result').innerHTML =
+            '<span style="color:var(--green);">' + elapsed.toFixed(1) + 's! +' + reward + ' coins, +' + xpReward + ' XP</span>';
+          playCompleteSound();
+        }
+      } else {
+        // No match - flip back after delay
+        memoryLocked = true;
+        setTimeout(() => {
+          a.card.classList.remove('flipped');
+          b.card.classList.remove('flipped');
+          memoryFlipped = [];
+          memoryLocked = false;
+        }, 800);
+      }
+    }
+  }
+
+  function closeMemoryGame() {
+    memoryGameOpen = false;
+    memoryCooldown = Date.now() + 2000;
+    if (memoryTimerInterval) clearInterval(memoryTimerInterval);
+    document.getElementById('memory-game').classList.add('hidden');
+  }
+  window.closeMemoryGame = closeMemoryGame;
+
+  // =============================================
+  // COMPANION PET SYSTEM
+  // =============================================
+  let petActive = localStorage.getItem('rpg_pet_active') === 'true';
+  let petX = 0, petY = 0;
+  let petOffered = false;
+  let lastPetFireball = 0;
+  const petFireballs = [];
+
+  function activatePet() {
+    petActive = true;
+    localStorage.setItem('rpg_pet_active', 'true');
+    const pet = document.getElementById('companion-pet');
+    if (pet) {
+      pet.classList.remove('hidden');
+      petX = charX - 30;
+      petY = charY + 5;
+      // Show heart
+      const heart = document.createElement('div');
+      heart.className = 'pet-heart';
+      heart.textContent = '\u2764\uFE0F';
+      pet.appendChild(heart);
+      setTimeout(() => heart.remove(), 1500);
+    }
+  }
+
+  function updatePet() {
+    if (!petActive) return;
+    const pet = document.getElementById('companion-pet');
+    if (!pet) return;
+
+    petX += (charX - 30 - petX) * 0.08;
+    petY += (charY + 5 - petY) * 0.08;
+
+    pet.style.left = petX + 'px';
+    pet.style.top = petY + 'px';
+
+    // Pet auto-attack nearby enemies every 5 seconds
+    const now = Date.now();
+    if (now - lastPetFireball > 5000) {
+      const nearest = findNearestEnemy(petX + 12, petY + 12, 200);
+      if (nearest.target && nearest.rect) {
+        lastPetFireball = now;
+        spawnPetFireball(petX + 12, petY + 12, nearest.rect.left + nearest.rect.width / 2, nearest.rect.top + nearest.rect.height / 2, nearest.target);
+      }
+    }
+
+    // Update pet fireballs
+    for (let i = petFireballs.length - 1; i >= 0; i--) {
+      const fb = petFireballs[i];
+      fb.x += fb.vx;
+      fb.y += fb.vy;
+      fb.el.style.left = fb.x + 'px';
+      fb.el.style.top = fb.y + 'px';
+
+      // Check collision
+      if (fb.target) {
+        let tx, ty;
+        if (fb.target.isBoss && bossEl) {
+          const r = bossEl.getBoundingClientRect();
+          tx = r.left + r.width / 2;
+          ty = r.top + r.height / 2;
+        } else if (fb.target.el) {
+          const r = fb.target.el.getBoundingClientRect();
+          tx = r.left + r.width / 2;
+          ty = r.top + r.height / 2;
+        }
+        if (tx !== undefined && Math.hypot(fb.x - tx, fb.y - ty) < 20) {
+          if (fb.target.isBoss) {
+            damageBoss(5);
+          } else if (!fb.target.dead) {
+            damageEnemy(fb.target, 5);
+          }
+          fb.el.remove();
+          petFireballs.splice(i, 1);
+          continue;
+        }
+      }
+
+      if (Date.now() - fb.born > 2000) {
+        fb.el.remove();
+        petFireballs.splice(i, 1);
+      }
+    }
+  }
+
+  function spawnPetFireball(fromX, fromY, toX, toY, target) {
+    const fb = document.createElement('div');
+    fb.className = 'pet-fireball';
+    fb.style.left = fromX + 'px';
+    fb.style.top = fromY + 'px';
+    document.body.appendChild(fb);
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+    const dist = Math.hypot(dx, dy) || 1;
+    const speed = 4;
+    petFireballs.push({
+      el: fb,
+      x: fromX, y: fromY,
+      vx: (dx / dist) * speed,
+      vy: (dy / dist) * speed,
+      born: Date.now(),
+      target: target
+    });
+  }
+
+  // Show pet on load if saved
+  onTitleDismissCallbacks.push(() => {
+    if (petActive && window.innerWidth >= 768) {
+      const pet = document.getElementById('companion-pet');
+      if (pet) {
+        pet.classList.remove('hidden');
+        petX = charX - 30;
+        petY = charY + 5;
+      }
+    }
+  });
+
+  // =============================================
+  // HOOK ACHIEVEMENTS INTO EXISTING SYSTEMS
+  // =============================================
+
+  // Override killEnemy to track firstBlood
+  const _originalKillEnemy = killEnemy;
+  killEnemy = function(state) {
+    _originalKillEnemy(state);
+    totalEnemiesDefeated++;
+    localStorage.setItem('rpg_enemies_defeated', totalEnemiesDefeated);
+    unlockAchievement('firstBlood');
+    checkAchievements();
+  };
+
+  // Override collectCoin to check coin achievements
+  const _originalCollectCoin = collectCoin;
+  collectCoin = function(coinEl) {
+    _originalCollectCoin(coinEl);
+    checkAchievements();
+  };
+
+  // Override damageBoss to check dragonSlayer
+  const _originalDamageBoss = damageBoss;
+  damageBoss = function(amount) {
+    _originalDamageBoss(amount);
+    if (bossDefeated) {
+      unlockAchievement('dragonSlayer');
+    }
+  };
+
+  // Override onLevelUp to check level achievements
+  const _originalOnLevelUp = onLevelUp;
+  onLevelUp = function() {
+    _originalOnLevelUp();
+    checkAchievements();
+  };
+
+  // Override buyItem to track purchases
+  const _originalBuyItem = buyItem;
+  buyItem = function(type) {
+    const oldScore = score;
+    _originalBuyItem(type);
+    if (score < oldScore) {
+      // Purchase was successful
+      totalPurchases++;
+      localStorage.setItem('rpg_purchases', totalPurchases);
+      checkAchievements();
+    }
+  };
+  window.buyItem = buyItem;
+
+  // Override castSkill to track skills used
+  const _originalCastSkill = castSkill;
+  castSkill = function(name) {
+    const oldLastCast = skills[name] ? skills[name].lastCast : 0;
+    _originalCastSkill(name);
+    if (skills[name] && skills[name].lastCast !== oldLastCast) {
+      skillsUsed[name] = true;
+      localStorage.setItem('rpg_skills_used', JSON.stringify(skillsUsed));
+      checkAchievements();
+    }
+  };
+  window.castSkill = castSkill;
+
+  // Override isCriticalHit to track crits
+  const _originalIsCriticalHit = isCriticalHit;
+  isCriticalHit = function() {
+    const result = _originalIsCriticalHit();
+    if (result) unlockAchievement('critical');
+    return result;
+  };
+
+  // Override respawn to track survivor
+  const _originalRespawn = respawn;
+  respawn = function() {
+    _originalRespawn();
+    unlockAchievement('survivor');
+  };
+  window.respawn = respawn;
+
+  // Override typing game completion to check speedTyper
+  // We hook into the typing input event listener by patching after DOM load
+  const _origTypingInput = document.getElementById('typing-input');
+  if (_origTypingInput) {
+    _origTypingInput.addEventListener('input', () => {
+      if (!typingActive) return;
+      // Check if the typing was just completed with time < 3s
+      if (_origTypingInput.classList.contains('correct') && typingStartTime > 0) {
+        const elapsed = (Date.now() - typingStartTime) / 1000;
+        if (elapsed < 3) unlockAchievement('speedTyper');
+      }
+    });
+  }
+
+  // Hook NPC talk tracking for explorer achievement
+  const _origSaveProgress = saveProgress;
+  saveProgress = function() {
+    _origSaveProgress();
+    checkAchievements();
+  };
+
+  // =============================================
+  // UPDATE GAME OVER WITH STATS
+  // =============================================
+  const _originalTriggerGameOver = triggerGameOver;
+  triggerGameOver = function() {
+    // Populate enhanced stats
+    const goEnemies = document.getElementById('go-enemies');
+    const goCoins = document.getElementById('go-coins');
+    const goTime = document.getElementById('go-time');
+    const goAchs = document.getElementById('go-achs');
+    if (goEnemies) goEnemies.textContent = totalEnemiesDefeated;
+    if (goCoins) goCoins.textContent = coinsCollected;
+    if (goTime) {
+      const secs = Math.floor((Date.now() - gameStartTime) / 1000);
+      const mins = Math.floor(secs / 60);
+      goTime.textContent = mins + ':' + String(secs % 60).padStart(2, '0');
+    }
+    if (goAchs) goAchs.textContent = getAchievementCount();
+    _originalTriggerGameOver();
+  };
+
+  // =============================================
+  // KIRBY NPC -> MEMORY GAME, CHARMANDER -> PET OFFER
+  // =============================================
+  // We need to patch the NPC interaction in the game loop.
+  // We'll do this by adding the logic to the game loop update below.
+
+  // =============================================
+  // UPDATE GAME LOOP WITH NEW SYSTEMS
+  // =============================================
+  // Patch runGameLoop by adding hooks to the existing requestAnimationFrame cycle
+  // We override the NPC interaction section inside the loop.
+  // Instead of modifying runGameLoop directly, we add a secondary loop that runs alongside.
+
+  let minimapUpdateTimer = 0;
+
+  function runNewSystems() {
+    if (window.innerWidth < 768 || !titleDismissed) {
+      requestAnimationFrame(runNewSystems);
+      return;
+    }
+
+    // Update minimap every 5 frames for performance
+    minimapUpdateTimer++;
+    if (minimapUpdateTimer % 5 === 0) {
+      updateMinimap();
+    }
+
+    // Update companion pet
+    updatePet();
+
+    // Kirby NPC (#5) opens memory game
+    const kirbyNpc = document.querySelector('.game-npc[data-npc-id="5"]');
+    if (kirbyNpc && !memoryGameOpen && !shopOpen && !typingOpen && Date.now() > memoryCooldown) {
+      const r = kirbyNpc.getBoundingClientRect();
+      const nx = r.left + r.width / 2;
+      const ny = r.top + r.height / 2;
+      const dist = Math.hypot((charX + 16) - nx, (charY + 16) - ny);
+      if (dist < 60) {
+        openMemoryGame();
+      }
+    }
+
+    // Charmander NPC (#2) offers pet after boss defeated
+    if (bossDefeated && !petActive && !petOffered) {
+      const charmanderNpc = document.querySelector('.game-npc[data-npc-id="2"]');
+      if (charmanderNpc) {
+        const r = charmanderNpc.getBoundingClientRect();
+        const nx = r.left + r.width / 2;
+        const ny = r.top + r.height / 2;
+        const dist = Math.hypot((charX + 16) - nx, (charY + 16) - ny);
+        if (dist < 60) {
+          petOffered = true;
+          // Update Charmander's bubble to offer companion
+          const bubble = document.getElementById('npc-bubble-2');
+          if (bubble) {
+            bubble.innerHTML = 'Char! You defeated the Dragon King! I want to join you! <button onclick="acceptPet()" style="display:block;margin-top:6px;padding:4px 8px;background:none;border:1px solid var(--gold);color:var(--gold);cursor:pointer;font-family:var(--font-pixel);font-size:6px;border-radius:2px;pointer-events:auto;">Accept Companion</button>';
+          }
+        }
+      }
+    }
+
+    requestAnimationFrame(runNewSystems);
+  }
+
+  function acceptPet() {
+    activatePet();
+    const bubble = document.getElementById('npc-bubble-2');
+    if (bubble) {
+      bubble.textContent = 'Char! Happy to be your companion! \u{1F525}';
+    }
+  }
+  window.acceptPet = acceptPet;
+
+  // Start new systems loop after title dismissed
+  onTitleDismissCallbacks.push(() => {
+    if (window.innerWidth >= 768) {
+      requestAnimationFrame(runNewSystems);
+    }
+    // Check achievements on load
+    checkAchievements();
   });
 </script>
 </body>
