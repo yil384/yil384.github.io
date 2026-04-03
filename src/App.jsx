@@ -132,6 +132,7 @@ export default function App() {
               score={state.score}
               enemiesDefeated={state.enemiesDefeated}
               achievementCount={engine.getAchievementCount()}
+              onResetGame={() => { if (confirm('Reset all game progress? This cannot be undone!')) engine.resetGame(); }}
             />
           </div>
 

@@ -67,6 +67,15 @@ export const Storage = {
     };
   },
 
+  clearAll() {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(PREFIX)) keys.push(key);
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+  },
+
   saveProgress(state) {
     this.set('coins', state.coins);
     this.set('score', state.score);

@@ -30,9 +30,9 @@
 .bar-label.gold { color: var(--gold); }
 .bar-track { flex: 1; height: 8px; background: #1e293b; border-radius: 2px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; min-width: 0; }
-#hp-bar, .hp-bar-fill { background: #4ade80 !important; }
-#mp-bar, .mp-bar-fill { background: #818cf8 !important; }
-#exp-bar, .exp-bar-fill { background: #ffd700 !important; }
+.bar-fill.hp-bar-fill { background-color: #4ade80 !important; }
+.bar-fill.mp-bar-fill { background-color: #818cf8 !important; }
+.bar-fill.exp-bar-fill { background-color: #ffd700 !important; }
 .bar-numbers { font-family: var(--font-pixel); font-size: 6px; color: var(--text-dim); min-width: 40px; text-align: right; }
 .level-badge { font-size: 9px; color: var(--gold); white-space: nowrap; }
 #menu-btn { background: none; border: 1px solid var(--border); color: var(--gold); font-size: 12px; padding: 4px 8px; cursor: pointer; border-radius: 4px; }

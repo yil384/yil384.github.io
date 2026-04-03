@@ -902,6 +902,12 @@ export class GameEngine {
     this.emit();
   }
 
+  // ---- RESET GAME ----
+  resetGame() {
+    Storage.clearAll();
+    window.location.reload();
+  }
+
   // ---- TUTORIAL ----
   completeTutorial() {
     this.tutorialDone = true;
