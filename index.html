@@ -77,12 +77,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    #title-screen.dismissed {
-      opacity: 0;
-      transform: translateY(-40px);
-      pointer-events: none;
+      transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease;
     }
     #stars {
       position: absolute;
@@ -1922,6 +1917,332 @@
       0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.4); }
       50% { box-shadow: 0 0 16px 4px rgba(255,215,0,0.3); }
     }
+
+    /* ========== EPIC TITLE SCREEN UPGRADE ========== */
+    .castle-silhouette {
+      position: absolute;
+      bottom: 35%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 200px;
+      opacity: 0.15;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        /* center tower */
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 140px 20px / 20px 180px,
+        /* tower top */
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 130px 10px / 40px 20px,
+        /* left tower */
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 60px 60px / 16px 140px,
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 52px 50px / 32px 16px,
+        /* right tower */
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 224px 60px / 16px 140px,
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 216px 50px / 32px 16px,
+        /* walls */
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 76px 120px / 148px 80px,
+        /* battlements left */
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 76px 110px / 10px 16px,
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 96px 110px / 10px 16px,
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 116px 110px / 10px 16px,
+        /* battlements right */
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 176px 110px / 10px 16px,
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 196px 110px / 10px 16px,
+        linear-gradient(to bottom, var(--gold) 0%, var(--gold) 100%) no-repeat 216px 110px / 10px 16px,
+        /* gate */
+        linear-gradient(to bottom, #0f0f23 0%, #0f0f23 100%) no-repeat 132px 160px / 36px 40px;
+    }
+    .title-sword {
+      position: absolute;
+      font-size: 24px;
+      opacity: 0.3;
+      animation: floatSword 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .title-sword.left { left: 15%; top: 40%; animation-delay: 0s; }
+    .title-sword.right { right: 15%; top: 38%; animation-delay: 2s; transform: scaleX(-1); }
+    .title-shield { left: 10%; top: 55%; animation-delay: 1s; }
+    .title-shield.right-s { left: auto; right: 10%; top: 52%; animation-delay: 3s; }
+    @keyframes floatSword {
+      0%, 100% { transform: translateY(0) rotate(-5deg); opacity: 0.25; }
+      50% { transform: translateY(-12px) rotate(5deg); opacity: 0.4; }
+    }
+    .title-name { display: inline-block; }
+    .title-cursor {
+      display: inline-block;
+      width: 3px;
+      background: var(--gold);
+      animation: blinkCursor 0.5s step-end infinite;
+      margin-left: 2px;
+      vertical-align: baseline;
+    }
+    @keyframes blinkCursor { 50% { opacity: 0; } }
+    .title-subtitle {
+      opacity: 0;
+      transition: opacity 1s ease, text-shadow 1s ease;
+    }
+    .title-subtitle.visible {
+      opacity: 1;
+      text-shadow: 0 0 12px rgba(129,140,248,0.5), 0 0 30px rgba(129,140,248,0.2);
+    }
+    .title-prompt {
+      animation: dramaticPulse 1.5s ease-in-out infinite !important;
+    }
+    @keyframes dramaticPulse {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); text-shadow: 0 0 8px rgba(255,215,0,0.4); }
+    }
+    /* Hyperspace dismiss */
+    #title-screen.dismissed {
+      opacity: 0;
+      transform: scale(3);
+      filter: blur(8px);
+      pointer-events: none;
+      transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease;
+    }
+    #title-screen.dismissed .star {
+      animation: starZoom 0.6s ease-in forwards !important;
+    }
+    @keyframes starZoom {
+      0% { transform: scale(1); }
+      100% { transform: scale(8); opacity: 0; }
+    }
+
+    /* ========== ZONE NAMES ========== */
+    .zone-name {
+      position: fixed;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--gold);
+      text-shadow: 0 0 10px rgba(255,215,0,0.5);
+      z-index: 150;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .zone-name.visible { opacity: 1; }
+
+    /* ========== SECTION DIVIDERS ========== */
+    .section-divider {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+    }
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .divider-icon {
+      font-size: 12px;
+      animation: dividerPulse 2s ease-in-out infinite;
+    }
+    @keyframes dividerPulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* ========== TUTORIAL OVERLAY ========== */
+    #tutorial-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 250;
+      pointer-events: none;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 100px;
+    }
+    #tutorial-overlay.hidden { display: none; }
+    .tutorial-box {
+      background: rgba(15,15,35,0.95);
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+      padding: 16px 24px;
+      text-align: center;
+      font-family: var(--font-pixel);
+      pointer-events: auto;
+      max-width: 400px;
+    }
+    .tutorial-text { font-size: 9px; color: var(--text); line-height: 1.8; margin-bottom: 12px; }
+    .tutorial-step { font-size: 7px; color: var(--text-muted); }
+    .tutorial-skip {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-muted);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .tutorial-skip:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* ========== ENHANCED DAMAGE NUMBERS ========== */
+    .damage-number.shield-block {
+      color: var(--blue) !important;
+      text-shadow: 0 0 6px rgba(96,165,250,0.6) !important;
+      font-size: 11px;
+    }
+    .damage-number.crit {
+      font-size: 18px;
+      color: var(--gold) !important;
+      text-shadow: 0 0 12px rgba(255,215,0,0.9) !important;
+      animation: dmgCritRise 1s ease-out forwards;
+    }
+    @keyframes dmgCritRise {
+      0%   { opacity: 1; transform: translateY(0) scale(0.5); }
+      15%  { transform: translateY(-5px) scale(1.3); }
+      30%  { transform: translateY(-10px) scale(1); }
+      100% { opacity: 0; transform: translateY(-40px) scale(0.8); }
+    }
+    .damage-number.heal-sparkle {
+      color: var(--green) !important;
+      text-shadow: 0 0 6px rgba(74,222,128,0.6) !important;
+    }
+
+    /* ========== WEATHER SYSTEM ========== */
+    .rain-drop {
+      position: fixed;
+      width: 1px;
+      height: 15px;
+      background: rgba(96,165,250,0.3);
+      animation: rainFall var(--dur) linear infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+    @keyframes rainFall {
+      0% { transform: translateY(-20px); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+    .snow-flake {
+      position: fixed;
+      width: 4px;
+      height: 4px;
+      background: rgba(255,255,255,0.6);
+      border-radius: 50%;
+      animation: snowFall var(--dur) linear infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+    @keyframes snowFall {
+      0% { transform: translateY(-10px) translateX(0); opacity: 0; }
+      10% { opacity: 1; }
+      100% { transform: translateY(100vh) translateX(var(--drift)); opacity: 0; }
+    }
+    .aurora-band {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 30vh;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.15;
+      background: linear-gradient(180deg, transparent, var(--aurora-color1), var(--aurora-color2), transparent);
+      animation: auroraShift 8s ease-in-out infinite;
+    }
+    @keyframes auroraShift {
+      0%, 100% { transform: translateX(-5%); opacity: 0.1; }
+      50% { transform: translateX(5%); opacity: 0.2; }
+    }
+
+    /* ========== SKILL TOOLTIPS ========== */
+    .skill-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15,15,35,0.95);
+      border: 1px solid var(--gold);
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 8px;
+      color: var(--text);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      margin-bottom: 8px;
+      z-index: 200;
+    }
+    .skill-slot:hover .skill-tooltip { opacity: 1; }
+    .skill-tooltip .tooltip-name { font-family: var(--font-pixel); color: var(--gold); font-size: 8px; margin-bottom: 4px; }
+    .skill-tooltip .tooltip-desc { color: var(--text-dim); }
+    .skill-tooltip .tooltip-dmg { color: var(--red); }
+
+    /* ========== CURSOR ========== */
+    #main-content { cursor: crosshair; }
+    .portal-link, a, button, .quest-header, .equip-card { cursor: pointer; }
+
+    /* ========== BOSS VICTORY CELEBRATION ========== */
+    .victory-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: var(--font-pixel);
+      font-size: 36px;
+      color: var(--gold);
+      text-shadow: 0 0 30px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.4);
+      z-index: 450;
+      pointer-events: none;
+      animation: victoryBounce 2s ease-out forwards;
+    }
+    @keyframes victoryBounce {
+      0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.2); }
+      20%  { opacity: 1; transform: translate(-50%,-50%) scale(1.4); }
+      40%  { transform: translate(-50%,-50%) scale(0.9); }
+      60%  { transform: translate(-50%,-50%) scale(1.1); }
+      80%  { transform: translate(-50%,-50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%,-50%) scale(1) translateY(-30px); }
+    }
+    .golden-flash {
+      position: fixed;
+      inset: 0;
+      z-index: 440;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(255,215,0,0.6), rgba(255,215,0,0.1), transparent);
+      animation: goldenFlashAnim 1.5s ease-out forwards;
+    }
+    @keyframes goldenFlashAnim {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ========== FOOTER GAME STATS ========== */
+    .footer-stats {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    /* ========== HIDE NEW ELEMENTS ON MOBILE ========== */
+    @media (max-width: 768px) {
+      .zone-name { display: none; }
+      #tutorial-overlay { display: none; }
+      .skill-tooltip { display: none; }
+      .rain-drop, .snow-flake, .aurora-band { display: none; }
+      .weather-indicator { display: none; }
+      .castle-silhouette { display: none; }
+      .title-sword { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -1934,9 +2255,14 @@
 <!-- Title Screen -->
 <div id="title-screen">
   <div id="stars"></div>
+  <div class="castle-silhouette"></div>
+  <div class="title-sword left">⚔️</div>
+  <div class="title-sword right">🛡️</div>
+  <div class="title-sword title-shield" style="left:20%;top:60%;font-size:18px;">✦</div>
+  <div class="title-sword title-shield right-s" style="right:20%;top:58%;font-size:18px;">✦</div>
   <div class="title-content">
-    <h1 class="title-name">YICHEN LIN</h1>
-    <p class="title-subtitle">PhD Student · UCSD CSE</p>
+    <h1 class="title-name" id="title-name-el"></h1>
+    <p class="title-subtitle" id="title-subtitle">PhD Student · UCSD CSE</p>
     <p class="title-prompt">— PRESS ENTER —</p>
   </div>
   <button id="music-toggle" class="pixel-font" aria-label="Toggle music" title="Music (no audio loaded)">🔇</button>
@@ -1970,8 +2296,11 @@
     </div>
   </div>
 
+  <!-- Zone Name Display -->
+  <div class="zone-name" id="zone-name"></div>
+
   <!-- Character Card -->
-  <section id="character" class="section anim-target" style="position:relative;">
+  <section id="character" class="section anim-target" data-zone="~ ADVENTURER'S GUILD ~" style="position:relative;">
     <div class="section-title">CHARACTER</div>
     <div class="char-card pixel-border">
       <div class="char-avatar-wrap">
@@ -1996,8 +2325,10 @@
     </div>
   </section>
 
+  <div class="section-divider"><span class="divider-icon">⚔️</span></div>
+
   <!-- Skill Tree (Education) -->
-  <section id="skill-tree" class="section anim-target" style="position:relative;">
+  <section id="skill-tree" class="section anim-target" data-zone="~ HALL OF KNOWLEDGE ~" style="position:relative;">
     <div class="section-title">SKILL TREE</div>
     <div class="tree-path">
       <div class="tree-node pixel-border">
@@ -2028,8 +2359,10 @@
     </div>
   </section>
 
+  <div class="section-divider"><span class="divider-icon">✦</span></div>
+
   <!-- Attributes (Skills) -->
-  <section id="attributes" class="section anim-target" style="position:relative;">
+  <section id="attributes" class="section anim-target" data-zone="~ TRAINING GROUNDS ~" style="position:relative;">
     <div class="section-title">ATTRIBUTES</div>
     <div class="pixel-border" style="padding:24px;">
       <div class="attr-row" data-level="90">
@@ -2091,8 +2424,10 @@
     </div>
   </section>
 
+  <div class="section-divider"><span class="divider-icon">🔮</span></div>
+
   <!-- Achievements (Publications) -->
-  <section id="achievements" class="section anim-target" style="position:relative;">
+  <section id="achievements" class="section anim-target" data-zone="~ TROPHY ROOM ~" style="position:relative;">
     <div class="section-title">ACHIEVEMENTS</div>
     <div class="achievement-list">
       <div class="achievement-card pixel-border anim-target" data-rarity="silver">
@@ -2129,8 +2464,10 @@
     </div>
   </section>
 
+  <div class="section-divider"><span class="divider-icon">✦</span></div>
+
   <!-- Quest Log (Internships) -->
-  <section id="quests" class="section anim-target" style="position:relative;">
+  <section id="quests" class="section anim-target" data-zone="~ QUEST BOARD ~" style="position:relative;">
     <div class="section-title">QUEST LOG</div>
     <div class="quest-list">
       <div class="quest-card pixel-border anim-target">
@@ -2227,8 +2564,10 @@
     </div>
   </section>
 
+  <div class="section-divider"><span class="divider-icon">⚔️</span></div>
+
   <!-- Equipment (Projects) -->
-  <section id="equipment" class="section anim-target" style="position:relative;">
+  <section id="equipment" class="section anim-target" data-zone="~ ARMORY ~" style="position:relative;">
     <div class="section-title">EQUIPMENT</div>
     <div class="equip-grid">
       <div class="equip-card anim-target" data-rarity="epic">
@@ -2307,8 +2646,10 @@
     </div>
   </section>
 
+  <div class="section-divider"><span class="divider-icon">✦</span></div>
+
   <!-- Boss Area -->
-  <section id="boss-area" class="section anim-target" style="position:relative; text-align:center;">
+  <section id="boss-area" class="section anim-target" data-zone="~ DRAGON'S LAIR ~" style="position:relative; text-align:center;">
     <div class="section-title">DANGER ZONE</div>
     <div class="boss-container">
       <div class="boss-hp-bar"><div class="boss-hp-fill" id="boss-hp-fill"></div></div>
@@ -2320,8 +2661,10 @@
     </div>
   </section>
 
+  <div class="section-divider"><span class="divider-icon">🔮</span></div>
+
   <!-- Portals (Contact Links) -->
-  <section id="portals" class="section anim-target" style="position:relative;">
+  <section id="portals" class="section anim-target" data-zone="~ DIMENSIONAL GATEWAY ~" style="position:relative;">
     <div class="section-title">PORTALS</div>
     <div class="portal-row">
       <a href="https://github.com/yil384" target="_blank" class="portal-link pixel-border anim-target">
@@ -2352,8 +2695,9 @@
 
   <!-- Footer -->
   <footer class="site-footer">
-    <p class="pixel-font">&copy; 2025&ndash;2026 Yichen Lin | Crafted with ⚔️ and ✨</p>
-    <p class="footer-hint pixel-font">Use arrow keys to move the adventurer!</p>
+    <p class="footer-stats" id="footer-stats">⚔️ SESSION STATS: Lv.1 | Score: 0 | Enemies Defeated: 0 | Achievements: 0/12</p>
+    <p class="pixel-font">&copy; 2025&ndash;2026 Yichen Lin | Crafted with ⚔️ and ✨ | Use QWER to cast spells!</p>
+    <p class="footer-hint pixel-font">Use arrow keys or click to move the adventurer!</p>
   </footer>
 
 </div>
@@ -2365,24 +2709,28 @@
     <div class="skill-key pixel-font">Q</div>
     <div class="skill-cooldown-overlay" id="cd-q"></div>
     <div class="skill-cost pixel-font">20 MP</div>
+    <div class="skill-tooltip"><div class="tooltip-name">Fireball</div><div class="tooltip-desc"><span class="tooltip-dmg">30 dmg</span> to target · 20 MP · 3s cd</div></div>
   </div>
   <div class="skill-slot" id="skill-w" data-key="W" onclick="castSkill('heal')">
     <div class="skill-icon">💚</div>
     <div class="skill-key pixel-font">W</div>
     <div class="skill-cooldown-overlay" id="cd-w"></div>
     <div class="skill-cost pixel-font">30 MP</div>
+    <div class="skill-tooltip"><div class="tooltip-name">Heal</div><div class="tooltip-desc">Restore <span style="color:var(--green);">40 HP</span> · 30 MP · 8s cd</div></div>
   </div>
   <div class="skill-slot" id="skill-e" data-key="E" onclick="castSkill('lightning')">
     <div class="skill-icon">⚡</div>
     <div class="skill-key pixel-font">E</div>
     <div class="skill-cooldown-overlay" id="cd-e"></div>
     <div class="skill-cost pixel-font">40 MP</div>
+    <div class="skill-tooltip"><div class="tooltip-name">Lightning</div><div class="tooltip-desc"><span class="tooltip-dmg">25 dmg</span> all visible · 40 MP · 10s cd</div></div>
   </div>
   <div class="skill-slot" id="skill-r" data-key="R" onclick="castSkill('ultimate')">
     <div class="skill-icon">☄️</div>
     <div class="skill-key pixel-font">R</div>
     <div class="skill-cooldown-overlay" id="cd-r"></div>
     <div class="skill-cost pixel-font">80 MP</div>
+    <div class="skill-tooltip"><div class="tooltip-name">Meteor Storm</div><div class="tooltip-desc"><span class="tooltip-dmg">50 dmg</span> area x5 · 80 MP · 30s cd</div></div>
   </div>
 </div>
 
@@ -2497,6 +2845,18 @@
   </div>
 </div>
 
+<!-- Tutorial Overlay -->
+<div id="tutorial-overlay" class="hidden">
+  <div class="tutorial-box">
+    <div class="tutorial-text" id="tutorial-text">Use ARROW KEYS or CLICK to move!</div>
+    <div class="tutorial-step" id="tutorial-step">Step 1/5</div>
+    <button class="tutorial-skip" onclick="skipTutorial()">Skip Tutorial (ESC)</button>
+  </div>
+</div>
+
+<!-- Weather Container -->
+<div id="weather-container"></div>
+
 <!-- Companion Pet -->
 <div id="companion-pet" class="hidden" aria-hidden="true">
   <div class="pet-sprite npc-charmander"></div>
@@ -2552,7 +2912,7 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !titleDismissed) dismissTitle();
   });
-  setTimeout(dismissTitle, 3000);
+  setTimeout(dismissTitle, 5000);
 
   // -- Menu toggle --
   const menuBtn = document.getElementById('menu-btn');
@@ -3770,11 +4130,11 @@
     requestAnimationFrame(runGameLoop);
   }
 
-  // -- Show game instructions after title dismiss --
+  // -- Show game instructions after title dismiss (only if tutorial already done) --
   onTitleDismissCallbacks.push(() => {
     if (window.innerWidth < 768) return;
     const inst = document.getElementById('game-instructions');
-    if (inst) {
+    if (inst && localStorage.getItem('rpg_tutorial_done') === 'true') {
       inst.classList.add('show');
       setTimeout(() => inst.classList.remove('show'), 4000);
     }
@@ -5172,6 +5532,402 @@
     // Check achievements on load
     checkAchievements();
   });
+
+  // =============================================
+  // EPIC TITLE SCREEN - TYPEWRITER EFFECT
+  // =============================================
+  (function titleTypewriter() {
+    const nameEl = document.getElementById('title-name-el');
+    const subtitleEl = document.getElementById('title-subtitle');
+    if (!nameEl) return;
+    const fullText = 'YICHEN LIN';
+    let charIndex = 0;
+    // Create cursor span
+    const cursor = document.createElement('span');
+    cursor.className = 'title-cursor';
+    cursor.innerHTML = '&nbsp;';
+    nameEl.appendChild(cursor);
+
+    const typeInterval = setInterval(() => {
+      if (charIndex < fullText.length) {
+        // Insert character before cursor
+        const charSpan = document.createTextNode(fullText[charIndex]);
+        nameEl.insertBefore(charSpan, cursor);
+        charIndex++;
+      } else {
+        clearInterval(typeInterval);
+        // Remove cursor after a brief pause
+        setTimeout(() => {
+          cursor.style.display = 'none';
+          // Fade in subtitle with glow
+          if (subtitleEl) subtitleEl.classList.add('visible');
+        }, 800);
+      }
+    }, 150);
+  })();
+
+  // =============================================
+  // ZONE NAME SYSTEM (IntersectionObserver)
+  // =============================================
+  (function setupZoneNames() {
+    if (window.innerWidth < 768) return;
+    const zoneEl = document.getElementById('zone-name');
+    if (!zoneEl) return;
+    let zoneTimeout = null;
+
+    const zoneObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const zone = entry.target.dataset.zone;
+          if (zone) {
+            zoneEl.textContent = zone;
+            zoneEl.classList.add('visible');
+            if (zoneTimeout) clearTimeout(zoneTimeout);
+            zoneTimeout = setTimeout(() => {
+              zoneEl.classList.remove('visible');
+            }, 2000);
+          }
+        }
+      });
+    }, { threshold: 0.3 });
+
+    onTitleDismissCallbacks.push(() => {
+      document.querySelectorAll('section[data-zone]').forEach(sec => {
+        zoneObserver.observe(sec);
+      });
+    });
+  })();
+
+  // =============================================
+  // TUTORIAL SYSTEM
+  // =============================================
+  (function setupTutorial() {
+    if (window.innerWidth < 768) return;
+    if (localStorage.getItem('rpg_tutorial_done') === 'true') return;
+
+    const tutorialSteps = [
+      { text: 'Use ARROW KEYS or CLICK to move!', step: '1/5' },
+      { text: 'Press SPACE to attack enemies!', step: '2/5' },
+      { text: 'Press Q/W/E/R to cast spells!', step: '3/5' },
+      { text: 'Collect coins and talk to NPCs!', step: '4/5' },
+      { text: 'Challenge the Dragon King!', step: '5/5' }
+    ];
+    let currentStep = 0;
+    let tutorialTimer = null;
+
+    function showStep() {
+      const overlay = document.getElementById('tutorial-overlay');
+      const textEl = document.getElementById('tutorial-text');
+      const stepEl = document.getElementById('tutorial-step');
+      if (!overlay || !textEl || !stepEl) return;
+      if (currentStep >= tutorialSteps.length) {
+        completeTutorial();
+        return;
+      }
+      textEl.textContent = tutorialSteps[currentStep].text;
+      stepEl.textContent = 'Step ' + tutorialSteps[currentStep].step;
+    }
+
+    function advanceStep() {
+      currentStep++;
+      if (currentStep >= tutorialSteps.length) {
+        completeTutorial();
+      } else {
+        showStep();
+        tutorialTimer = setTimeout(advanceStep, 3000);
+      }
+    }
+
+    function completeTutorial() {
+      const overlay = document.getElementById('tutorial-overlay');
+      if (overlay) overlay.classList.add('hidden');
+      localStorage.setItem('rpg_tutorial_done', 'true');
+      if (tutorialTimer) clearTimeout(tutorialTimer);
+    }
+
+    window.skipTutorial = function() {
+      completeTutorial();
+    };
+
+    // Also skip with ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const overlay = document.getElementById('tutorial-overlay');
+        if (overlay && !overlay.classList.contains('hidden')) {
+          completeTutorial();
+        }
+      }
+    });
+
+    onTitleDismissCallbacks.push(() => {
+      if (window.innerWidth < 768) return;
+      if (localStorage.getItem('rpg_tutorial_done') === 'true') return;
+      // Hide old game-instructions since tutorial replaces it
+      const oldInst = document.getElementById('game-instructions');
+      if (oldInst) oldInst.style.display = 'none';
+
+      const overlay = document.getElementById('tutorial-overlay');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+        showStep();
+        tutorialTimer = setTimeout(advanceStep, 3000);
+      }
+    });
+  })();
+
+  // =============================================
+  // ENHANCED DAMAGE NUMBERS
+  // =============================================
+  // Override showDamageNumber for better visuals
+  const _origShowDmgNum = showDamageNumber;
+  showDamageNumber = function(x, y, text, isHeal) {
+    const d = document.createElement('div');
+    const randomOffsetX = (Math.random() - 0.5) * 24;
+    d.className = 'damage-number';
+
+    if (String(text).includes('BLOCK')) {
+      d.className += ' shield-block';
+      d.textContent = '🛡️ BLOCK';
+    } else if (isHeal) {
+      d.className += ' heal-sparkle';
+      d.textContent = text;
+    } else {
+      d.textContent = text;
+    }
+
+    d.style.left = (x + randomOffsetX) + 'px';
+    d.style.top = y + 'px';
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 800);
+  };
+
+  // Override showDamageNumberAdvanced for enhanced crits
+  const _origShowDmgAdv = showDamageNumberAdvanced;
+  showDamageNumberAdvanced = function(x, y, amount, isCrit, isHealType) {
+    const d = document.createElement('div');
+    const randomOffsetX = (Math.random() - 0.5) * 24;
+
+    if (isCrit) {
+      d.className = 'damage-number crit';
+    } else if (isHealType) {
+      d.className = 'damage-number heal-sparkle';
+    } else {
+      d.className = 'damage-number';
+    }
+    d.textContent = (isHealType ? '+' : '-') + amount;
+    d.style.left = (x + randomOffsetX) + 'px';
+    d.style.top = y + 'px';
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 1000);
+
+    if (isCrit) {
+      const label = document.createElement('div');
+      label.className = 'crit-label';
+      label.textContent = 'CRITICAL!';
+      label.style.left = (x - 20 + randomOffsetX) + 'px';
+      label.style.top = (y - 18) + 'px';
+      document.body.appendChild(label);
+      setTimeout(() => label.remove(), 1000);
+      screenFlash('rgba(255,215,0,0.3)');
+      screenShake(3, 100);
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
+      } catch(e) {}
+    }
+  };
+
+  // =============================================
+  // DYNAMIC WEATHER SYSTEM
+  // =============================================
+  (function setupWeather() {
+    if (window.innerWidth < 768) return;
+    const container = document.getElementById('weather-container');
+    if (!container) return;
+    const weatherTypes = ['normal', 'rain', 'snow', 'aurora'];
+    let currentWeather = 'normal';
+    let weatherElements = [];
+
+    // Add weather indicator to HUD
+    const hud = document.getElementById('game-hud');
+    let weatherIcon = null;
+    if (hud) {
+      const line = document.createElement('span');
+      line.className = 'hud-line';
+      line.id = 'weather-hud';
+      line.textContent = '☀️ Clear';
+      hud.appendChild(line);
+      weatherIcon = line;
+    }
+
+    function clearWeather() {
+      weatherElements.forEach(el => el.remove());
+      weatherElements = [];
+    }
+
+    function setWeather(type) {
+      clearWeather();
+      currentWeather = type;
+
+      if (weatherIcon) {
+        if (type === 'normal') weatherIcon.textContent = '☀️ Clear';
+        else if (type === 'rain') weatherIcon.textContent = '🌧️ Rain';
+        else if (type === 'snow') weatherIcon.textContent = '❄️ Snow';
+        else if (type === 'aurora') weatherIcon.textContent = '🌌 Aurora';
+      }
+
+      if (type === 'rain') {
+        for (let i = 0; i < 30; i++) {
+          const drop = document.createElement('div');
+          drop.className = 'rain-drop';
+          drop.style.left = (Math.random() * 100) + 'vw';
+          drop.style.setProperty('--dur', (0.5 + Math.random() * 0.5) + 's');
+          drop.style.animationDelay = (Math.random() * 2) + 's';
+          document.body.appendChild(drop);
+          weatherElements.push(drop);
+        }
+      } else if (type === 'snow') {
+        for (let i = 0; i < 25; i++) {
+          const flake = document.createElement('div');
+          flake.className = 'snow-flake';
+          flake.style.left = (Math.random() * 100) + 'vw';
+          flake.style.setProperty('--dur', (4 + Math.random() * 4) + 's');
+          flake.style.setProperty('--drift', ((Math.random() - 0.5) * 60) + 'px');
+          flake.style.animationDelay = (Math.random() * 5) + 's';
+          document.body.appendChild(flake);
+          weatherElements.push(flake);
+        }
+      } else if (type === 'aurora') {
+        const colors = [
+          ['#4ade80', '#818cf8'],
+          ['#60a5fa', '#c084fc'],
+          ['#22d3ee', '#4ade80']
+        ];
+        colors.forEach((pair, i) => {
+          const band = document.createElement('div');
+          band.className = 'aurora-band';
+          band.style.setProperty('--aurora-color1', pair[0]);
+          band.style.setProperty('--aurora-color2', pair[1]);
+          band.style.animationDelay = (i * 2.5) + 's';
+          band.style.top = (i * 8) + '%';
+          document.body.appendChild(band);
+          weatherElements.push(band);
+        });
+      }
+    }
+
+    // Cycle weather every 60 seconds
+    let weatherIndex = 0;
+    function cycleWeather() {
+      weatherIndex = (weatherIndex + 1) % weatherTypes.length;
+      setWeather(weatherTypes[weatherIndex]);
+    }
+
+    onTitleDismissCallbacks.push(() => {
+      if (window.innerWidth < 768) return;
+      setWeather('normal');
+      setInterval(cycleWeather, 60000);
+    });
+  })();
+
+  // =============================================
+  // EPIC BOSS DEFEAT CELEBRATION
+  // =============================================
+  const _origDamageBossForCelebration = damageBoss;
+  damageBoss = function(amount) {
+    const wasDead = bossDefeated;
+    _origDamageBossForCelebration(amount);
+    if (bossDefeated && !wasDead) {
+      epicBossVictory();
+    }
+  };
+
+  function epicBossVictory() {
+    // Golden flash
+    const flash = document.createElement('div');
+    flash.className = 'golden-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 1500);
+
+    // VICTORY text
+    const vText = document.createElement('div');
+    vText.className = 'victory-text';
+    vText.textContent = 'VICTORY!';
+    document.body.appendChild(vText);
+    setTimeout(() => vText.remove(), 2500);
+
+    // Epic confetti (50+ particles, many colors)
+    const colors = ['#ffd700','#ff6b6b','#4ade80','#818cf8','#60a5fa','#f97316','#ec4899','#22d3ee','#fbbf24','#c084fc'];
+    for (let i = 0; i < 60; i++) {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 100 + Math.random() * 200;
+      c.style.left = (window.innerWidth / 2 + (Math.random() - 0.5) * 200) + 'px';
+      c.style.top = (window.innerHeight / 2 + (Math.random() - 0.5) * 100) + 'px';
+      c.style.setProperty('--cx', (Math.cos(angle) * dist) + 'px');
+      c.style.setProperty('--cy', (Math.sin(angle) * dist) + 'px');
+      c.style.animationDelay = (Math.random() * 0.5) + 's';
+      c.style.width = (6 + Math.random() * 6) + 'px';
+      c.style.height = (6 + Math.random() * 6) + 'px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 2500);
+    }
+
+    // Victory fanfare (5-note ascending)
+    try {
+      const ctx = getAudioCtx();
+      const notes = [523, 659, 784, 1047, 1568];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        const t = ctx.currentTime + i * 0.2;
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.18, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+        osc.start(t); osc.stop(t + 0.4);
+      });
+    } catch(e) {}
+
+    // Transform boss area title
+    const bossTitle = document.querySelector('#boss-area .section-title');
+    if (bossTitle) {
+      bossTitle.textContent = 'CONQUERED! ✦';
+      bossTitle.style.color = 'var(--green)';
+    }
+
+    // Scare remaining enemies
+    enemyStates.forEach(state => {
+      if (state.dead) return;
+      state.patrolOffset += (Math.random() > 0.5 ? 1 : -1) * 150;
+      setTimeout(() => { state.patrolOffset *= 0.5; }, 2000);
+    });
+
+    screenShake(12, 500);
+  }
+
+  // =============================================
+  // FOOTER STATS UPDATE
+  // =============================================
+  function updateFooterStats() {
+    const el = document.getElementById('footer-stats');
+    if (!el) return;
+    el.textContent = '\u2694\uFE0F SESSION STATS: Lv.' + playerLevel + ' | Score: ' + score + ' | Enemies Defeated: ' + totalEnemiesDefeated + ' | Achievements: ' + getAchievementCount() + '/12';
+  }
+  // Update footer stats periodically
+  setInterval(updateFooterStats, 2000);
+
 </script>
 </body>
 </html>
