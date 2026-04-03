@@ -1349,9 +1349,354 @@
       .equip-grid { grid-template-columns: 1fr; }
       .portal-row { flex-direction: column; align-items: center; }
     }
+
+    /* ========== PARALLAX WORLD BACKGROUND ========== */
+    #world-bg-far {
+      position: fixed;
+      inset: 0;
+      z-index: -3;
+      background:
+        linear-gradient(170deg, transparent 65%, #1a1a3e 65%, #1a1a3e 66%, transparent 66%),
+        linear-gradient(190deg, transparent 58%, #1e2044 58%, #1e2044 60%, transparent 60%),
+        linear-gradient(175deg, transparent 70%, #151530 70%, #151530 72%, transparent 72%),
+        linear-gradient(180deg, #0a0a1a 0%, #0f0f23 30%, #151535 60%, #1a1a40 100%);
+      will-change: transform;
+    }
+    #world-bg-mid {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      will-change: transform;
+    }
+    .mid-tree {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      opacity: 0.5;
+    }
+    .mid-glow {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      animation: midGlowPulse 3s ease-in-out infinite;
+    }
+    @keyframes midGlowPulse {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.3); }
+    }
+    .mid-crystal {
+      position: absolute;
+      width: 4px;
+      height: 8px;
+      opacity: 0.4;
+      animation: crystalSway 4s ease-in-out infinite;
+    }
+    @keyframes crystalSway {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+    }
+    #world-particles {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+      will-change: transform;
+    }
+    .world-particle {
+      position: absolute;
+      border-radius: 50%;
+      animation: particleFloat var(--dur) ease-in-out infinite;
+      opacity: 0.6;
+    }
+    @keyframes particleFloat {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+      25% { transform: translateY(-20px) translateX(10px); opacity: 0.7; }
+      50% { transform: translateY(-10px) translateX(-5px); opacity: 0.5; }
+      75% { transform: translateY(-25px) translateX(8px); opacity: 0.8; }
+    }
+
+    /* ========== PIXEL TORCHES ========== */
+    .pixel-torch {
+      position: absolute;
+      width: 12px;
+      height: 24px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .pixel-torch::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 4px;
+      box-shadow:
+        4px 16px 0 #854d0e, 4px 20px 0 #854d0e,
+        0px 4px 0 #f97316, 4px 0px 0 #fbbf24, 8px 4px 0 #f97316,
+        4px 4px 0 #fbbf24, 0px 8px 0 #ef4444, 4px 8px 0 #f97316, 8px 8px 0 #ef4444,
+        4px 12px 0 #ef4444;
+      animation: torchFlicker 0.3s steps(2) infinite;
+    }
+    @keyframes torchFlicker {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(1.3); }
+    }
+    .torch-glow {
+      position: absolute;
+      top: -8px;
+      left: -12px;
+      width: 36px;
+      height: 36px;
+      background: radial-gradient(circle, rgba(251,191,36,0.15) 0%, transparent 70%);
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.1); }
+    }
+
+    /* ========== SKILL BAR ========== */
+    #skill-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 95;
+      background: rgba(15,15,35,0.9);
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    .skill-slot {
+      width: 52px;
+      height: 52px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      background: rgba(0,0,0,0.3);
+      transition: border-color 0.2s, transform 0.1s;
+    }
+    .skill-slot:hover { border-color: var(--gold); transform: scale(1.05); }
+    .skill-slot:active { transform: scale(0.95); }
+    .skill-slot.on-cooldown { opacity: 0.5; }
+    .skill-icon { font-size: 20px; }
+    .skill-key { font-size: 7px; color: var(--gold); margin-top: 2px; }
+    .skill-cost { font-size: 6px; color: var(--text-muted); position: absolute; bottom: -12px; white-space: nowrap; }
+    .skill-cooldown-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      border-radius: 4px;
+      display: none;
+    }
+    .skill-slot.on-cooldown .skill-cooldown-overlay { display: block; }
+    .skill-slot.insufficient-mp { border-color: var(--red) !important; }
+
+    /* ========== IMPROVED DAMAGE NUMBERS ========== */
+    .damage-number.crit { font-size: 16px; color: var(--gold) !important; text-shadow: 0 0 8px rgba(255,215,0,0.8) !important; }
+    .damage-number.heal { color: var(--green); text-shadow: 0 0 4px rgba(74,222,128,0.6); }
+    .crit-label {
+      position: fixed;
+      pointer-events: none;
+      z-index: 311;
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      text-shadow: 0 0 8px rgba(255,215,0,0.8);
+      animation: dmgRise 1s ease-out forwards;
+    }
+
+    /* ========== SCREEN EFFECTS ========== */
+    .screen-flash {
+      position: fixed;
+      inset: 0;
+      z-index: 400;
+      pointer-events: none;
+      animation: screenFlashAnim 0.15s ease-out forwards;
+    }
+    @keyframes screenFlashAnim {
+      0% { opacity: 0.6; }
+      100% { opacity: 0; }
+    }
+    .screen-dim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 399;
+      pointer-events: none;
+      animation: screenDimAnim 2s ease-out forwards;
+    }
+    @keyframes screenDimAnim {
+      0% { opacity: 0; }
+      10% { opacity: 1; }
+      60% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ========== FIREBALL PROJECTILE (skill) ========== */
+    .skill-fireball-proj {
+      position: fixed;
+      width: 16px;
+      height: 16px;
+      background: radial-gradient(circle, #fbbf24, #f97316, #dc2626);
+      border-radius: 50%;
+      z-index: 96;
+      box-shadow: 0 0 12px rgba(249,115,22,0.9), 0 0 24px rgba(249,115,22,0.5);
+      pointer-events: none;
+    }
+    .skill-fireball-trail {
+      position: fixed;
+      width: 8px;
+      height: 8px;
+      background: radial-gradient(circle, #f97316, transparent);
+      border-radius: 50%;
+      z-index: 95;
+      pointer-events: none;
+      animation: trailFade 0.4s ease-out forwards;
+    }
+    @keyframes trailFade {
+      0% { opacity: 0.8; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.2); }
+    }
+
+    /* ========== EXPLOSION EFFECT ========== */
+    .explosion-ring {
+      position: fixed;
+      border-radius: 50%;
+      border: 3px solid;
+      z-index: 97;
+      pointer-events: none;
+      animation: explodeRing 0.4s ease-out forwards;
+    }
+    @keyframes explodeRing {
+      0% { transform: scale(0.2); opacity: 1; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+    .explosion-particle {
+      position: fixed;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      z-index: 97;
+      pointer-events: none;
+      animation: explodeParticle 0.5s ease-out forwards;
+    }
+    @keyframes explodeParticle {
+      0% { transform: translate(0,0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--epx), var(--epy)) scale(0); opacity: 0; }
+    }
+
+    /* ========== HEAL SPARKLES ========== */
+    .heal-sparkle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 97;
+      font-size: 12px;
+      animation: healRise 1s ease-out forwards;
+    }
+    @keyframes healRise {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-40px) scale(0.5); }
+    }
+    .heal-glow {
+      position: fixed;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(74,222,128,0.4) 0%, transparent 70%);
+      z-index: 96;
+      pointer-events: none;
+      animation: healGlowFade 0.8s ease-out forwards;
+    }
+    @keyframes healGlowFade {
+      0% { opacity: 1; transform: scale(0.5); }
+      50% { opacity: 0.8; transform: scale(1.2); }
+      100% { opacity: 0; transform: scale(1.5); }
+    }
+
+    /* ========== LIGHTNING ========== */
+    .lightning-bolt {
+      position: fixed;
+      z-index: 98;
+      pointer-events: none;
+      animation: lightningFlash 0.3s ease-out forwards;
+    }
+    @keyframes lightningFlash {
+      0% { opacity: 1; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0; }
+    }
+    .electric-particle {
+      position: fixed;
+      width: 3px;
+      height: 3px;
+      background: #60a5fa;
+      border-radius: 50%;
+      z-index: 98;
+      pointer-events: none;
+      box-shadow: 0 0 6px #60a5fa;
+      animation: electricFade 0.4s ease-out forwards;
+    }
+    @keyframes electricFade {
+      0% { opacity: 1; transform: translate(0,0); }
+      100% { opacity: 0; transform: translate(var(--elx), var(--ely)); }
+    }
+
+    /* ========== METEOR ========== */
+    .meteor {
+      position: fixed;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle, #fff, #ffd700, #f97316);
+      border-radius: 50%;
+      z-index: 98;
+      pointer-events: none;
+      box-shadow: 0 0 16px rgba(255,215,0,0.8), 0 0 32px rgba(255,215,0,0.4);
+    }
+    .meteor-trail {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      background: radial-gradient(circle, #ffd700, transparent);
+      border-radius: 50%;
+      z-index: 97;
+      pointer-events: none;
+      animation: trailFade 0.5s ease-out forwards;
+    }
+    .meteor-explosion {
+      position: fixed;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,215,0,0.6) 0%, rgba(249,115,22,0.3) 50%, transparent 70%);
+      z-index: 97;
+      pointer-events: none;
+      animation: meteorExplode 0.6s ease-out forwards;
+    }
+    @keyframes meteorExplode {
+      0% { transform: scale(0.2); opacity: 1; }
+      50% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    /* Hide parallax/skill bar on mobile */
+    @media (max-width: 768px) {
+      #world-bg-far, #world-bg-mid, #world-particles { display: none; }
+      .pixel-torch { display: none; }
+      #skill-bar { display: none; }
+    }
   </style>
 </head>
 <body>
+
+<!-- Parallax Background Layers -->
+<div id="world-bg-far"></div>
+<div id="world-bg-mid"></div>
+<div id="world-particles"></div>
 
 <!-- Title Screen -->
 <div id="title-screen">
@@ -1780,6 +2125,34 @@
 
 </div>
 
+<!-- Skill Bar -->
+<div id="skill-bar">
+  <div class="skill-slot" id="skill-q" data-key="Q" onclick="castSkill('fireball')">
+    <div class="skill-icon">🔥</div>
+    <div class="skill-key pixel-font">Q</div>
+    <div class="skill-cooldown-overlay" id="cd-q"></div>
+    <div class="skill-cost pixel-font">20 MP</div>
+  </div>
+  <div class="skill-slot" id="skill-w" data-key="W" onclick="castSkill('heal')">
+    <div class="skill-icon">💚</div>
+    <div class="skill-key pixel-font">W</div>
+    <div class="skill-cooldown-overlay" id="cd-w"></div>
+    <div class="skill-cost pixel-font">30 MP</div>
+  </div>
+  <div class="skill-slot" id="skill-e" data-key="E" onclick="castSkill('lightning')">
+    <div class="skill-icon">⚡</div>
+    <div class="skill-key pixel-font">E</div>
+    <div class="skill-cooldown-overlay" id="cd-e"></div>
+    <div class="skill-cost pixel-font">40 MP</div>
+  </div>
+  <div class="skill-slot" id="skill-r" data-key="R" onclick="castSkill('ultimate')">
+    <div class="skill-icon">☄️</div>
+    <div class="skill-key pixel-font">R</div>
+    <div class="skill-cooldown-overlay" id="cd-r"></div>
+    <div class="skill-cost pixel-font">80 MP</div>
+  </div>
+</div>
+
 <div id="ach-unlock" class="ach-unlock">🏆 Achievement Unlocked!</div>
 <div id="pixel-char" aria-hidden="true"></div>
 
@@ -1795,6 +2168,7 @@
   <div>Click / Right-Click: Move (LOL style!)</div>
   <div>Arrow Keys: Move</div>
   <div>Space: Attack</div>
+  <div>Q: Fireball | W: Heal | E: Lightning | R: Ultimate</div>
   <div>Walk near NPCs to interact</div>
   <div>Collect coins, defeat enemies,</div>
   <div>challenge the Dragon King!</div>
@@ -2041,6 +2415,14 @@
     if (e.key === ' ' || e.code === 'Space') {
       e.preventDefault();
       playerAttack();
+    }
+    // Skill keys Q/W/E/R (skip if typing in an input)
+    if (!e.target.matches('input, textarea, select')) {
+      const key = e.key.toLowerCase();
+      if (key === 'q') castSkill('fireball');
+      else if (key === 'w') castSkill('heal');
+      else if (key === 'e') castSkill('lightning');
+      else if (key === 'r') castSkill('ultimate');
     }
   });
   document.addEventListener('keyup', (e) => {
@@ -3132,6 +3514,730 @@
 
   // Initialize bars on load
   updateBars();
+
+  // =============================================
+  // PARALLAX WORLD SETUP
+  // =============================================
+  (function setupParallax() {
+    // Mid ground decorative elements
+    const midBg = document.getElementById('world-bg-mid');
+    if (!midBg) return;
+    const midElements = [
+      // Pixel trees (box-shadow art)
+      { type: 'tree', x: 5, y: 60, shadow: '0 0 0 #0f4a1c, 4px 0 0 #0f4a1c, -4px 0 0 #0f4a1c, 0 -4px 0 #166534, 4px -4px 0 #166534, -4px -4px 0 #166534, 0 -8px 0 #22c55e, 0 4px 0 #854d0e, 0 8px 0 #854d0e' },
+      { type: 'tree', x: 15, y: 45, shadow: '0 0 0 #0f4a1c, 4px 0 0 #0f4a1c, -4px 0 0 #0f4a1c, 0 -4px 0 #166534, 4px -4px 0 #166534, -4px -4px 0 #166534, 0 -8px 0 #22c55e, 0 4px 0 #854d0e, 0 8px 0 #854d0e' },
+      { type: 'tree', x: 85, y: 55, shadow: '0 0 0 #0f4a1c, 4px 0 0 #0f4a1c, -4px 0 0 #0f4a1c, 0 -4px 0 #166534, 4px -4px 0 #166534, -4px -4px 0 #166534, 0 -8px 0 #22c55e, 0 4px 0 #854d0e, 0 8px 0 #854d0e' },
+      { type: 'tree', x: 92, y: 70, shadow: '0 0 0 #0f4a1c, 4px 0 0 #0f4a1c, -4px 0 0 #0f4a1c, 0 -4px 0 #166534, 4px -4px 0 #166534, -4px -4px 0 #166534, 0 -8px 0 #22c55e, 0 4px 0 #854d0e, 0 8px 0 #854d0e' },
+      // Glowing dots (torches/fires)
+      { type: 'glow', x: 8, y: 75, color: '#f97316' },
+      { type: 'glow', x: 25, y: 82, color: '#fbbf24' },
+      { type: 'glow', x: 70, y: 40, color: '#f97316' },
+      { type: 'glow', x: 88, y: 65, color: '#fbbf24' },
+      { type: 'glow', x: 50, y: 90, color: '#ef4444' },
+      // Crystals
+      { type: 'crystal', x: 12, y: 50, color: '#818cf8' },
+      { type: 'crystal', x: 78, y: 35, color: '#c084fc' },
+      { type: 'crystal', x: 35, y: 72, color: '#60a5fa' },
+      { type: 'crystal', x: 60, y: 85, color: '#818cf8' },
+      { type: 'crystal', x: 95, y: 48, color: '#c084fc' },
+    ];
+
+    midElements.forEach(el => {
+      const div = document.createElement('div');
+      if (el.type === 'tree') {
+        div.className = 'mid-tree';
+        div.style.left = el.x + '%';
+        div.style.top = el.y + '%';
+        div.style.boxShadow = el.shadow;
+      } else if (el.type === 'glow') {
+        div.className = 'mid-glow';
+        div.style.left = el.x + '%';
+        div.style.top = el.y + '%';
+        div.style.background = `radial-gradient(circle, ${el.color} 0%, transparent 70%)`;
+        div.style.animationDelay = (Math.random() * 3) + 's';
+      } else if (el.type === 'crystal') {
+        div.className = 'mid-crystal';
+        div.style.left = el.x + '%';
+        div.style.top = el.y + '%';
+        div.style.background = el.color;
+        div.style.boxShadow = `0 0 8px ${el.color}`;
+        div.style.animationDelay = (Math.random() * 4) + 's';
+      }
+      midBg.appendChild(div);
+    });
+
+    // Foreground particles
+    const particleContainer = document.getElementById('world-particles');
+    if (!particleContainer) return;
+    const particleColors = ['#ffd700', '#818cf8', '#60a5fa', '#4ade80', '#c084fc'];
+    for (let i = 0; i < 25; i++) {
+      const p = document.createElement('div');
+      p.className = 'world-particle';
+      const size = 2 + Math.random() * 2;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.top = Math.random() * 100 + '%';
+      p.style.background = particleColors[Math.floor(Math.random() * particleColors.length)];
+      p.style.setProperty('--dur', (4 + Math.random() * 4) + 's');
+      p.style.animationDelay = (Math.random() * 5) + 's';
+      particleContainer.appendChild(p);
+    }
+  })();
+
+  // Parallax scroll handler
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    const bgFar = document.getElementById('world-bg-far');
+    const bgMid = document.getElementById('world-bg-mid');
+    const bgPart = document.getElementById('world-particles');
+    if (bgFar) bgFar.style.transform = `translateY(${scrollY * 0.1}px)`;
+    if (bgMid) bgMid.style.transform = `translateY(${scrollY * 0.3}px)`;
+    if (bgPart) bgPart.style.transform = `translateY(${scrollY * 0.15}px)`;
+  });
+
+  // =============================================
+  // PIXEL TORCHES ON SECTION TITLES
+  // =============================================
+  (function placeTorches() {
+    if (window.innerWidth < 768) return;
+    const sections = document.querySelectorAll('.section-title');
+    sections.forEach(title => {
+      const section = title.closest('.section, section');
+      if (!section) return;
+
+      // Left torch
+      const torchL = document.createElement('div');
+      torchL.className = 'pixel-torch';
+      torchL.innerHTML = '<div class="torch-glow"></div>';
+      torchL.style.left = '-20px';
+      torchL.style.top = title.offsetTop + 'px';
+      section.style.position = 'relative';
+      section.appendChild(torchL);
+
+      // Right torch
+      const torchR = document.createElement('div');
+      torchR.className = 'pixel-torch';
+      torchR.innerHTML = '<div class="torch-glow"></div>';
+      torchR.style.right = '-20px';
+      torchR.style.top = title.offsetTop + 'px';
+      section.appendChild(torchR);
+    });
+  })();
+
+  // =============================================
+  // SKILL / SPELL SYSTEM (Q/W/E/R)
+  // =============================================
+  const skills = {
+    fireball: { key: 'q', mp: 20, cd: 3000, lastCast: 0 },
+    heal: { key: 'w', mp: 30, cd: 8000, lastCast: 0 },
+    lightning: { key: 'e', mp: 40, cd: 10000, lastCast: 0 },
+    ultimate: { key: 'r', mp: 80, cd: 30000, lastCast: 0 }
+  };
+
+  function castSkill(name) {
+    if (gameOverActive || shopOpen || typingOpen) return;
+    if (!titleDismissed) return;
+    if (window.innerWidth < 768) return;
+    const skill = skills[name];
+    const now = Date.now();
+    if (now - skill.lastCast < skill.cd) return;
+    if (playerMP < skill.mp) {
+      const slot = document.getElementById('skill-' + skill.key);
+      if (slot) {
+        slot.classList.add('insufficient-mp');
+        setTimeout(() => slot.classList.remove('insufficient-mp'), 300);
+      }
+      return;
+    }
+
+    playerMP -= skill.mp;
+    skill.lastCast = now;
+    updateBars();
+
+    const slot = document.getElementById('skill-' + skill.key);
+    if (slot) {
+      slot.classList.add('on-cooldown');
+      setTimeout(() => slot.classList.remove('on-cooldown'), skill.cd);
+    }
+
+    if (name === 'fireball') castFireball();
+    else if (name === 'heal') castHeal();
+    else if (name === 'lightning') castLightning();
+    else if (name === 'ultimate') castUltimate();
+  }
+  window.castSkill = castSkill;
+
+  // -- SCREEN SHAKE --
+  function screenShake(intensity, duration) {
+    intensity = intensity || 5;
+    duration = duration || 200;
+    const bd = document.body;
+    const start = Date.now();
+    function shake() {
+      const elapsed = Date.now() - start;
+      if (elapsed > duration) {
+        bd.style.transform = '';
+        return;
+      }
+      const x = (Math.random() - 0.5) * intensity;
+      const y = (Math.random() - 0.5) * intensity;
+      bd.style.transform = `translate(${x}px, ${y}px)`;
+      requestAnimationFrame(shake);
+    }
+    shake();
+  }
+
+  // -- SCREEN FLASH --
+  function screenFlash(color) {
+    const flash = document.createElement('div');
+    flash.className = 'screen-flash';
+    flash.style.background = color || 'rgba(255,255,255,0.5)';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 200);
+  }
+
+  // -- EXPLOSION EFFECT --
+  function spawnExplosion(x, y, color) {
+    color = color || '#f97316';
+    const ring = document.createElement('div');
+    ring.className = 'explosion-ring';
+    ring.style.left = (x - 20) + 'px';
+    ring.style.top = (y - 20) + 'px';
+    ring.style.width = '40px';
+    ring.style.height = '40px';
+    ring.style.borderColor = color;
+    document.body.appendChild(ring);
+    setTimeout(() => ring.remove(), 400);
+
+    for (let i = 0; i < 8; i++) {
+      const p = document.createElement('div');
+      p.className = 'explosion-particle';
+      p.style.left = x + 'px';
+      p.style.top = y + 'px';
+      p.style.background = color;
+      const angle = (i / 8) * Math.PI * 2;
+      const dist = 20 + Math.random() * 30;
+      p.style.setProperty('--epx', (Math.cos(angle) * dist) + 'px');
+      p.style.setProperty('--epy', (Math.sin(angle) * dist) + 'px');
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 500);
+    }
+  }
+
+  // -- CRITICAL HIT SYSTEM --
+  function isCriticalHit() {
+    return Math.random() < 0.15;
+  }
+
+  function showDamageNumberAdvanced(x, y, amount, isCrit, isHealType) {
+    const d = document.createElement('div');
+    d.className = 'damage-number' + (isCrit ? ' crit' : '') + (isHealType ? ' heal' : '');
+    d.textContent = (isHealType ? '+' : '-') + amount;
+    d.style.left = x + 'px';
+    d.style.top = y + 'px';
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 1000);
+
+    if (isCrit) {
+      const label = document.createElement('div');
+      label.className = 'crit-label';
+      label.textContent = 'CRITICAL!';
+      label.style.left = (x - 20) + 'px';
+      label.style.top = (y - 18) + 'px';
+      document.body.appendChild(label);
+      setTimeout(() => label.remove(), 1000);
+      screenFlash('rgba(255,215,0,0.3)');
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
+      } catch(e) {}
+    }
+  }
+
+  // Find nearest enemy from a point
+  function findNearestEnemy(px, py, maxDist) {
+    maxDist = maxDist || Infinity;
+    let nearest = null;
+    let nearestDist = maxDist;
+    let nearestRect = null;
+
+    enemyStates.forEach(state => {
+      if (state.dead) return;
+      const r = state.el.getBoundingClientRect();
+      const ex = r.left + r.width / 2;
+      const ey = r.top + r.height / 2;
+      const dist = Math.hypot(px - ex, py - ey);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearest = state;
+        nearestRect = r;
+      }
+    });
+
+    if (!bossDefeated && bossEl) {
+      const r = bossEl.getBoundingClientRect();
+      const bx = r.left + r.width / 2;
+      const by = r.top + r.height / 2;
+      const dist = Math.hypot(px - bx, py - by);
+      if (dist < nearestDist) {
+        nearestDist = dist;
+        nearest = { isBoss: true };
+        nearestRect = r;
+      }
+    }
+
+    return { target: nearest, dist: nearestDist, rect: nearestRect };
+  }
+
+  // Get all visible enemies
+  function getVisibleEnemies() {
+    const visible = [];
+    const vh = window.innerHeight;
+    enemyStates.forEach(state => {
+      if (state.dead) return;
+      const r = state.el.getBoundingClientRect();
+      if (r.top < vh && r.bottom > 0) {
+        visible.push({ state: state, rect: r });
+      }
+    });
+    if (!bossDefeated && bossEl) {
+      const r = bossEl.getBoundingClientRect();
+      if (r.top < vh && r.bottom > 0) {
+        visible.push({ state: { isBoss: true }, rect: r });
+      }
+    }
+    return visible;
+  }
+
+  // -- Q: FIREBALL --
+  function castFireball() {
+    const px = charX + 16;
+    const py = charY + 16;
+    playAttackSound();
+    screenFlash('rgba(249,115,22,0.15)');
+
+    const fb = document.createElement('div');
+    fb.className = 'skill-fireball-proj';
+    fb.style.left = px + 'px';
+    fb.style.top = py + 'px';
+    document.body.appendChild(fb);
+
+    const { target, rect } = findNearestEnemy(px, py, 600);
+    let targetX, targetY;
+    if (target && rect) {
+      targetX = rect.left + rect.width / 2;
+      targetY = rect.top + rect.height / 2;
+    } else {
+      targetX = px + 200;
+      targetY = py;
+    }
+
+    const dx = targetX - px;
+    const dy = targetY - py;
+    const dist = Math.hypot(dx, dy) || 1;
+    const speed = 6;
+    const vx = (dx / dist) * speed;
+    const vy = (dy / dist) * speed;
+    let fbX = px, fbY = py;
+    let trailTimer = 0;
+    const startTime = Date.now();
+
+    function animateFB() {
+      fbX += vx;
+      fbY += vy;
+      fb.style.left = fbX + 'px';
+      fb.style.top = fbY + 'px';
+
+      // Trail
+      trailTimer++;
+      if (trailTimer % 3 === 0) {
+        const trail = document.createElement('div');
+        trail.className = 'skill-fireball-trail';
+        trail.style.left = (fbX + 4) + 'px';
+        trail.style.top = (fbY + 4) + 'px';
+        document.body.appendChild(trail);
+        setTimeout(() => trail.remove(), 400);
+      }
+
+      // Check collision with enemies
+      let hitSomething = false;
+      enemyStates.forEach(state => {
+        if (state.dead || hitSomething) return;
+        const r = state.el.getBoundingClientRect();
+        const ex = r.left + r.width / 2;
+        const ey = r.top + r.height / 2;
+        if (Math.hypot(fbX - ex, fbY - ey) < 25) {
+          const crit = isCriticalHit();
+          const dmg = crit ? 60 : 30;
+          damageEnemy(state, dmg);
+          showDamageNumberAdvanced(ex, ey - 10, dmg, crit, false);
+          hitSomething = true;
+        }
+      });
+      if (!hitSomething && !bossDefeated && bossEl) {
+        const r = bossEl.getBoundingClientRect();
+        const bx = r.left + r.width / 2;
+        const by = r.top + r.height / 2;
+        if (Math.hypot(fbX - bx, fbY - by) < 30) {
+          damageBoss(30);
+          hitSomething = true;
+        }
+      }
+
+      if (hitSomething || Date.now() - startTime > 1500) {
+        fb.remove();
+        spawnExplosion(fbX, fbY, '#f97316');
+        return;
+      }
+
+      requestAnimationFrame(animateFB);
+    }
+    requestAnimationFrame(animateFB);
+  }
+
+  // -- W: HEAL --
+  function castHeal() {
+    const px = charX + 16;
+    const py = charY + 16;
+
+    // Green glow around player
+    const glow = document.createElement('div');
+    glow.className = 'heal-glow';
+    glow.style.left = (px - 30) + 'px';
+    glow.style.top = (py - 30) + 'px';
+    glow.style.width = '60px';
+    glow.style.height = '60px';
+    document.body.appendChild(glow);
+    setTimeout(() => glow.remove(), 800);
+
+    // Green sparkles rising
+    for (let i = 0; i < 10; i++) {
+      const s = document.createElement('div');
+      s.className = 'heal-sparkle';
+      s.textContent = '✦';
+      s.style.color = '#4ade80';
+      s.style.left = (px - 15 + Math.random() * 30) + 'px';
+      s.style.top = (py - 5 + Math.random() * 20) + 'px';
+      s.style.animationDelay = (Math.random() * 0.3) + 's';
+      document.body.appendChild(s);
+      setTimeout(() => s.remove(), 1000);
+    }
+
+    // Heal
+    const healAmount = 40;
+    playerHP = Math.min(playerMaxHP, playerHP + healAmount);
+    updateBars();
+    showDamageNumberAdvanced(px, py - 10, healAmount, false, true);
+
+    try {
+      const ctx = getAudioCtx();
+      const notes = [523, 659, 784];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        const t = ctx.currentTime + i * 0.1;
+        osc.frequency.setValueAtTime(freq, t);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+        osc.start(t); osc.stop(t + 0.3);
+      });
+    } catch(e) {}
+  }
+
+  // -- E: LIGHTNING --
+  function castLightning() {
+    screenFlash('rgba(255,255,255,0.6)');
+    screenShake(6, 200);
+
+    try {
+      const ctx = getAudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(100, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(2000, ctx.currentTime + 0.1);
+      osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+    } catch(e) {}
+
+    const visibleEnemies = getVisibleEnemies();
+
+    visibleEnemies.forEach(({ state, rect }) => {
+      const ex = rect.left + rect.width / 2;
+      const ey = rect.top + rect.height / 2;
+
+      // Draw lightning bolt as SVG
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'lightning-bolt');
+      svg.style.left = '0px';
+      svg.style.top = '0px';
+      svg.style.width = '100vw';
+      svg.style.height = '100vh';
+      svg.style.position = 'fixed';
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      let d = `M ${ex} 0`;
+      let cy = 0;
+      const segments = 6;
+      const segH = ey / segments;
+      for (let i = 0; i < segments; i++) {
+        cy += segH;
+        const cx = ex + (Math.random() - 0.5) * 40;
+        d += ` L ${cx} ${cy}`;
+      }
+      d += ` L ${ex} ${ey}`;
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', '#60a5fa');
+      path.setAttribute('stroke-width', '3');
+      path.setAttribute('fill', 'none');
+      path.setAttribute('filter', 'drop-shadow(0 0 6px #60a5fa)');
+      svg.appendChild(path);
+      document.body.appendChild(svg);
+      setTimeout(() => svg.remove(), 300);
+
+      // Electric particles at enemy
+      for (let i = 0; i < 6; i++) {
+        const ep = document.createElement('div');
+        ep.className = 'electric-particle';
+        ep.style.left = ex + 'px';
+        ep.style.top = ey + 'px';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 10 + Math.random() * 20;
+        ep.style.setProperty('--elx', (Math.cos(angle) * dist) + 'px');
+        ep.style.setProperty('--ely', (Math.sin(angle) * dist) + 'px');
+        ep.style.animationDelay = (Math.random() * 0.1) + 's';
+        document.body.appendChild(ep);
+        setTimeout(() => ep.remove(), 400);
+      }
+
+      // Damage
+      const crit = isCriticalHit();
+      const dmg = crit ? 50 : 25;
+      if (state.isBoss) {
+        damageBoss(dmg);
+      } else {
+        damageEnemy(state, dmg);
+      }
+      showDamageNumberAdvanced(ex, ey - 10, dmg, crit, false);
+    });
+  }
+
+  // -- R: ULTIMATE (Meteor Storm) --
+  function castUltimate() {
+    // Dim screen
+    const dim = document.createElement('div');
+    dim.className = 'screen-dim';
+    document.body.appendChild(dim);
+    setTimeout(() => dim.remove(), 2000);
+
+    try {
+      const ctx = getAudioCtx();
+      // Dramatic rising tone
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(80, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+    } catch(e) {}
+
+    const visibleEnemies = getVisibleEnemies();
+
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        const startX = 100 + Math.random() * (window.innerWidth - 200);
+        const startY = -30;
+        const endY = window.innerHeight * 0.6 + Math.random() * (window.innerHeight * 0.3);
+
+        const meteor = document.createElement('div');
+        meteor.className = 'meteor';
+        meteor.style.left = startX + 'px';
+        meteor.style.top = startY + 'px';
+        document.body.appendChild(meteor);
+
+        let my = startY;
+        const meteorSpeed = 8;
+        let trailCount = 0;
+
+        function animateMeteor() {
+          my += meteorSpeed;
+          meteor.style.top = my + 'px';
+
+          trailCount++;
+          if (trailCount % 2 === 0) {
+            const trail = document.createElement('div');
+            trail.className = 'meteor-trail';
+            trail.style.left = (startX + 7 + (Math.random() - 0.5) * 8) + 'px';
+            trail.style.top = (my - 5) + 'px';
+            document.body.appendChild(trail);
+            setTimeout(() => trail.remove(), 500);
+          }
+
+          if (my >= endY) {
+            meteor.remove();
+            // Explosion
+            const exp = document.createElement('div');
+            exp.className = 'meteor-explosion';
+            exp.style.left = (startX - 40) + 'px';
+            exp.style.top = (endY - 40) + 'px';
+            exp.style.width = '80px';
+            exp.style.height = '80px';
+            document.body.appendChild(exp);
+            setTimeout(() => exp.remove(), 600);
+
+            spawnExplosion(startX, endY, '#ffd700');
+            screenShake(8, 150);
+
+            // Impact sound
+            try {
+              const ctx = getAudioCtx();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain); gain.connect(ctx.destination);
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(60, ctx.currentTime);
+              gain.gain.setValueAtTime(0.12, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+              osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.3);
+            } catch(e) {}
+
+            // Damage nearby enemies
+            visibleEnemies.forEach(({ state, rect }) => {
+              const ex = rect.left + rect.width / 2;
+              const ey = rect.top + rect.height / 2;
+              if (Math.hypot(startX - ex, endY - ey) < 120) {
+                const crit = isCriticalHit();
+                const dmg = crit ? 100 : 50;
+                if (state.isBoss) {
+                  damageBoss(dmg);
+                } else {
+                  damageEnemy(state, dmg);
+                }
+                showDamageNumberAdvanced(ex, ey - 10, dmg, crit, false);
+              }
+            });
+
+            return;
+          }
+          requestAnimationFrame(animateMeteor);
+        }
+        requestAnimationFrame(animateMeteor);
+      }, i * 300);
+    }
+
+    // Final big screen shake
+    setTimeout(() => screenShake(10, 500), 1500);
+
+    // Golden particle burst
+    setTimeout(() => {
+      for (let i = 0; i < 20; i++) {
+        const p = document.createElement('div');
+        p.className = 'explosion-particle';
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        p.style.left = cx + 'px';
+        p.style.top = cy + 'px';
+        p.style.background = '#ffd700';
+        p.style.width = '5px';
+        p.style.height = '5px';
+        const angle = (i / 20) * Math.PI * 2;
+        const dist = 50 + Math.random() * 80;
+        p.style.setProperty('--epx', (Math.cos(angle) * dist) + 'px');
+        p.style.setProperty('--epy', (Math.sin(angle) * dist) + 'px');
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 500);
+      }
+    }, 1800);
+  }
+
+  // =============================================
+  // CHIPTUNE BACKGROUND MUSIC
+  // =============================================
+  let chiptuneEngine = null;
+
+  function createChiptune() {
+    const ctx = getAudioCtx();
+    const melody = [262, 330, 392, 440, 392, 330, 262, 294];
+    const bass = [131, 131, 196, 196, 131, 131, 196, 196];
+    let noteIndex = 0;
+    let playing = false;
+
+    const masterGain = ctx.createGain();
+    masterGain.gain.value = 0.08;
+    masterGain.connect(ctx.destination);
+
+    let intervalId = null;
+
+    function playNote(freq, duration, type) {
+      type = type || 'square';
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    }
+
+    function tick() {
+      playNote(melody[noteIndex], 0.3, 'square');
+      playNote(bass[noteIndex], 0.3, 'triangle');
+      noteIndex = (noteIndex + 1) % melody.length;
+    }
+
+    return {
+      start: function() { if (!playing) { playing = true; intervalId = setInterval(tick, 400); } },
+      stop: function() { playing = false; if (intervalId) clearInterval(intervalId); intervalId = null; },
+      isPlaying: function() { return playing; }
+    };
+  }
+
+  // Wire music toggle button
+  const musicToggle = document.getElementById('music-toggle');
+  if (musicToggle) {
+    musicToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!chiptuneEngine) {
+        chiptuneEngine = createChiptune();
+      }
+      if (chiptuneEngine.isPlaying()) {
+        chiptuneEngine.stop();
+        musicToggle.textContent = '\u{1F507}';
+      } else {
+        chiptuneEngine.start();
+        musicToggle.textContent = '\u{1F50A}';
+      }
+    });
+  }
+
+  // Hide skill bar until title dismissed & on mobile
+  const skillBarEl = document.getElementById('skill-bar');
+  if (skillBarEl) skillBarEl.style.display = 'none';
+  onTitleDismissCallbacks.push(() => {
+    if (window.innerWidth >= 768 && skillBarEl) {
+      skillBarEl.style.display = 'flex';
+    }
+  });
 </script>
 </body>
 </html>
