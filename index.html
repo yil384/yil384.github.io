@@ -168,10 +168,11 @@
     .bar-label.gold { color: var(--gold); }
     .bar-track {
       flex: 1;
-      height: 8px;
-      background: #1e293b;
-      border-radius: 2px;
+      height: 10px;
+      background: #0f172a;
+      border-radius: 3px;
       overflow: hidden;
+      border: 1px solid #334155;
     }
     .bar-fill {
       height: 100%;
@@ -179,9 +180,9 @@
       transition: width 0.3s ease;
       min-width: 0;
     }
-    #hp-bar { background: #4ade80 !important; }
-    #mp-bar { background: #818cf8 !important; }
-    #exp-bar { background: #ffd700 !important; }
+    #hp-bar { background: #4ade80 !important; box-shadow: 0 0 8px rgba(74,222,128,0.6), inset 0 -2px 0 rgba(0,0,0,0.2) !important; }
+    #mp-bar { background: #818cf8 !important; box-shadow: 0 0 8px rgba(129,140,248,0.6), inset 0 -2px 0 rgba(0,0,0,0.2) !important; }
+    #exp-bar { background: #ffd700 !important; box-shadow: 0 0 8px rgba(255,215,0,0.6), inset 0 -2px 0 rgba(0,0,0,0.2) !important; }
     .level-badge {
       font-size: 9px;
       color: var(--gold);
@@ -1464,7 +1465,27 @@
       border: 2px solid var(--gold);
       border-radius: 8px;
       padding: 8px 12px;
+      cursor: grab;
+      transition: opacity 0.5s ease;
     }
+    #skill-bar.dragging { cursor: grabbing; opacity: 1 !important; }
+    #skill-bar.faded { opacity: 0.25; }
+    #skill-bar.faded:hover { opacity: 1; }
+    #skill-bar-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 96;
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-muted);
+      background: rgba(15,15,35,0.8);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #skill-bar-toggle:hover { border-color: var(--gold); color: var(--gold); }
     .skill-slot {
       width: 52px;
       height: 52px;
@@ -2977,6 +2998,7 @@
     <div class="skill-tooltip"><div class="tooltip-name">Meteor Storm</div><div class="tooltip-desc"><span class="tooltip-dmg">50 dmg</span> area x5 · 80 MP · 30s cd</div></div>
   </div>
 </div>
+<button id="skill-bar-toggle" onclick="toggleSkillBar()">QWER</button>
 
 <div id="ach-unlock" class="ach-unlock">🏆 Achievement Unlocked!</div>
 <div id="pixel-char" aria-hidden="true"></div>
@@ -7146,6 +7168,72 @@
 
   // Init equipment display on load
   renderEquipPanel();
+
+  // =============================================
+  // SKILL BAR: DRAG + AUTO-FADE + TOGGLE
+  // =============================================
+  (function() {
+    const sb = document.getElementById('skill-bar');
+    const toggle = document.getElementById('skill-bar-toggle');
+    if (!sb) return;
+
+    let isDragging = false, dragOffX = 0, dragOffY = 0;
+    let skillBarHidden = false;
+    let fadeTimer = null;
+
+    // Auto-fade after 5 seconds of no hover/use
+    function resetFadeTimer() {
+      sb.classList.remove('faded');
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(() => {
+        if (!isDragging) sb.classList.add('faded');
+      }, 5000);
+    }
+    resetFadeTimer();
+    sb.addEventListener('mouseenter', () => { sb.classList.remove('faded'); clearTimeout(fadeTimer); });
+    sb.addEventListener('mouseleave', resetFadeTimer);
+
+    // Dragging
+    sb.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.skill-slot')) return; // let clicks on skills work
+      isDragging = true;
+      sb.classList.add('dragging');
+      const rect = sb.getBoundingClientRect();
+      dragOffX = e.clientX - rect.left;
+      dragOffY = e.clientY - rect.top;
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      sb.style.left = (e.clientX - dragOffX) + 'px';
+      sb.style.top = (e.clientY - dragOffY) + 'px';
+      sb.style.bottom = 'auto';
+      sb.style.transform = 'none';
+    });
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        sb.classList.remove('dragging');
+        resetFadeTimer();
+      }
+    });
+
+    // Toggle visibility
+    window.toggleSkillBar = function() {
+      skillBarHidden = !skillBarHidden;
+      sb.style.display = skillBarHidden ? 'none' : 'flex';
+      toggle.textContent = skillBarHidden ? 'Show QWER' : 'QWER';
+    };
+
+    // Re-show briefly when a skill is cast
+    const origCastSkill = window.castSkill;
+    if (origCastSkill) {
+      window.castSkill = function(name) {
+        resetFadeTimer();
+        return origCastSkill(name);
+      };
+    }
+  })();
 
 </script>
 </body>
