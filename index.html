@@ -5520,10 +5520,19 @@
   // =============================================
   const bossEl = document.getElementById('boss-enemy');
   const bossHpFill = document.getElementById('boss-hp-fill');
-  let bossHP = bossDefeated ? 0 : 200;
-  const bossMaxHP = 200;
+  const bossNameEl = document.querySelector('#boss-area .boss-name');
+  const bossBaseHP = 200;
+  let bossRound = parseInt(localStorage.getItem('rpg_boss_round') || '1');
+  let bossMaxHP = Math.floor(bossBaseHP * (1 + (bossRound - 1) * 0.5));
+  let bossHP = bossDefeated ? 0 : bossMaxHP;
+  let bossRespawnTimer = 0;
   let lastFireballTime = 0;
   const fireballs = [];
+
+  function updateBossNameplate() {
+    if (bossNameEl) bossNameEl.innerHTML = 'DRAGON KING <span style="font-size:7px;">Lv.' + bossRound + '</span>';
+  }
+  updateBossNameplate();
 
   if (bossDefeated && bossEl) {
     bossEl.classList.add('dead');
@@ -5531,8 +5540,23 @@
   }
 
   function updateBoss() {
-    if (bossDefeated || !bossEl) return;
+    if (!bossEl) return;
     const now = Date.now();
+
+    // Check boss respawn
+    if (bossDefeated && bossRespawnTimer > 0 && now > bossRespawnTimer) {
+      bossDefeated = false;
+      bossRespawnTimer = 0;
+      bossMaxHP = Math.floor(bossBaseHP * (1 + (bossRound - 1) * 0.5));
+      bossHP = bossMaxHP;
+      bossEl.classList.remove('dead');
+      if (bossHpFill) bossHpFill.style.width = '100%';
+      updateBossNameplate();
+      localStorage.setItem('rpg_boss_dead', 'false');
+      showNotification('Dragon King Lv.' + bossRound + ' has returned!');
+    }
+
+    if (bossDefeated) return;
     const r = bossEl.getBoundingClientRect();
     const bx = r.left + r.width / 2;
     const by = r.top + r.height / 2;
@@ -5605,15 +5629,28 @@
       bossDefeated = true;
       bossEl.classList.add('dead');
       playBossVictorySound();
-      score += 500;
+      const roundBonus = Math.floor(500 * (1 + (bossRound - 1) * 0.3));
+      const xpBonus = Math.floor(100 * (1 + (bossRound - 1) * 0.3));
+      score += roundBonus;
       updateHUD();
-      gainXP(100);
+      gainXP(xpBonus);
       // Drop 3 coins worth of particles
       const br = bossEl.getBoundingClientRect();
       for (let i = 0; i < 3; i++) {
         setTimeout(() => spawnCoinParticles(br.left + br.width / 2 + (i - 1) * 20, br.top), i * 200);
       }
       spawnConfetti(window.innerWidth / 2, window.innerHeight / 2);
+
+      // Level up and schedule respawn (max 10 rounds)
+      if (bossRound < BOSS_MAX_ROUND) {
+        bossRound++;
+        localStorage.setItem('rpg_boss_round', bossRound);
+        showNotification('Dragon King defeated! Lv.' + bossRound + ' incoming...');
+        bossRespawnTimer = Date.now() + 15000;
+      } else {
+        showNotification('Dragon King FINAL DEFEAT! All 10 rounds cleared!');
+        localStorage.setItem('rpg_boss_round', BOSS_MAX_ROUND);
+      }
       saveProgress();
     }
   }
@@ -7907,17 +7944,24 @@
   // =============================================
   let snakeOpen = false, breakoutOpen = false, dialogOpen = false, equipCompareOpen = false;
 
+  const BOSS_MAX_ROUND = 10;
+
   const miniBosses = {
     ice: {
       id: 'ice',
       name: 'Ice Golem',
+      baseHp: 120,
       hp: 120, maxHp: 120,
-      dead: localStorage.getItem('rpg_miniboss_ice_dead') === 'true',
+      round: parseInt(localStorage.getItem('rpg_miniboss_ice_round') || '1'),
+      dead: false,
+      respawnTimer: 0,
       hpEl: document.getElementById('ice-golem-hp'),
       spriteEl: document.getElementById('ice-golem-sprite'),
       arenaEl: document.getElementById('ice-golem-arena'),
       sectionEl: document.getElementById('miniboss-ice'),
+      nameplateEl: document.querySelector('#ice-golem-arena .miniboss-nameplate'),
       lastAttack: 0, attackInterval: 4000,
+      baseScoreReward: 200, baseXpReward: 50,
       scoreReward: 200, xpReward: 50,
       frostZones: [],
       moveOffset: 0, moveDir: 1, moveSpeed: 0.3
@@ -7925,25 +7969,53 @@
     shadow: {
       id: 'shadow',
       name: 'Shadow Mage',
+      baseHp: 100,
       hp: 100, maxHp: 100,
-      dead: localStorage.getItem('rpg_miniboss_shadow_dead') === 'true',
+      round: parseInt(localStorage.getItem('rpg_miniboss_shadow_round') || '1'),
+      dead: false,
+      respawnTimer: 0,
       hpEl: document.getElementById('shadow-mage-hp'),
       spriteEl: document.getElementById('shadow-mage-sprite'),
       arenaEl: document.getElementById('shadow-mage-arena'),
       sectionEl: document.getElementById('miniboss-shadow'),
+      nameplateEl: document.querySelector('#shadow-mage-arena .miniboss-nameplate'),
       lastAttack: 0, attackInterval: 3000,
       lastTeleport: 0, teleportInterval: 5000,
+      baseScoreReward: 250, baseXpReward: 60,
       scoreReward: 250, xpReward: 60,
       shadowOrbs: []
     }
   };
 
-  // Init dead mini-bosses
-  Object.values(miniBosses).forEach(mb => {
-    if (mb.dead && mb.arenaEl) {
-      mb.arenaEl.style.opacity = '0.3';
-      if (mb.hpEl) mb.hpEl.style.width = '0%';
+  function applyMiniBossRound(mb) {
+    const r = mb.round;
+    mb.maxHp = Math.floor(mb.baseHp * (1 + (r - 1) * 0.4));
+    mb.hp = mb.maxHp;
+    mb.scoreReward = Math.floor(mb.baseScoreReward * (1 + (r - 1) * 0.3));
+    mb.xpReward = Math.floor(mb.baseXpReward * (1 + (r - 1) * 0.3));
+    if (mb.nameplateEl) {
+      const color = mb.nameplateEl.style.color;
+      mb.nameplateEl.innerHTML = mb.name.toUpperCase() + ' <span style="font-size:7px;color:' + color + ';">Lv.' + r + '</span>';
     }
+    if (mb.hpEl) mb.hpEl.style.width = '100%';
+  }
+
+  function respawnMiniBoss(mb) {
+    mb.dead = false;
+    mb.respawnTimer = 0;
+    applyMiniBossRound(mb);
+    if (mb.arenaEl) {
+      mb.arenaEl.classList.remove('miniboss-dead');
+      mb.arenaEl.style.opacity = '1';
+    }
+    if (mb.spriteEl) mb.spriteEl.style.transform = '';
+    mb.moveOffset = 0;
+    showNotification(mb.name + ' Lv.' + mb.round + ' has returned!');
+  }
+
+  // Init mini-bosses with their saved round
+  Object.values(miniBosses).forEach(mb => {
+    applyMiniBossRound(mb);
   });
 
   function damageMiniBoss(mb, amount) {
@@ -7958,7 +8030,6 @@
 
   function killMiniBoss(mb) {
     mb.dead = true;
-    localStorage.setItem('rpg_miniboss_' + mb.id + '_dead', 'true');
     playBossVictorySound();
     score += mb.scoreReward;
     updateHUD();
@@ -7983,12 +8054,30 @@
     if (mb.arenaEl) { mb.arenaEl.classList.add('miniboss-dead'); }
     screenFlash(mb.id === 'ice' ? 'rgba(96,165,250,0.4)' : 'rgba(192,132,252,0.4)');
     screenShake(8, 400);
+
+    // Level up and schedule respawn (max 10 rounds)
+    if (mb.round < BOSS_MAX_ROUND) {
+      mb.round++;
+      localStorage.setItem('rpg_miniboss_' + mb.id + '_round', mb.round);
+      showNotification(mb.name + ' defeated! Lv.' + mb.round + ' incoming...');
+      mb.respawnTimer = Date.now() + 12000;
+    } else {
+      showNotification(mb.name + ' FINAL DEFEAT! All 10 rounds cleared!');
+      localStorage.setItem('rpg_miniboss_' + mb.id + '_round', BOSS_MAX_ROUND);
+    }
     saveProgress();
   }
 
   function updateMiniBosses() {
     const now = Date.now();
     const px = charX + 16, py = charY + 16;
+
+    // Check respawn timers for all mini-bosses
+    Object.values(miniBosses).forEach(mb => {
+      if (mb.dead && mb.respawnTimer > 0 && now > mb.respawnTimer) {
+        respawnMiniBoss(mb);
+      }
+    });
 
     // Ice Golem
     const ice = miniBosses.ice;
