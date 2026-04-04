@@ -820,6 +820,8 @@
 
     /* -- Pixel Character -- */
     #pixel-char {
+      --equip-hat: var(--purple);
+      --equip-body: var(--blue);
       position: fixed;
       bottom: 40px;
       right: 40px;
@@ -836,14 +838,14 @@
       height: 4px;
       box-shadow:
         /* hat */
-        8px 0 0 var(--purple), 12px 0 0 var(--purple), 16px 0 0 var(--purple),
-        4px 4px 0 var(--purple), 8px 4px 0 var(--purple), 12px 4px 0 var(--purple), 16px 4px 0 var(--purple), 20px 4px 0 var(--purple),
+        8px 0 0 var(--equip-hat), 12px 0 0 var(--equip-hat), 16px 0 0 var(--equip-hat),
+        4px 4px 0 var(--equip-hat), 8px 4px 0 var(--equip-hat), 12px 4px 0 var(--equip-hat), 16px 4px 0 var(--equip-hat), 20px 4px 0 var(--equip-hat),
         /* head */
         8px 8px 0 #fcd7a0, 12px 8px 0 #fcd7a0, 16px 8px 0 #fcd7a0,
         8px 12px 0 #fcd7a0, 12px 12px 0 #333, 16px 12px 0 #fcd7a0,
         /* body */
-        4px 16px 0 var(--blue), 8px 16px 0 var(--blue), 12px 16px 0 var(--blue), 16px 16px 0 var(--blue), 20px 16px 0 var(--blue),
-        8px 20px 0 var(--blue), 12px 20px 0 var(--gold), 16px 20px 0 var(--blue),
+        4px 16px 0 var(--equip-body), 8px 16px 0 var(--equip-body), 12px 16px 0 var(--equip-body), 16px 16px 0 var(--equip-body), 20px 16px 0 var(--equip-body),
+        8px 20px 0 var(--equip-body), 12px 20px 0 var(--gold), 16px 20px 0 var(--equip-body),
         /* legs */
         8px 24px 0 #555, 16px 24px 0 #555,
         8px 28px 0 #444, 16px 28px 0 #444;
@@ -3852,8 +3854,8 @@
   <section id="character" class="section anim-target" data-zone="~ PROFILE ~" style="position:relative;">
     <div class="section-title">PROFILE</div>
     <div class="char-card pixel-border">
-      <div class="char-avatar-wrap">
-        <img src="./static/selfpic_yichenlin.jpg" alt="Yichen Lin" class="char-avatar">
+      <div class="char-avatar-wrap" onclick="toggleAvatar()" style="cursor:pointer;" title="Click to switch photo">
+        <img src="./static/selfpic_yichenlin.jpg" alt="Yichen Lin" class="char-avatar" id="profile-avatar">
         <div class="char-avatar-border"></div>
       </div>
       <div class="char-info">
@@ -5738,6 +5740,19 @@
     saveProgress();
   }
   window.buyItem = buyItem;
+
+  // -- Avatar Toggle --
+  const avatarSources = [
+    './static/selfpic_yichenlin.jpg',
+    'https://raw.githubusercontent.com/yil384/Picasso-Lab/main/static/selfpics/yichenlin.png'
+  ];
+  let avatarIndex = 0;
+  function toggleAvatar() {
+    avatarIndex = (avatarIndex + 1) % avatarSources.length;
+    const img = document.getElementById('profile-avatar');
+    if (img) img.src = avatarSources[avatarIndex];
+  }
+  window.toggleAvatar = toggleAvatar;
 
   function showNotification(text) {
     const notif = document.getElementById('ach-unlock');
@@ -8631,6 +8646,21 @@
     document.getElementById('equip-accept-btn').onclick = function() { acceptEquip(); };
   }
 
+  function updateCharAppearance() {
+    const pc = document.getElementById('pixel-char');
+    if (!pc) return;
+    // Weapon color: hat
+    const weaponColors = { common: '#94a3b8', rare: '#f97316', epic: '#818cf8', legendary: '#fbbf24' };
+    // Armor color: body
+    const armorColors = { common: '#6b7280', rare: '#3b82f6', epic: '#7c3aed', legendary: '#ef4444' };
+    const w = equippedItems.weapon;
+    const a = equippedItems.armor;
+    const hatColor = w ? (weaponColors[w.rarity] || 'var(--purple)') : 'var(--purple)';
+    const bodyColor = a ? (armorColors[a.rarity] || 'var(--blue)') : 'var(--blue)';
+    pc.style.setProperty('--equip-hat', hatColor);
+    pc.style.setProperty('--equip-body', bodyColor);
+  }
+
   function acceptEquip() {
     if (pendingEquip) {
       equippedItems[pendingEquip.type] = pendingEquip;
@@ -8639,6 +8669,7 @@
       pendingEquip = null;
     }
     dismissEquipCompare();
+    updateCharAppearance();
   }
   window.acceptEquip = acceptEquip;
 
@@ -8805,6 +8836,7 @@
 
   // Init equipment display on load
   renderEquipPanel();
+  updateCharAppearance();
 
   // =============================================
   // SKILL BAR: DRAG + AUTO-FADE + TOGGLE
