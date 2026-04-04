@@ -2546,14 +2546,19 @@
     #minimap {
       position: fixed;
       top: 52px;
-      right: 12px;
-      width: 60px;
-      height: 120px;
-      background: rgba(15,15,35,0.85);
-      border: 2px solid var(--gold);
+      right: 8px;
+      width: 36px;
+      height: 72px;
+      background: rgba(15,15,35,0.3);
+      border: 1px solid rgba(255,215,0,0.25);
       border-radius: 4px;
       z-index: 95;
       overflow: hidden;
+      opacity: 0.4;
+      transition: opacity 0.3s;
+    }
+    #minimap:hover {
+      opacity: 0.85;
     }
     #minimap-viewport {
       position: absolute;
