@@ -107,7 +107,19 @@
       0%, 100% { opacity: 0.2; }
       50% { opacity: 1; }
     }
-    .title-content { text-align: center; z-index: 1; }
+    .title-content {
+      text-align: center;
+      z-index: 1;
+      width: min(920px, calc(100vw - 48px));
+      padding: 32px 24px;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 26%),
+        linear-gradient(180deg, rgba(15,23,42,0.82), rgba(15,23,42,0.58));
+      border: 1px solid rgba(148,163,184,0.14);
+      box-shadow: 0 28px 90px rgba(2,6,23,0.42);
+      backdrop-filter: blur(10px);
+    }
     .title-name {
       font-family: var(--font-pixel);
       font-size: clamp(20px, 5vw, 36px);
@@ -129,12 +141,41 @@
       font-family: var(--font-pixel);
       font-size: clamp(8px, 1.5vw, 11px);
       color: var(--text-muted);
-      margin-top: 40px;
-      animation: blink 1.2s step-end infinite;
+      margin-top: 28px;
+      letter-spacing: 0.04em;
+      opacity: 0.72;
+      animation: blink 2.4s ease-in-out infinite;
     }
     @keyframes blink {
       0%, 100% { opacity: 1; }
       50% { opacity: 0; }
+    }
+    .title-deck {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      text-align: left;
+    }
+    .title-card {
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.14);
+      background:
+        radial-gradient(circle at top right, rgba(250,204,21,0.08), transparent 28%),
+        linear-gradient(180deg, rgba(15,23,42,0.72), rgba(15,23,42,0.5));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .title-card-label {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .title-card-value {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.7;
     }
     #music-toggle {
       position: absolute;
@@ -176,21 +217,26 @@
     .bar-label {
       font-family: var(--font-pixel);
       font-size: 8px;
-      min-width: 24px;
+      min-width: 52px;
     }
     .bar-label.green { color: var(--green); }
     .bar-label.purple { color: var(--purple); }
     .bar-label.gold { color: var(--gold); }
     .bar-track {
+      display: block;
       flex: 1;
+      width: 100%;
       height: 10px;
-      background: #0f172a;
+      background: linear-gradient(180deg, #0f172a, #1e293b);
       border-radius: 3px;
       overflow: hidden;
       border: 1px solid #334155;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.45);
     }
     .bar-fill {
+      display: block;
       height: 100%;
+      width: 0%;
       border-radius: 2px;
       transition: width 0.3s ease;
       min-width: 0;
@@ -202,6 +248,8 @@
       font-size: 9px;
       color: var(--gold);
       white-space: nowrap;
+      min-width: 58px;
+      text-align: right;
     }
     #menu-btn {
       background: none;
@@ -296,6 +344,68 @@
     .char-name { font-size: 16px; margin-bottom: 12px; }
     .char-class { font-family: var(--font-pixel); font-size: 10px; margin-bottom: 8px; color: var(--text); }
     .char-detail { font-size: 14px; margin-bottom: 4px; color: var(--text); }
+    .char-kicker {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: #0f172a;
+      width: fit-content;
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--gold), #fde68a);
+      margin-bottom: 14px;
+    }
+    .char-summary {
+      margin: 14px 0 16px;
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.75;
+      max-width: 62ch;
+    }
+    .char-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .char-action {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      text-decoration: none;
+      color: var(--gold);
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,215,0,0.24);
+      background: rgba(15,23,42,0.72);
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .char-action:hover {
+      transform: translateY(-2px);
+      border-color: var(--gold);
+      background: rgba(255,215,0,0.1);
+    }
+    .char-focus-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .char-focus-card {
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(148,163,184,0.12);
+      background: rgba(15,23,42,0.58);
+    }
+    .char-focus-label {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .char-focus-value {
+      font-size: 13px;
+      color: #f8fafc;
+      line-height: 1.6;
+    }
     .char-link { color: var(--blue); text-decoration: none; }
     .char-link:hover { text-decoration: underline; }
     .text-dim { color: var(--text-dim); }
@@ -391,66 +501,129 @@
       transition: border-color 0.2s, color 0.2s;
     }
     .tool-badge:hover { border-color: var(--gold); color: var(--gold); }
+    .section-lead {
+      max-width: 760px;
+      margin: 0 0 22px;
+      font-size: 15px;
+      color: var(--text-dim);
+      line-height: 1.8;
+    }
 
     /* -- Achievements -- */
     .achievement-list { display: flex; flex-direction: column; gap: 16px; }
     .achievement-card {
-      display: flex;
-      gap: 16px;
-      padding: 20px;
-      transition: box-shadow 0.3s;
+      display: grid;
+      grid-template-columns: 84px 1fr;
+      gap: 20px;
+      padding: 24px;
+      transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
       position: relative;
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 30%),
+        linear-gradient(180deg, rgba(15,23,42,0.96), rgba(30,41,59,0.82));
+      border: 1px solid rgba(148,163,184,0.14);
+    }
+    .achievement-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 24px 42px rgba(2,6,23,0.28);
+    }
+    .achievement-card[data-rarity="gold"] { border-color: rgba(255,215,0,0.28); }
+    .achievement-card[data-rarity="silver"] { border-color: rgba(148,163,184,0.22); }
+    .ach-side {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .ach-icon {
+      width: 68px;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      border-radius: 18px;
+      background: rgba(15,23,42,0.8);
+      border: 1px solid rgba(148,163,184,0.14);
+    }
+    .ach-rank {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .ach-body { flex: 1; }
+    .ach-topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+    .ach-name { font-size: 10px; color: var(--gold); margin-bottom: 8px; }
+    .ach-status {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.16);
+      color: var(--text-dim);
+      white-space: nowrap;
+      background: rgba(15,23,42,0.7);
+    }
+    .ach-desc { font-size: 18px; color: var(--text); margin-bottom: 10px; line-height: 1.4; }
+    .ach-authors { font-size: 13px; color: var(--text-dim); margin-bottom: 8px; }
+    .ach-venue { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+    .ach-summary {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      max-width: 64ch;
+    }
+
+    /* -- Quest Log -- */
+    .quest-list { display: flex; flex-direction: column; gap: 14px; }
+    .quest-card {
       overflow: hidden;
       border-radius: 18px;
       background:
-        radial-gradient(circle at top right, rgba(255,215,0,0.08), transparent 28%),
-        linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.74));
+        linear-gradient(90deg, rgba(96,165,250,0.14) 0 3px, transparent 3px),
+        radial-gradient(circle at top left, rgba(96,165,250,0.07), transparent 26%),
+        linear-gradient(180deg, rgba(15,23,42,0.94), rgba(30,41,59,0.8));
     }
-    .achievement-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(105deg, transparent 40%, rgba(255,215,0,0.06) 45%, transparent 50%);
-      background-size: 250% 100%;
-      transition: background-position 0.6s;
-    }
-    .achievement-card:hover::after { background-position: -100% 0; }
-    .achievement-card:hover { box-shadow: 0 0 20px rgba(255,215,0,0.15); }
-    .achievement-card[data-rarity="gold"] { border-color: rgba(255,215,0,0.3); }
-    .achievement-card[data-rarity="silver"] { border-color: rgba(192,192,192,0.3); }
-    .ach-icon { font-size: 36px; flex-shrink: 0; }
-    .ach-body { flex: 1; }
-    .ach-name { font-size: 10px; color: var(--gold); margin-bottom: 8px; }
-    .ach-desc { font-size: 13px; color: var(--text); margin-bottom: 6px; line-height: 1.5; }
-    .ach-authors { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
-    .ach-venue { font-size: 8px; color: var(--text-muted); }
-
-    /* -- Quest Log -- */
-    .quest-list { display: flex; flex-direction: column; gap: 12px; }
-    .quest-card { overflow: hidden; }
     .quest-header {
       display: flex;
+      align-items: start;
+      gap: 16px;
+      padding: 22px 22px 14px;
+    }
+    .quest-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 16px;
-      cursor: pointer;
-      transition: background 0.2s;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      border-radius: 14px;
+      background: rgba(15,23,42,0.72);
+      border: 1px solid rgba(148,163,184,0.14);
     }
-    .quest-header:hover { background: rgba(255,255,255,0.02); }
-    .quest-card {
-      border-radius: 18px;
-      background:
-        radial-gradient(circle at top left, rgba(96,165,250,0.09), transparent 26%),
-        linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.74));
-    }
-    .quest-icon { font-size: 20px; flex-shrink: 0; }
     .quest-meta { flex: 1; }
-    .quest-name { font-size: 9px; color: var(--blue); margin-bottom: 4px; }
-    .quest-role { font-size: 13px; color: var(--text); }
+    .quest-name { font-size: 9px; color: var(--blue); margin-bottom: 6px; }
+    .quest-role { font-size: 16px; color: var(--text); }
+    .quest-summary {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      max-width: 64ch;
+    }
     .quest-badge {
       font-size: 7px;
-      padding: 4px 10px;
-      border-radius: 2px;
+      padding: 6px 10px;
+      border-radius: 999px;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -459,19 +632,10 @@
       color: var(--green);
       border: 1px solid rgba(74,222,128,0.25);
     }
-    .quest-details {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease, padding 0.3s ease;
-      padding: 0 16px;
-    }
-    .quest-card.expanded .quest-details {
-      max-height: 200px;
-      padding: 0 16px 16px;
-    }
+    .quest-details { padding: 0 22px 22px 82px; }
     .quest-details ul {
       list-style: none;
-      padding-left: 32px;
+      padding-left: 18px;
     }
     .quest-details li {
       position: relative;
@@ -487,57 +651,94 @@
       color: var(--gold);
     }
 
-    /* -- Equipment -- */
+    /* -- Projects -- */
     .equip-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      gap: 22px;
     }
     .equip-card {
-      perspective: 600px;
-      height: 230px;
-    }
-    .equip-inner {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      transition: transform 0.6s ease;
-      transform-style: preserve-3d;
-    }
-    .equip-card:hover .equip-inner { transform: rotateY(180deg); }
-    .equip-front, .equip-back {
-      position: absolute;
-      inset: 0;
-      backface-visibility: hidden;
+      min-height: 280px;
+      border-radius: 20px;
+      padding: 24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 22%),
+        linear-gradient(180deg, rgba(15,23,42,0.98), rgba(15,23,42,0.86));
+      border: 1px solid rgba(148,163,184,0.14);
+      box-shadow: 0 22px 44px rgba(2,6,23,0.18);
       display: flex;
       flex-direction: column;
+      gap: 14px;
+    }
+    .equip-card[data-rarity="legendary"] { border-color: rgba(250,204,21,0.28); }
+    .equip-card[data-rarity="epic"] { border-color: rgba(129,140,248,0.22); }
+    .equip-card[data-rarity="rare"] { border-color: rgba(96,165,250,0.2); }
+    .equip-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .equip-title-wrap {
+      display: grid;
+      gap: 8px;
+    }
+    .equip-icon {
+      width: 42px;
+      height: 42px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 22px;
-      text-align: center;
-      border-radius: 18px;
-      background:
-        radial-gradient(circle at top, rgba(129,140,248,0.12), transparent 28%),
-        linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.76));
+      border-radius: 12px;
+      font-size: 20px;
+      background: rgba(30,41,59,0.72);
+      border: 1px solid rgba(148,163,184,0.14);
+      flex-shrink: 0;
     }
-    .equip-back { transform: rotateY(180deg); }
-    .equip-icon { font-size: 36px; margin-bottom: 8px; }
-    .equip-name { font-size: 9px; color: var(--purple); margin-bottom: 6px; }
-    .equip-desc { font-size: 12px; color: var(--text-dim); }
-    .equip-rarity { font-size: 7px; margin-top: 8px; padding: 2px 8px; border-radius: 2px; }
-    .equip-rarity.epic { color: #c084fc; background: rgba(192,132,252,0.12); border: 1px solid rgba(192,132,252,0.25); }
-    .equip-rarity.rare { color: var(--blue); background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.25); }
-    .equip-rarity.legendary { color: var(--gold); background: var(--gold-dim); border: 1px solid rgba(255,215,0,0.25); }
-    .equip-card[data-rarity="epic"] .equip-front,
-    .equip-card[data-rarity="epic"] .equip-back { border-color: rgba(192,132,252,0.4); }
-    .equip-card[data-rarity="rare"] .equip-front,
-    .equip-card[data-rarity="rare"] .equip-back { border-color: rgba(96,165,250,0.4); }
-    .equip-card[data-rarity="legendary"] .equip-front,
-    .equip-card[data-rarity="legendary"] .equip-back { border-color: rgba(255,215,0,0.4); }
-    .equip-back-title { font-size: 10px; margin-bottom: 12px; }
-    .equip-back-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px; }
-    .equip-link { font-size: 8px; color: var(--blue); text-decoration: none; }
-    .equip-link:hover { text-decoration: underline; }
+    .equip-name { font-size: 10px; color: var(--text); }
+    .equip-type {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.16);
+      background: rgba(15,23,42,0.7);
+      white-space: nowrap;
+    }
+    .equip-desc { font-size: 16px; color: var(--text); line-height: 1.55; }
+    .equip-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .equip-back-title {
+      font-size: 8px;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+      font-family: var(--font-pixel);
+    }
+    .equip-back-desc { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+    .equip-link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: auto;
+    }
+    .equip-link {
+      font-size: 8px;
+      color: var(--blue);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(96,165,250,0.22);
+      background: rgba(15,23,42,0.72);
+    }
+    .equip-link:hover {
+      text-decoration: none;
+      border-color: var(--blue);
+      background: rgba(96,165,250,0.1);
+    }
 
     /* -- Portals -- */
     .portal-row {
@@ -666,18 +867,21 @@
     /* -- Game HUD -- */
     #game-hud {
       position: fixed;
-      bottom: 20px;
+      bottom: 22px;
       left: 20px;
       z-index: 90;
       font-family: var(--font-pixel);
       font-size: 8px;
-      color: var(--gold);
-      background: rgba(15,15,35,0.9);
-      border: 2px solid var(--gold);
-      border-radius: 4px;
-      padding: 8px 14px;
+      color: var(--text-muted);
+      background: rgba(15,23,42,0.72);
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 14px;
+      padding: 8px 12px;
       line-height: 1.8;
       pointer-events: none;
+      box-shadow: 0 16px 30px rgba(2,6,23,0.12);
+      backdrop-filter: blur(10px);
+      opacity: 0.62;
     }
     #game-hud .hud-line { display: block; }
 
@@ -1381,6 +1585,7 @@
       .char-card { flex-direction: column; text-align: center; }
       .char-avatar-wrap { width: 100px; height: 100px; }
       .char-name { font-size: 13px; }
+      .char-focus-grid { grid-template-columns: 1fr; }
       .attr-name { min-width: 70px; font-size: 7px; }
       .quest-header { flex-wrap: wrap; }
       .quest-badge { margin-top: 4px; }
@@ -1506,35 +1711,39 @@
     /* ========== SKILL BAR ========== */
     #skill-bar {
       position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      right: 20px;
+      bottom: 70px;
+      left: auto;
+      transform: none;
       display: flex;
       gap: 8px;
       z-index: 95;
-      background: rgba(15,15,35,0.9);
-      border: 2px solid var(--gold);
-      border-radius: 8px;
-      padding: 8px 12px;
+      background: rgba(15,23,42,0.74);
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 16px;
+      padding: 8px 10px;
       cursor: grab;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.5s ease, transform 0.3s ease;
+      box-shadow: 0 16px 30px rgba(2,6,23,0.14);
+      backdrop-filter: blur(10px);
     }
     #skill-bar.dragging { cursor: grabbing; opacity: 1 !important; }
-    #skill-bar.faded { opacity: 0.25; }
+    #skill-bar.faded { opacity: 0.14; transform: translateY(6px); }
     #skill-bar.faded:hover { opacity: 1; }
     #skill-bar-toggle {
       position: fixed;
-      bottom: 24px;
+      bottom: 22px;
       right: 20px;
       z-index: 96;
       font-family: var(--font-pixel);
       font-size: 7px;
       color: var(--text-muted);
-      background: rgba(15,15,35,0.8);
-      border: 1px solid var(--border);
-      padding: 4px 8px;
-      border-radius: 4px;
+      background: rgba(15,23,42,0.72);
+      border: 1px solid rgba(148,163,184,0.16);
+      padding: 6px 10px;
+      border-radius: 999px;
       cursor: pointer;
+      backdrop-filter: blur(10px);
     }
     #skill-bar-toggle:hover { border-color: var(--gold); color: var(--gold); }
     .skill-slot {
@@ -1790,7 +1999,13 @@
       grid-template-columns: 1.2fr 0.9fr;
       gap: 18px;
     }
-    .monster-panel { padding: 20px; }
+    .monster-panel {
+      padding: 22px;
+      border: 1px solid rgba(148,163,184,0.12);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 30%),
+        linear-gradient(180deg, rgba(15,23,42,0.94), rgba(30,41,59,0.82));
+    }
     .monster-progress-strip {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1818,8 +2033,9 @@
     .monster-kicker {
       font-family: var(--font-pixel);
       font-size: 8px;
-      color: #0f172a;
-      background: linear-gradient(90deg, var(--gold), #fde68a);
+      color: #dbeafe;
+      background: rgba(15,23,42,0.7);
+      border: 1px solid rgba(148,163,184,0.18);
       display: inline-flex;
       align-items: center;
       border-radius: 999px;
@@ -1827,10 +2043,10 @@
       margin-bottom: 12px;
     }
     .monster-lead {
-      font-size: 18px;
-      color: #f8fafc;
+      font-size: 15px;
+      color: var(--text-dim);
       margin-bottom: 10px;
-      line-height: 1.7;
+      line-height: 1.85;
     }
     .monster-mini-grid {
       display: grid;
@@ -1899,10 +2115,10 @@
     .trainer-stat-box {
       padding: 14px;
       border-radius: 16px;
-      border: 1px solid rgba(255,215,0,0.18);
+      border: 1px solid rgba(148,163,184,0.14);
       background:
-        radial-gradient(circle at top left, rgba(129,140,248,0.14), transparent 34%),
-        linear-gradient(180deg, rgba(51,65,85,0.55), rgba(15,23,42,0.78));
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 32%),
+        linear-gradient(180deg, rgba(51,65,85,0.46), rgba(15,23,42,0.78));
       box-shadow: 0 14px 30px rgba(2,6,23,0.22);
     }
     .trainer-stat-title {
@@ -1976,8 +2192,10 @@
     .trainer-arena-card {
       padding: 18px;
       border-radius: 12px;
-      border: 1px solid rgba(148,163,184,0.18);
-      background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(30,41,59,0.72));
+      border: 1px solid rgba(148,163,184,0.14);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 30%),
+        linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.78));
     }
     .trainer-arena-list {
       display: grid;
@@ -2045,25 +2263,25 @@
       right: 16px;
       z-index: 94;
       min-width: 210px;
-      padding: 12px 14px;
-      border: 2px solid rgba(255,215,0,0.3);
-      border-radius: 16px;
+      padding: 14px 15px;
+      border: 1px solid rgba(250,204,21,0.22);
+      border-radius: 20px;
       background:
         radial-gradient(circle at top right, rgba(250,204,21,0.16), transparent 32%),
-        rgba(15,15,35,0.92);
-      box-shadow: 0 18px 36px rgba(0,0,0,0.26);
-      backdrop-filter: blur(8px);
+        linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.72));
+      box-shadow: 0 18px 36px rgba(0,0,0,0.18);
+      backdrop-filter: blur(10px);
     }
     .monster-hud-title {
       font-family: var(--font-pixel);
       font-size: 8px;
       color: var(--gold);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .monster-hud-line {
       font-size: 11px;
       color: var(--text-dim);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     #mount-sprite {
       position: fixed;
@@ -2243,6 +2461,7 @@
       .encounter-arena { grid-template-columns: 1fr; }
       .monster-mini-grid,
       .encounter-actions-grid { grid-template-columns: 1fr; }
+      .title-deck { grid-template-columns: 1fr; }
     }
 
     /* ========== ACHIEVEMENT SYSTEM ========== */
@@ -2542,11 +2761,11 @@
       text-shadow: 0 0 12px rgba(129,140,248,0.5), 0 0 30px rgba(129,140,248,0.2);
     }
     .title-prompt {
-      animation: dramaticPulse 1.5s ease-in-out infinite !important;
+      animation: dramaticPulse 2.6s ease-in-out infinite !important;
     }
     @keyframes dramaticPulse {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.05); text-shadow: 0 0 8px rgba(255,215,0,0.4); }
+      0%, 100% { opacity: 0.45; transform: translateY(0); }
+      50% { opacity: 0.9; transform: translateY(-2px); text-shadow: 0 0 8px rgba(255,215,0,0.18); }
     }
     /* Hyperspace dismiss */
     #title-screen.dismissed {
@@ -3065,164 +3284,197 @@
       background: rgba(15,23,42,0.72);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
     }
-    .world-hero {
-      padding-top: 42px;
-      padding-bottom: 36px;
-    }
-    .world-hero-shell {
+    .world-map-grid {
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 22px;
-      padding: 28px;
-      background:
-        radial-gradient(circle at top right, rgba(129,140,248,0.14), transparent 30%),
-        radial-gradient(circle at bottom left, rgba(250,204,21,0.1), transparent 26%),
-        linear-gradient(180deg, rgba(15,23,42,0.94), rgba(30,41,59,0.74));
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 18px;
     }
-    .world-hero-copy {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .world-hero-kicker {
-      font-family: var(--font-pixel);
-      font-size: 8px;
-      color: #0f172a;
-      width: fit-content;
-      padding: 7px 11px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--gold), #fde68a);
-      margin-bottom: 14px;
-    }
-    .world-hero-title {
-      font-size: clamp(28px, 4vw, 46px);
-      line-height: 1.05;
-      letter-spacing: -0.04em;
-      margin-bottom: 16px;
-      color: #f8fafc;
-      max-width: 11ch;
-    }
-    .world-hero-text {
-      font-size: 16px;
-      color: var(--text-dim);
-      max-width: 56ch;
-      line-height: 1.75;
-    }
-    .world-hero-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
-    }
-    .world-hero-meta-chip {
-      font-family: var(--font-pixel);
-      font-size: 7px;
-      color: #dbeafe;
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.18);
-      background: rgba(15,23,42,0.72);
-    }
-    .world-hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    .world-hero-link {
-      font-family: var(--font-pixel);
-      font-size: 7px;
-      text-decoration: none;
-      color: var(--gold);
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,215,0,0.24);
-      background: rgba(15,23,42,0.72);
-      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-    }
-    .world-hero-link:hover {
-      transform: translateY(-2px);
-      border-color: var(--gold);
-      background: rgba(255,215,0,0.1);
-    }
-    .world-hero-grid {
-      display: grid;
-      grid-template-rows: auto 1fr;
-      gap: 14px;
-      align-content: center;
-    }
-    .world-hero-portrait {
-      display: grid;
-      grid-template-columns: 140px 1fr;
-      gap: 16px;
-      padding: 18px;
-      border-radius: 20px;
-      border: 1px solid rgba(148,163,184,0.14);
-      background:
-        radial-gradient(circle at top, rgba(255,215,0,0.12), transparent 32%),
-        rgba(15,23,42,0.8);
-      align-items: center;
-    }
-    .world-hero-portrait img {
-      width: 140px;
-      height: 140px;
-      object-fit: cover;
-      border-radius: 18px;
-      border: 2px solid rgba(255,215,0,0.28);
-      box-shadow: 0 18px 30px rgba(2,6,23,0.28);
-    }
-    .world-hero-portrait h3 {
-      font-family: var(--font-pixel);
-      font-size: 11px;
-      color: var(--gold);
-      margin-bottom: 10px;
-    }
-    .world-hero-portrait p {
-      font-size: 13px;
-      color: var(--text-dim);
-      line-height: 1.7;
-    }
-    .world-hero-stat-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    .world-hero-stat {
-      min-height: 120px;
+    .world-map-stage,
+    .world-map-card {
       padding: 18px;
       border-radius: 18px;
       border: 1px solid rgba(148,163,184,0.12);
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 40%),
-        rgba(15,23,42,0.72);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 30%),
+        linear-gradient(180deg, rgba(15,23,42,0.94), rgba(30,41,59,0.8));
+      box-shadow: 0 18px 34px rgba(2,6,23,0.22);
+    }
+    .world-map-stage {
+      position: relative;
+      min-height: 500px;
+      overflow: hidden;
+    }
+    .world-map-stage::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 15% 30%, rgba(74,222,128,0.12), transparent 18%),
+        radial-gradient(circle at 86% 20%, rgba(250,204,21,0.1), transparent 18%),
+        radial-gradient(circle at 70% 78%, rgba(129,140,248,0.12), transparent 18%);
+      pointer-events: none;
+    }
+    .world-map-lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .world-map-compass {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 1px solid rgba(148,163,184,0.16);
+      display: grid;
+      place-items: center;
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: rgba(226,232,240,0.78);
+      background: rgba(15,23,42,0.48);
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }
-    .world-hero-stat-label {
+    .world-map-legend {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      display: grid;
+      gap: 8px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,0.12);
+      background: rgba(15,23,42,0.64);
+      max-width: 220px;
+    }
+    .world-map-legend-title {
       font-family: var(--font-pixel);
       font-size: 7px;
-      color: var(--text-muted);
+      color: var(--gold);
     }
-    .world-hero-stat-value {
-      font-size: 20px;
-      line-height: 1.2;
-      color: #f8fafc;
+    .world-map-legend-copy {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.6;
     }
-    .world-map-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
+    .world-map-line {
+      position: absolute;
+      height: 2px;
+      transform-origin: left center;
+      background: linear-gradient(90deg, rgba(250,204,21,0.1), rgba(250,204,21,0.7), rgba(250,204,21,0.1));
     }
-    .world-map-card {
-      padding: 18px;
+    .world-map-node {
+      position: absolute;
+      width: 160px;
+      padding: 14px;
       border-radius: 18px;
       border: 1px solid rgba(148,163,184,0.14);
       background:
-        radial-gradient(circle at top right, rgba(96,165,250,0.12), transparent 30%),
-        linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.76));
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 34%),
+        rgba(15,23,42,0.84);
+      box-shadow: 0 16px 28px rgba(2,6,23,0.22);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .world-map-node:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255,215,0,0.26);
+      box-shadow: 0 22px 34px rgba(2,6,23,0.28);
+    }
+    .world-map-node.active {
+      border-color: rgba(255,215,0,0.42);
+      box-shadow: 0 0 0 1px rgba(255,215,0,0.16), 0 24px 38px rgba(2,6,23,0.32);
+    }
+    .world-map-node-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-pixel);
+      font-size: 6px;
+      color: #dbeafe;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.16);
+      background: rgba(15,23,42,0.7);
+      margin-bottom: 8px;
+    }
+    .world-map-node h3 {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .world-map-node p {
+      font-size: 11px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 10px;
+      min-height: 48px;
+    }
+    .world-map-node button {
+      width: 100%;
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gold);
+      background: rgba(15,23,42,0.78);
+      border: 1px solid rgba(255,215,0,0.22);
+      border-radius: 999px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .world-map-node button:hover {
+      border-color: var(--gold);
+    }
+    .world-map-sidebar {
+      display: grid;
+      gap: 16px;
+    }
+    .world-map-status-card {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.12);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 30%),
+        linear-gradient(180deg, rgba(15,23,42,0.94), rgba(30,41,59,0.8));
       box-shadow: 0 18px 34px rgba(2,6,23,0.22);
+    }
+    .world-map-status-card h3 {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+    .world-map-status-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(148,163,184,0.1);
+    }
+    .world-map-status-row:last-of-type {
+      border-bottom: 0;
+    }
+    .world-map-status-row strong {
+      color: #f8fafc;
+      text-align: right;
+    }
+    .world-map-status-note {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .world-map-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .world-map-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(96,165,250,0.1), transparent 28%);
+      pointer-events: none;
     }
     .world-map-card h3 {
       font-family: var(--font-pixel);
@@ -3252,6 +3504,30 @@
       border-color: var(--gold);
       transform: translateY(-1px);
     }
+    .trainer-route {
+      margin-top: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .trainer-route-step {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.62);
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .trainer-route-step strong {
+      font-size: 12px;
+      color: var(--text);
+    }
+    .trainer-route-step span {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gold);
+    }
     .section {
       max-width: 1040px;
       padding-top: 78px;
@@ -3259,18 +3535,19 @@
     }
     .section-divider {
       max-width: 1040px;
-      opacity: 0.9;
+      opacity: 0.55;
     }
     .section-divider::before,
     .section-divider::after {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(250,204,21,0.5), transparent);
+      background: linear-gradient(90deg, transparent, rgba(148,163,184,0.28), transparent);
     }
     .divider-icon {
-      padding: 10px;
+      padding: 8px;
       border-radius: 999px;
-      background: rgba(15,23,42,0.72);
-      border: 1px solid rgba(255,215,0,0.14);
+      background: rgba(15,23,42,0.56);
+      border: 1px solid rgba(148,163,184,0.12);
+      color: var(--text-muted);
     }
     .char-card,
     .tree-node,
@@ -3299,7 +3576,6 @@
     }
     .tool-badge,
     .quest-badge,
-    .equip-rarity,
     .monster-chip,
     .monster-move-pill,
     .badge-chip,
@@ -3336,6 +3612,17 @@
         radial-gradient(circle at 80% 28%, rgba(96,165,250,0.14), transparent 20%);
       pointer-events: none;
     }
+    .encounter-stage::after {
+      content: '';
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: 26px;
+      height: 84px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(74,222,128,0.12), rgba(15,23,42,0.02) 62%, transparent 75%);
+      pointer-events: none;
+    }
     .encounter-topline {
       display: flex;
       align-items: center;
@@ -3368,6 +3655,53 @@
       background: var(--gold);
       border-color: var(--gold);
       box-shadow: 0 0 12px rgba(255,215,0,0.45);
+    }
+    .encounter-trainer-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(15,23,42,0.64);
+      border: 1px solid rgba(148,163,184,0.14);
+    }
+    .encounter-trainer-name {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .encounter-trainer-role {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .encounter-trainer-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      border: 1px solid rgba(255,215,0,0.18);
+      background: rgba(255,255,255,0.03);
+    }
+    .encounter-battle-read {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .encounter-read-chip {
+      font-family: var(--font-pixel);
+      font-size: 6px;
+      color: #dbeafe;
+      padding: 7px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.14);
+      background: rgba(15,23,42,0.68);
     }
     .encounter-command-note {
       font-size: 11px;
@@ -3411,35 +3745,26 @@
       box-shadow: 0 16px 26px rgba(2,6,23,0.28);
     }
     @media (max-width: 900px) {
-      .world-hero-shell {
-        grid-template-columns: 1fr;
-      }
       .world-map-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
       }
     }
     @media (max-width: 768px) {
-      .world-hero-title {
-        font-size: 28px;
-        max-width: none;
-      }
-      .world-hero-grid {
-        grid-template-columns: 1fr;
-      }
-      .world-hero-shell {
-        padding: 20px;
-      }
-      .world-hero-portrait {
-        grid-template-columns: 1fr;
-      }
-      .world-hero-portrait img {
-        width: 100%;
-        max-width: 180px;
-        height: 180px;
-      }
-      .world-hero-stat-grid,
       .world-map-grid {
         grid-template-columns: 1fr;
+      }
+      .world-map-stage {
+        min-height: auto;
+      }
+      .world-map-node {
+        position: relative;
+        width: auto;
+        left: auto !important;
+        top: auto !important;
+        margin-bottom: 12px;
+      }
+      .world-map-lines {
+        display: none;
       }
       .section {
         padding-top: 54px;
@@ -3466,7 +3791,21 @@
   <div class="title-content">
     <h1 class="title-name" id="title-name-el"></h1>
     <p class="title-subtitle" id="title-subtitle">PhD Student · UCSD CSE</p>
-    <p class="title-prompt">— PRESS ENTER —</p>
+    <div class="title-deck">
+      <div class="title-card">
+        <div class="title-card-label">WORLD</div>
+        <div class="title-card-value">A research portfolio staged as an explorable systems world, with the academic signal kept readable from the first screen.</div>
+      </div>
+      <div class="title-card">
+        <div class="title-card-label">PRIMARY ROUTE</div>
+        <div class="title-card-value">Profile, publications, experience, and projects establish the core story before the game systems fully open up.</div>
+      </div>
+      <div class="title-card">
+        <div class="title-card-label">OPTIONAL PLAY</div>
+        <div class="title-card-value">Companions, encounters, world travel, and boss challenges stay active underneath for visitors who want the full interactive layer.</div>
+      </div>
+    </div>
+    <p class="title-prompt">Press Enter to open portfolio</p>
   </div>
   <button id="music-toggle" class="pixel-font" aria-label="Toggle music" title="Music (no audio loaded)">🔇</button>
 </div>
@@ -3477,10 +3816,10 @@
   <!-- Status Bar -->
   <nav id="status-bar">
     <div class="status-bar-inner">
-      <span class="bar-group"><span class="bar-label green">HP</span><span class="bar-track"><span class="bar-fill" id="hp-bar" style="width:100%;background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,0.6);"></span></span><span class="bar-numbers" id="hp-numbers">100/100</span></span>
-      <span class="bar-group"><span class="bar-label purple">MP</span><span class="bar-track"><span class="bar-fill" id="mp-bar" style="width:100%;background:#818cf8;box-shadow:0 0 8px rgba(129,140,248,0.6);"></span></span><span class="bar-numbers" id="mp-numbers">100/100</span></span>
-      <span class="bar-group"><span class="bar-label gold">EXP</span><span class="bar-track"><span class="bar-fill" id="exp-bar" style="width:0%;background:#ffd700;box-shadow:0 0 8px rgba(255,215,0,0.6);"></span></span></span>
-      <span class="level-badge pixel-font" id="level-badge">Lv.1</span>
+      <span class="bar-group"><span class="bar-label green">HEALTH</span><span class="bar-track"><span class="bar-fill" id="hp-bar" style="width:100%;background:#4ade80;box-shadow:0 0 8px rgba(74,222,128,0.6);"></span></span><span class="bar-numbers" id="hp-numbers">100/100</span></span>
+      <span class="bar-group"><span class="bar-label purple">FOCUS</span><span class="bar-track"><span class="bar-fill" id="mp-bar" style="width:100%;background:#818cf8;box-shadow:0 0 8px rgba(129,140,248,0.6);"></span></span><span class="bar-numbers" id="mp-numbers">100/100</span></span>
+      <span class="bar-group"><span class="bar-label gold">PROGRESS</span><span class="bar-track"><span class="bar-fill" id="exp-bar" style="width:0%;background:#ffd700;box-shadow:0 0 8px rgba(255,215,0,0.6);"></span></span></span>
+      <span class="level-badge pixel-font" id="level-badge">Stage 1</span>
       <button id="menu-btn" class="pixel-font" aria-label="Menu">☰</button>
     </div>
   </nav>
@@ -3488,95 +3827,60 @@
   <!-- Navigation Menu Overlay -->
   <div id="nav-menu" class="hidden">
     <div class="nav-menu-inner pixel-border">
-      <div class="nav-menu-title pixel-font gold">MENU</div>
-      <a href="#character" class="nav-item" data-close>▶ Character</a>
-      <a href="#skill-tree" class="nav-item" data-close>▶ Skill Tree</a>
-      <a href="#attributes" class="nav-item" data-close>▶ Attributes</a>
-      <a href="#achievements" class="nav-item" data-close>▶ Achievements</a>
-      <a href="#quests" class="nav-item" data-close>▶ Quest Log</a>
-      <a href="#equipment" class="nav-item" data-close>▶ Equipment</a>
-      <a href="#monster-lab" class="nav-item" data-close>▶ Monster Lab</a>
-      <a href="#trainer-circuit" class="nav-item" data-close>▶ Trainer Circuit</a>
-      <a href="#portals" class="nav-item" data-close>▶ Portals</a>
+      <div class="nav-menu-title pixel-font gold">SECTIONS</div>
+      <a href="#character" class="nav-item" data-close>▶ Profile</a>
+      <a href="#skill-tree" class="nav-item" data-close>▶ Education</a>
+      <a href="#attributes" class="nav-item" data-close>▶ Toolkit</a>
+      <a href="#achievements" class="nav-item" data-close>▶ Publications</a>
+      <a href="#quests" class="nav-item" data-close>▶ Experience</a>
+      <a href="#equipment" class="nav-item" data-close>▶ Projects</a>
+      <a href="#monster-lab" class="nav-item" data-close>▶ Interactive</a>
+      <a href="#trainer-circuit" class="nav-item" data-close>▶ Challenges</a>
+      <a href="#portals" class="nav-item" data-close>▶ Links</a>
     </div>
   </div>
 
   <!-- Zone Name Display -->
   <div class="zone-name" id="zone-name"></div>
 
-  <section class="section world-hero anim-target" data-zone="~ TRAINER HQ ~">
-    <div class="world-hero-shell pixel-border">
-      <div class="world-hero-copy">
-        <div class="world-hero-kicker">YICHEN LIN · PHD STUDENT · UC SAN DIEGO CSE</div>
-        <h2 class="world-hero-title">Systems, compilers, and AI systems research presented as a playable world.</h2>
-        <p class="world-hero-text">I am Yichen Lin, a Ph.D. student in Computer Science and Engineering at UC San Diego advised by Prof. Yufei Ding. This site keeps the portfolio front and center, while layering game-like exploration on top to showcase research, engineering, and projects with more energy.</p>
-        <div class="world-hero-meta">
-          <span class="world-hero-meta-chip">Advisor: Yufei Ding</span>
-          <span class="world-hero-meta-chip">Focus: Systems + AI</span>
-          <span class="world-hero-meta-chip">Email: yil384@ucsd.edu</span>
-        </div>
-        <div class="world-hero-actions">
-          <a href="#character" class="world-hero-link">About Me</a>
-          <a href="#achievements" class="world-hero-link">Publications</a>
-          <a href="#equipment" class="world-hero-link">Projects</a>
-          <a href="#monster-lab" class="world-hero-link">Game Layer</a>
-        </div>
-      </div>
-      <div class="world-hero-grid">
-        <div class="world-hero-portrait">
-          <img src="./static/selfpic_yichenlin.jpg" alt="Portrait of Yichen Lin">
-          <div>
-            <h3>RESEARCH PROFILE</h3>
-            <p>Compiler systems, GPU code generation, agentic workflows, and practical software engineering. The visual layer is playful; the homepage still leads with academic identity and technical work.</p>
-          </div>
-        </div>
-        <div class="world-hero-stat-grid">
-          <div class="world-hero-stat">
-            <span class="world-hero-stat-label">Base</span>
-            <strong class="world-hero-stat-value">UCSD CSE</strong>
-          </div>
-          <div class="world-hero-stat">
-            <span class="world-hero-stat-label">Research</span>
-            <strong class="world-hero-stat-value">Systems + LLM Tooling</strong>
-          </div>
-          <div class="world-hero-stat">
-            <span class="world-hero-stat-label">Play Layer</span>
-            <strong class="world-hero-stat-value">Wild / Trainer / Mount</strong>
-          </div>
-          <div class="world-hero-stat">
-            <span class="world-hero-stat-label">Current Site</span>
-            <strong class="world-hero-stat-value">Portfolio First</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- Character Card -->
-  <section id="character" class="section anim-target" data-zone="~ ADVENTURER'S GUILD ~" style="position:relative;">
-    <div class="section-title">CHARACTER</div>
+  <section id="character" class="section anim-target" data-zone="~ PROFILE ~" style="position:relative;">
+    <div class="section-title">PROFILE</div>
     <div class="char-card pixel-border">
       <div class="char-avatar-wrap">
         <img src="./static/selfpic_yichenlin.jpg" alt="Yichen Lin" class="char-avatar">
         <div class="char-avatar-border"></div>
       </div>
       <div class="char-info">
+        <div class="char-kicker">YICHEN LIN · PHD STUDENT · UC SAN DIEGO CSE</div>
         <div class="char-name pixel-font gold">YICHEN LIN</div>
-        <div class="char-class"><span class="purple">Class:</span> Scholar ✦✦✦</div>
-        <div class="char-detail"><span class="text-dim">Guild:</span> UC San Diego · CSE Dept</div>
-        <div class="char-detail"><span class="text-dim">Mentor:</span> Prof. Yufei Ding</div>
+        <div class="char-class"><span class="purple">Role:</span> Ph.D. Student, Computer Science and Engineering</div>
+        <div class="char-detail"><span class="text-dim">Department:</span> UC San Diego · CSE</div>
+        <div class="char-detail"><span class="text-dim">Advisor:</span> Prof. Yufei Ding</div>
         <div class="char-detail"><span class="text-dim">Phone:</span> (858) 319-7361</div>
         <div class="char-detail"><span class="blue">✉</span> <a href="mailto:yil384@ucsd.edu" class="char-link">yil384@ucsd.edu</a></div>
+        <p class="char-summary">I am a Ph.D. student in Computer Science and Engineering at UC San Diego. My work sits around systems, compilers, GPU code generation, and practical AI tooling. I like building things that are technically grounded, useful in practice, and presented clearly enough that the engineering signal is easy to evaluate.</p>
+        <div class="char-actions">
+          <a href="#achievements" class="char-action">Publications</a>
+          <a href="#equipment" class="char-action">Projects</a>
+          <a href="#quests" class="char-action">Experience</a>
+          <a href="#monster-lab" class="char-action">Interactive Layer</a>
+        </div>
+        <div class="char-focus-grid">
+          <div class="char-focus-card">
+            <div class="char-focus-label">RESEARCH</div>
+            <div class="char-focus-value">Systems, compilers, GPU programming, and tool-augmented LLM workflows.</div>
+          </div>
+          <div class="char-focus-card">
+            <div class="char-focus-label">CURRENT BASE</div>
+            <div class="char-focus-value">UC San Diego CSE, advised by Prof. Yufei Ding.</div>
+          </div>
+          <div class="char-focus-card">
+            <div class="char-focus-label">WHAT TO OPEN</div>
+            <div class="char-focus-value">Publications for research output, Projects for technical work, Experience for internships and research roles.</div>
+          </div>
+        </div>
       </div>
-    </div>
-    <!-- Secret Brick -->
-    <div id="secret-brick" aria-hidden="true"></div>
-    <!-- Coin 1: Character section right side -->
-    <div class="game-coin" data-coin-id="1" style="right:30px; top:60px;" aria-hidden="true"></div>
-    <!-- Enemy: Green Slime -->
-    <div class="game-enemy" data-type="slime-green" data-hp="30" data-max-hp="30" data-speed="1" data-section="character" data-damage="10" style="position:absolute; right:30px; top:40%;">
-      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
-      <div class="enemy-sprite enemy-slime-green"></div>
     </div>
   </section>
 
@@ -3591,16 +3895,17 @@
       </div>
       <div id="secret-reward" class="hidden" style="margin-top:16px;">
         <p class="pixel-font gold" style="font-size:10px;">LEGENDARY REWARD</p>
-        <p style="font-size:13px; color:var(--text-dim); margin-top:8px;">+500 Score, +100 XP, Full HP/MP restore!</p>
+        <p style="font-size:13px; color:var(--text-dim); margin-top:8px;">+500 score, +100 progress, full health/focus restore.</p>
       </div>
     </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">⚔️</span></div>
 
-  <!-- Skill Tree (Education) -->
-  <section id="skill-tree" class="section anim-target" data-zone="~ HALL OF KNOWLEDGE ~" style="position:relative;">
-    <div class="section-title">SKILL TREE</div>
+  <!-- Education -->
+  <section id="skill-tree" class="section anim-target" data-zone="~ EDUCATION ~" style="position:relative;">
+    <div class="section-title">EDUCATION</div>
+    <p class="section-lead">Academic path and current research home, presented as a concise timeline from Tsinghua University to the Ph.D. program at UC San Diego CSE.</p>
     <div class="tree-path">
       <div class="tree-node pixel-border">
         <div class="tree-node-icon">🏛️</div>
@@ -3620,56 +3925,49 @@
         <div class="tree-node-date">2025 – Now</div>
       </div>
     </div>
-    <!-- Coin 2: Skill tree, between nodes -->
-    <div class="game-coin" data-coin-id="2" style="left:50%; top:80px; margin-left:-10px;" aria-hidden="true"></div>
-    <!-- NPC 2: Charmander -->
-    <div class="game-npc npc-charmander" data-npc-id="2" style="left:50%; bottom:20px; margin-left:30px;" aria-hidden="true">
-      <span class="npc-sprite"></span>
-      <div class="npc-exclaim">!</div>
-      <div class="speech-bubble" id="npc-bubble-2">Char! 🔥 From Tsinghua to UCSD — evolution complete!</div>
-    </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">✦</span></div>
 
-  <!-- Attributes (Skills) -->
-  <section id="attributes" class="section anim-target" data-zone="~ TRAINING GROUNDS ~" style="position:relative;">
-    <div class="section-title">ATTRIBUTES</div>
+  <!-- Technical Toolkit -->
+  <section id="attributes" class="section anim-target" data-zone="~ TECHNICAL TOOLKIT ~" style="position:relative;">
+    <div class="section-title">TECHNICAL TOOLKIT</div>
+    <p class="section-lead">Languages and tools I use most often, with a quick visual summary of working strength and day-to-day usage across systems, backend, and research workflows.</p>
     <div class="pixel-border" style="padding:24px;">
       <div class="attr-row" data-level="90">
         <span class="attr-name pixel-font">Python</span>
         <span class="attr-bar"><span class="attr-fill" style="--color:var(--green);"></span></span>
-        <span class="attr-lv pixel-font">Lv.9</span>
+        <span class="attr-lv pixel-font">High</span>
       </div>
       <div class="attr-row" data-level="85">
         <span class="attr-name pixel-font">C++</span>
         <span class="attr-bar"><span class="attr-fill" style="--color:var(--blue);"></span></span>
-        <span class="attr-lv pixel-font">Lv.8</span>
+        <span class="attr-lv pixel-font">High</span>
       </div>
       <div class="attr-row" data-level="70">
         <span class="attr-name pixel-font">Go</span>
         <span class="attr-bar"><span class="attr-fill" style="--color:var(--purple);"></span></span>
-        <span class="attr-lv pixel-font">Lv.7</span>
+        <span class="attr-lv pixel-font">Strong</span>
       </div>
       <div class="attr-row" data-level="75">
         <span class="attr-name pixel-font">Rust</span>
         <span class="attr-bar"><span class="attr-fill" style="--color:var(--orange);"></span></span>
-        <span class="attr-lv pixel-font">Lv.7</span>
+        <span class="attr-lv pixel-font">Strong</span>
       </div>
       <div class="attr-row" data-level="65">
         <span class="attr-name pixel-font">TypeScript</span>
         <span class="attr-bar"><span class="attr-fill" style="--color:#06b6d4;"></span></span>
-        <span class="attr-lv pixel-font">Lv.6</span>
+        <span class="attr-lv pixel-font">Working</span>
       </div>
       <div class="attr-row" data-level="60">
         <span class="attr-name pixel-font">JavaScript</span>
         <span class="attr-bar"><span class="attr-fill" style="--color:#eab308;"></span></span>
-        <span class="attr-lv pixel-font">Lv.6</span>
+        <span class="attr-lv pixel-font">Working</span>
       </div>
       <div class="attr-row" data-level="50">
         <span class="attr-name pixel-font">Verilog</span>
         <span class="attr-bar"><span class="attr-fill" style="--color:var(--red);"></span></span>
-        <span class="attr-lv pixel-font">Lv.5</span>
+        <span class="attr-lv pixel-font">Familiar</span>
       </div>
       <div class="tool-badges">
         <span class="tool-badge pixel-font">Linux</span>
@@ -3680,86 +3978,64 @@
         <span class="tool-badge pixel-font">MongoDB</span>
       </div>
     </div>
-    <!-- Coin 3: Attributes top right -->
-    <div class="game-coin" data-coin-id="3" style="right:20px; top:20px;" aria-hidden="true"></div>
-    <!-- Enemy: Red Slime -->
-    <div class="game-enemy" data-type="slime-red" data-hp="40" data-max-hp="40" data-speed="1.5" data-section="attributes" data-damage="10" style="position:absolute; left:30px; top:50%;">
-      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
-      <div class="enemy-sprite enemy-slime-red"></div>
-    </div>
-    <!-- NPC 1: Pikachu (near Attributes) -->
-    <div class="game-npc npc-pikachu" data-npc-id="1" style="right:20px; top:60px;" aria-hidden="true">
-      <span class="npc-sprite"></span>
-      <div class="npc-exclaim">!</div>
-      <div class="speech-bubble" id="npc-bubble-1">Pika pika! Python Lv.9... that's super effective! ⚡</div>
-    </div>
-    <div class="wild-grass" data-encounter-zone="attributes" data-biome="spark-field" style="right:90px; bottom:20px;">
-      <div class="wild-grass-label">SPARK FIELD</div>
-    </div>
-  </section>
-
-  <!-- Mini-Boss 1: Ice Golem -->
-  <section class="miniboss-section anim-target" id="miniboss-ice" data-zone="~ ICE CAVERN ~" style="position:relative;">
-    <div class="miniboss-zone-banner" style="color:#8ec5e8;">~ ICE CAVERN ~</div>
-    <div class="miniboss-arena pixel-border" id="ice-golem-arena">
-      <div class="miniboss-nameplate" style="color:#8ec5e8;">ICE GOLEM</div>
-      <div class="miniboss-hp-bar"><div class="miniboss-hp-fill" id="ice-golem-hp" style="background:linear-gradient(90deg,#60a5fa,#93c5fd);"></div></div>
-      <div class="miniboss-sprite ice-golem-sprite" id="ice-golem-sprite"></div>
-    </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">🔮</span></div>
 
   <!-- Achievements (Publications) -->
-  <section id="achievements" class="section anim-target" data-zone="~ TROPHY ROOM ~" style="position:relative;">
+  <section id="achievements" class="section anim-target" data-zone="~ PUBLICATIONS ~" style="position:relative;">
     <div class="section-title">ACHIEVEMENTS</div>
+    <p class="section-lead">Selected research output, highlighting paper titles, venues, collaborators, and the technical problems each project set out to address.</p>
     <div class="achievement-list">
       <div class="achievement-card pixel-border anim-target" data-rarity="silver">
-        <div class="ach-icon">🥈</div>
+        <div class="ach-side">
+          <div class="ach-icon">🥈</div>
+          <div class="ach-rank">Paper 01<br>Agentic LLMs</div>
+        </div>
         <div class="ach-body">
-          <div class="ach-name pixel-font">TRITONGYM</div>
+          <div class="ach-topline">
+            <div class="ach-name pixel-font">TRITONGYM</div>
+            <div class="ach-status">ICLR 2026 SUBMISSION</div>
+          </div>
           <div class="ach-desc">A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation</div>
           <div class="ach-authors">Yue Guan*, <span class="gold">Yichen Lin*</span>, et al.</div>
           <div class="ach-venue pixel-font">In submission to ICLR 2026</div>
+          <div class="ach-summary">Benchmarks tool-augmented LLM workflows on Triton GPU code generation and frames the project around measurable systems behavior rather than demo-only prompting wins.</div>
         </div>
       </div>
       <div class="achievement-card pixel-border anim-target" data-rarity="gold">
-        <div class="ach-icon">🏆</div>
+        <div class="ach-side">
+          <div class="ach-icon">🏆</div>
+          <div class="ach-rank">Paper 02<br>Autonomous Driving</div>
+        </div>
         <div class="ach-body">
-          <div class="ach-name pixel-font">(Re)²H₂O</div>
+          <div class="ach-topline">
+            <div class="ach-name pixel-font">(Re)²H₂O</div>
+            <div class="ach-status">IEEE IV 2023</div>
+          </div>
           <div class="ach-desc">Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online RL</div>
           <div class="ach-authors">Haoyi Niu*, Kun Ren*, <span class="gold">Yichen Lin</span>, et al.</div>
           <div class="ach-venue pixel-font">IEEE IV 2023</div>
+          <div class="ach-summary">Explores scenario generation for autonomous driving with a hybrid offline-and-online reinforcement learning setup, focusing on robustness and controllable scenario construction.</div>
         </div>
       </div>
-    </div>
-    <!-- Coin 4: Achievements left side -->
-    <div class="game-coin" data-coin-id="4" style="left:10px; top:80px;" aria-hidden="true"></div>
-    <!-- Enemy: Bat -->
-    <div class="game-enemy" data-type="bat" data-hp="25" data-max-hp="25" data-speed="2.5" data-section="achievements" data-damage="10" style="position:absolute; right:60px; top:30%;">
-      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
-      <div class="enemy-sprite enemy-bat"></div>
-    </div>
-    <!-- NPC 3: Squirtle (near Achievements) -->
-    <div class="game-npc npc-squirtle" data-npc-id="3" style="left:10px; top:120px;" aria-hidden="true">
-      <span class="npc-sprite"></span>
-      <div class="npc-exclaim">!</div>
-      <div class="speech-bubble" id="npc-bubble-3">Squirtle! 💧 These publications are a real splash!</div>
     </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">✦</span></div>
 
-  <!-- Quest Log (Internships) -->
-  <section id="quests" class="section anim-target" data-zone="~ QUEST BOARD ~" style="position:relative;">
-    <div class="section-title">QUEST LOG</div>
+  <!-- Experience -->
+  <section id="quests" class="section anim-target" data-zone="~ EXPERIENCE ~" style="position:relative;">
+    <div class="section-title">EXPERIENCE</div>
+    <p class="section-lead">Industry and research experience across labs and companies, focused on scope, ownership, and concrete technical outcomes.</p>
     <div class="quest-list">
       <div class="quest-card pixel-border anim-target">
-        <div class="quest-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div class="quest-header">
           <span class="quest-icon">⚔️</span>
           <div class="quest-meta">
             <div class="quest-name pixel-font">PICASSO LAB (UCSD CSE)</div>
             <div class="quest-role">Research Intern · <span class="text-dim">Mar 2024 – Feb 2025</span></div>
+            <div class="quest-summary">Worked on systems support for large-model infrastructure and research tooling in an academic lab setting.</div>
           </div>
           <span class="quest-badge quest-complete pixel-font">✓ COMPLETE</span>
         </div>
@@ -3771,11 +4047,12 @@
         </div>
       </div>
       <div class="quest-card pixel-border anim-target">
-        <div class="quest-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div class="quest-header">
           <span class="quest-icon">⚔️</span>
           <div class="quest-meta">
             <div class="quest-name pixel-font">METABIT</div>
             <div class="quest-role">Quantitative Developer Intern · <span class="text-dim">Sep 2024 – Nov 2024</span></div>
+            <div class="quest-summary">Focused on backend-facing performance and streaming improvements for an internal AI platform.</div>
           </div>
           <span class="quest-badge quest-complete pixel-font">✓ COMPLETE</span>
         </div>
@@ -3786,11 +4063,12 @@
         </div>
       </div>
       <div class="quest-card pixel-border anim-target">
-        <div class="quest-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div class="quest-header">
           <span class="quest-icon">⚔️</span>
           <div class="quest-meta">
             <div class="quest-name pixel-font">TENCENT (TIMI STUDIO)</div>
             <div class="quest-role">Game Developer Intern · <span class="text-dim">Jun 2024 – Jul 2024</span></div>
+            <div class="quest-summary">Built gameplay-adjacent client features and explored voice-driven teammate interaction in a production game environment.</div>
           </div>
           <span class="quest-badge quest-complete pixel-font">✓ COMPLETE</span>
         </div>
@@ -3801,11 +4079,12 @@
         </div>
       </div>
       <div class="quest-card pixel-border anim-target">
-        <div class="quest-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div class="quest-header">
           <span class="quest-icon">⚔️</span>
           <div class="quest-meta">
             <div class="quest-name pixel-font">DISNEY+ HOTSTAR</div>
             <div class="quest-role">Algorithm Developer Intern · <span class="text-dim">Mar 2024 – Jun 2024</span></div>
+            <div class="quest-summary">Worked on ranking and search quality, with emphasis on recommendation and serving efficiency.</div>
           </div>
           <span class="quest-badge quest-complete pixel-font">✓ COMPLETE</span>
         </div>
@@ -3816,11 +4095,12 @@
         </div>
       </div>
       <div class="quest-card pixel-border anim-target">
-        <div class="quest-header" onclick="this.parentElement.classList.toggle('expanded')">
+        <div class="quest-header">
           <span class="quest-icon">⚔️</span>
           <div class="quest-meta">
             <div class="quest-name pixel-font">BYTEDANCE LARK</div>
             <div class="quest-role">Backend Developer Intern · <span class="text-dim">Jun 2023 – Nov 2023</span></div>
+            <div class="quest-summary">Implemented backend support for AskAI workflows using message queues and caching systems in a sales-analysis context.</div>
           </div>
           <span class="quest-badge quest-complete pixel-font">✓ COMPLETE</span>
         </div>
@@ -3831,129 +4111,99 @@
         </div>
       </div>
     </div>
-    <!-- Coin 5: Quest log ~1/3 down -->
-    <div class="game-coin" data-coin-id="5" style="left:10px; top:33%;" aria-hidden="true"></div>
-    <!-- Enemy: Skeleton -->
-    <div class="game-enemy" data-type="skeleton" data-hp="50" data-max-hp="50" data-speed="1.5" data-section="quests" data-damage="10" style="position:absolute; right:20px; top:25%;">
-      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
-      <div class="enemy-sprite enemy-skeleton"></div>
-    </div>
-    <!-- Coin 6: Quest log ~2/3 down -->
-    <div class="game-coin" data-coin-id="6" style="right:10px; top:66%;" aria-hidden="true"></div>
-    <!-- NPC 4: Mario (near Quest Log) -->
-    <div class="game-npc npc-mario" data-npc-id="4" style="left:10px; top:66%;" aria-hidden="true">
-      <span class="npc-sprite"></span>
-      <div class="npc-exclaim">!</div>
-      <div class="speech-bubble" id="npc-bubble-4">It's-a me! So many quests completed... Mamma mia! 🍄</div>
-    </div>
-    <div class="wild-grass" data-encounter-zone="quests" data-biome="camp-route" style="right:100px; bottom:24px;">
-      <div class="wild-grass-label">CAMP ROUTE</div>
-    </div>
-  </section>
-
-  <!-- Mini-Boss 2: Shadow Mage -->
-  <section class="miniboss-section anim-target" id="miniboss-shadow" data-zone="~ SHADOW REALM ~" style="position:relative;">
-    <div class="miniboss-zone-banner" style="color:#c084fc;">~ SHADOW REALM ~</div>
-    <div class="miniboss-arena pixel-border" id="shadow-mage-arena">
-      <div class="miniboss-nameplate" style="color:#c084fc;">SHADOW MAGE</div>
-      <div class="miniboss-hp-bar"><div class="miniboss-hp-fill" id="shadow-mage-hp" style="background:linear-gradient(90deg,#7c3aed,#c084fc);"></div></div>
-      <div class="miniboss-sprite shadow-mage-sprite" id="shadow-mage-sprite"></div>
-    </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">⚔️</span></div>
 
-  <!-- Equipment (Projects) -->
-  <section id="equipment" class="section anim-target" data-zone="~ ARMORY ~" style="position:relative;">
-    <div class="section-title">EQUIPMENT</div>
+  <!-- Projects -->
+  <section id="equipment" class="section anim-target" data-zone="~ PROJECTS ~" style="position:relative;">
+    <div class="section-title">PROJECTS</div>
+    <p class="section-lead">Selected projects spanning operating systems, real-time communication, evaluation infrastructure, and LLM systems work.</p>
     <div class="equip-grid">
-      <div class="equip-card anim-target" data-rarity="epic">
-        <div class="equip-inner">
-          <div class="equip-front pixel-border">
-            <div class="equip-icon">🗡️</div>
+      <article class="equip-card anim-target" data-rarity="epic">
+        <div class="equip-header">
+          <div class="equip-title-wrap">
             <div class="equip-name pixel-font">Starry-Next</div>
-            <div class="equip-desc">Monolithic Kernel OS</div>
-            <div class="equip-rarity pixel-font epic">EPIC</div>
+            <div class="equip-meta">Operating systems · networking · graduation project</div>
           </div>
-          <div class="equip-back pixel-border">
-            <div class="equip-back-title pixel-font gold">Starry-Next</div>
-            <p class="equip-back-desc">Implemented networking component as a graduation project for a monolithic kernel OS.</p>
-            <a href="https://github.com/yil384/Starry-Next" target="_blank" class="equip-link pixel-font">→ GitHub</a>
-          </div>
+          <div class="equip-icon">🗡️</div>
         </div>
-      </div>
-      <div class="equip-card anim-target" data-rarity="rare">
-        <div class="equip-inner">
-          <div class="equip-front pixel-border">
-            <div class="equip-icon">🛡️</div>
+        <div class="equip-desc">Monolithic kernel operating system work centered on networking implementation and low-level systems integration.</div>
+        <div>
+          <div class="equip-back-title">FOCUS</div>
+          <p class="equip-back-desc">Implemented the networking component for a monolithic kernel OS and treated the project as a systems-oriented graduation deliverable.</p>
+        </div>
+        <div class="equip-link-row">
+          <span class="equip-type">Systems project</span>
+          <a href="https://github.com/yil384/Starry-Next" target="_blank" class="equip-link pixel-font">View GitHub</a>
+        </div>
+      </article>
+      <article class="equip-card anim-target" data-rarity="rare">
+        <div class="equip-header">
+          <div class="equip-title-wrap">
             <div class="equip-name pixel-font">IM System</div>
-            <div class="equip-desc">Real-time Chat Platform</div>
-            <div class="equip-rarity pixel-font rare">RARE</div>
+            <div class="equip-meta">Django · WebSocket · full-stack messaging</div>
           </div>
-          <div class="equip-back pixel-border">
-            <div class="equip-back-title pixel-font gold">IM System</div>
-            <p class="equip-back-desc">Built real-time chat website with WebSocket and Django.</p>
-            <a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" class="equip-link pixel-font">→ GitHub</a>
-          </div>
+          <div class="equip-icon">🛡️</div>
         </div>
-      </div>
-      <div class="equip-card anim-target" data-rarity="rare">
-        <div class="equip-inner">
-          <div class="equip-front pixel-border">
-            <div class="equip-icon">📜</div>
+        <div class="equip-desc">Real-time chat platform with WebSocket-based messaging, backend services, and web frontend integration.</div>
+        <div>
+          <div class="equip-back-title">FOCUS</div>
+          <p class="equip-back-desc">Built a real-time chat system around Django and WebSocket flows, with emphasis on reliable message delivery and practical web integration.</p>
+        </div>
+        <div class="equip-link-row">
+          <span class="equip-type">Full-stack project</span>
+          <a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" class="equip-link pixel-font">View GitHub</a>
+        </div>
+      </article>
+      <article class="equip-card anim-target" data-rarity="rare">
+        <div class="equip-header">
+          <div class="equip-title-wrap">
             <div class="equip-name pixel-font">CST-OJ</div>
-            <div class="equip-desc">Rust Code Evaluation</div>
-            <div class="equip-rarity pixel-font rare">RARE</div>
+            <div class="equip-meta">Rust · evaluation platform · teaching infrastructure</div>
           </div>
-          <div class="equip-back pixel-border">
-            <div class="equip-back-title pixel-font gold">CST-OJ</div>
-            <p class="equip-back-desc">Built Rust-based platform for data structure assignment grading.</p>
-            <a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" class="equip-link pixel-font">→ GitHub</a>
-          </div>
+          <div class="equip-icon">📜</div>
         </div>
-      </div>
-      <div class="equip-card anim-target" data-rarity="legendary">
-        <div class="equip-inner">
-          <div class="equip-front pixel-border">
-            <div class="equip-icon">⚡</div>
+        <div class="equip-desc">Rust-based online judge and evaluation platform designed for data structure coursework and assignment grading.</div>
+        <div>
+          <div class="equip-back-title">FOCUS</div>
+          <p class="equip-back-desc">Built a grading and evaluation workflow for coursework submissions, using Rust to keep the platform lightweight and systems-oriented.</p>
+        </div>
+        <div class="equip-link-row">
+          <span class="equip-type">Systems tooling</span>
+          <a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" class="equip-link pixel-font">View GitHub</a>
+        </div>
+      </article>
+      <article class="equip-card anim-target" data-rarity="legendary">
+        <div class="equip-header">
+          <div class="equip-title-wrap">
             <div class="equip-name pixel-font">TritonGym</div>
-            <div class="equip-desc">LLM Agent Flow</div>
-            <div class="equip-rarity pixel-font legendary">LEGENDARY</div>
+            <div class="equip-meta">LLM agents · Triton codegen · benchmarking</div>
           </div>
-          <div class="equip-back pixel-border">
-            <div class="equip-back-title pixel-font gold">TritonGym</div>
-            <p class="equip-back-desc">Proposed new algorithm for tool-augmented LLMs in GPU code generation.</p>
-            <span class="equip-link pixel-font" style="color:var(--text-muted);">Research Project</span>
-          </div>
+          <div class="equip-icon">⚡</div>
         </div>
-      </div>
-    </div>
-    <!-- Coin 7: Equipment center -->
-    <div class="game-coin" data-coin-id="7" style="left:50%; top:50%; margin-left:-10px;" aria-hidden="true"></div>
-    <!-- Enemy: Dark Slime -->
-    <div class="game-enemy" data-type="slime-dark" data-hp="45" data-max-hp="45" data-speed="1.5" data-section="equipment" data-damage="10" style="position:absolute; left:20px; top:35%;">
-      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
-      <div class="enemy-sprite enemy-slime-dark"></div>
-    </div>
-    <!-- NPC 5: Kirby (near Equipment) -->
-    <div class="game-npc npc-kirby" data-npc-id="5" style="right:10px; bottom:20px;" aria-hidden="true">
-      <span class="npc-sprite"></span>
-      <div class="npc-exclaim">!</div>
-      <div class="speech-bubble" id="npc-bubble-5">Poyo~! ⭐ These legendary items look delicious!</div>
-    </div>
-    <div class="wild-grass" data-encounter-zone="equipment" data-biome="forge-wilds" style="left:90px; bottom:14px;">
-      <div class="wild-grass-label">FORGE WILDS</div>
+        <div class="equip-desc">Benchmarking and evaluation framework for tool-augmented LLM workflows in Triton GPU code generation.</div>
+        <div>
+          <div class="equip-back-title">FOCUS</div>
+          <p class="equip-back-desc">Frames GPU code generation as a measurable agentic workflow problem, with benchmarks meant to surface systems behavior rather than prompt-only demos.</p>
+        </div>
+        <div class="equip-link-row">
+          <span class="equip-type">Research project</span>
+          <span class="equip-link pixel-font" style="color:var(--text-muted); border-color:rgba(148,163,184,0.16);">Paper-linked work</span>
+        </div>
+      </article>
     </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">✦</span></div>
 
-  <section id="monster-lab" class="section anim-target" data-zone="~ MONSTER RESEARCH LAB ~" style="position:relative;">
-    <div class="section-title">MONSTER LAB</div>
+  <section id="monster-lab" class="section anim-target" data-zone="~ INTERACTIVE SYSTEMS ~" style="position:relative;">
+    <div class="section-title">INTERACTIVE SYSTEMS</div>
+    <p class="section-lead">The portfolio opens into a playable systems layer here. Research sections stay primary above, but below this point the site behaves more like a small world with persistent state, companion management, and encounter loops.</p>
     <div class="monster-hub">
       <div class="monster-panel pixel-border">
-        <div class="monster-kicker">WILD ENCOUNTERS / CAPTURE / PARTY</div>
-        <p class="monster-lead">The site now includes a full trainer loop layered on top of the portfolio. Step into tall grass for wild encounters, weaken creatures, capture them, and carry a persistent party and mount roster across sessions.</p>
+        <div class="monster-kicker">FIELD SYSTEMS / CAPTURE LOOP / PERSISTENT PARTY</div>
+        <p class="monster-lead">The interaction layer is meant to feel like a compact adventure system rather than a disconnected widget. Encounters, capture odds, companion progression, and traversal upgrades all feed into the same persistent loop.</p>
         <div class="monster-progress-strip">
           <div class="monster-progress-cell">
             <div class="monster-progress-label">DEX</div>
@@ -3969,7 +4219,7 @@
           </div>
         </div>
         <div class="monster-mini-grid" id="monster-dex-grid"></div>
-        <p class="monster-dex-footer">Tip: tall grass starts encounters, lower enemy HP improves capture odds, and certain creatures unlock higher-speed mounts that change overworld traversal.</p>
+        <p class="monster-dex-footer">Notes: the grass patch triggers encounters, lower target health improves capture odds, and some companions unlock faster traversal modes.</p>
       </div>
       <div class="trainer-meta">
         <div class="trainer-stat-box">
@@ -3993,61 +4243,106 @@
 
   <div class="section-divider"><span class="divider-icon">🐾</span></div>
 
-  <section id="world-map" class="section anim-target" data-zone="~ WORLD MAP ~" style="position:relative;">
-    <div class="section-title">WORLD MAP</div>
+  <section id="world-map" class="section anim-target" data-zone="~ SITE MAP ~" style="position:relative;">
+    <div class="section-title">SITE MAP</div>
+    <p class="section-lead">World navigation for the interactive layer, connecting the portfolio sections with the companion, travel, and challenge systems below.</p>
     <div class="world-map-grid">
-      <div class="world-map-card">
-        <h3>ADVENTURER'S GUILD</h3>
-        <p>The personal core of the site. Bio, academic identity, affiliation, and direct contact live here first.</p>
-        <button onclick="fastTravelTo('character')">Travel to Character</button>
+      <div class="world-map-stage pixel-border">
+        <div class="world-map-compass">N</div>
+        <div class="world-map-lines">
+          <span class="world-map-line" style="left:18%; top:20%; width:26%; transform:rotate(12deg);"></span>
+          <span class="world-map-line" style="left:43%; top:31%; width:22%; transform:rotate(26deg);"></span>
+          <span class="world-map-line" style="left:24%; top:55%; width:30%; transform:rotate(-6deg);"></span>
+          <span class="world-map-line" style="left:52%; top:60%; width:18%; transform:rotate(-18deg);"></span>
+        </div>
+        <div class="world-map-node" data-target="character" style="left:7%; top:10%;">
+          <div class="world-map-node-label">ENTRY · PROFILE</div>
+          <h3>PROFILE</h3>
+          <p>The anchor point: identity, advisor, affiliation, and direct contact.</p>
+          <button onclick="fastTravelTo('character')">Travel Here</button>
+        </div>
+        <div class="world-map-node" data-target="achievements" style="left:38%; top:22%;">
+          <div class="world-map-node-label">RESEARCH · OUTPUT</div>
+          <h3>PUBLICATIONS</h3>
+          <p>Publications and research milestones framed as major unlocks.</p>
+          <button onclick="fastTravelTo('achievements')">Travel Here</button>
+        </div>
+        <div class="world-map-node" data-target="equipment" style="left:18%; top:52%;">
+          <div class="world-map-node-label">BUILD · PROJECTS</div>
+          <h3>PROJECTS</h3>
+          <p>Projects positioned as artifacts, systems, and engineering outcomes.</p>
+          <button onclick="fastTravelTo('equipment')">Travel Here</button>
+        </div>
+        <div class="world-map-node" data-target="monster-lab" style="left:55%; top:56%;">
+          <div class="world-map-node-label">PLAY · SYSTEMS</div>
+          <h3>INTERACTIVE</h3>
+          <p>Capture, party management, dex progression, and mount systems.</p>
+          <button onclick="fastTravelTo('monster-lab')">Travel Here</button>
+        </div>
+        <div class="world-map-legend">
+          <div class="world-map-legend-title">MAP NOTES</div>
+          <div class="world-map-legend-copy">Gold nodes anchor the academic route. Lower nodes open the playable systems, where companion state, travel unlocks, and challenge progression remain persistent.</div>
+        </div>
       </div>
-      <div class="world-map-card">
-        <h3>TROPHY ROOM</h3>
-        <p>Publications and research output presented as major achievements, with the portfolio still carrying the main signal.</p>
-        <button onclick="fastTravelTo('achievements')">Travel to Achievements</button>
-      </div>
-      <div class="world-map-card">
-        <h3>MONSTER LAB</h3>
-        <p>The game systems layer: dex, party management, capture flow, mounts, levels, PP, and progression tracking.</p>
-        <button onclick="fastTravelTo('monster-lab')">Travel to Monster Lab</button>
-      </div>
-      <div class="world-map-card">
-        <h3>TRAINER CIRCUIT</h3>
-        <p>Structured challenge route with badges, healing, fast travel, gated battles, and long-term exploration progression.</p>
-        <button onclick="fastTravelTo('trainer-circuit')">Travel to Circuit</button>
+      <div class="world-map-sidebar">
+        <div class="world-map-status-card">
+          <h3>WORLD STATE</h3>
+          <div class="world-map-status-row"><span>Current Section</span><strong id="world-map-current-zone">Profile</strong></div>
+          <div class="world-map-status-row"><span>Fast Travel</span><strong id="world-map-fast-travel">1 unlocked</strong></div>
+          <div class="world-map-status-row"><span>Active Buddy</span><strong id="world-map-active-buddy">Eevee</strong></div>
+          <div class="world-map-status-row"><span>Mount</span><strong id="world-map-active-mount">On Foot</strong></div>
+          <div class="world-map-status-note">This panel mirrors the live interactive state, including current section, unlocked travel, and the active companion setup.</div>
+        </div>
+        <div class="world-map-card">
+          <h3>CHALLENGE ROUTE</h3>
+          <p>A designed progression path with a field station, encounter gates, and a route that feels more like a small campaign than a set of loose buttons.</p>
+          <button onclick="fastTravelTo('trainer-circuit')">Enter Route</button>
+        </div>
+        <div class="world-map-card">
+          <h3>EXTERNAL LINKS</h3>
+          <p>External links stay practical here: GitHub, LinkedIn, and Scholar remain direct exit points for portfolio evaluation.</p>
+          <button onclick="fastTravelTo('portals')">Open Links</button>
+        </div>
       </div>
     </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">🗺️</span></div>
 
-  <section id="trainer-circuit" class="section anim-target" data-zone="~ TRAINER CIRCUIT ~" style="position:relative;">
-    <div class="section-title">TRAINER CIRCUIT</div>
+  <section id="trainer-circuit" class="section anim-target" data-zone="~ OPTIONAL CHALLENGES ~" style="position:relative;">
+    <div class="section-title">OPTIONAL CHALLENGES</div>
+    <p class="section-lead">A challenge route for the interactive layer: recover resources, unlock travel, and push through staged rival encounters with persistent progression.</p>
     <div class="trainer-circuit">
       <div class="trainer-facility pixel-border">
-        <h3>MONSTER CENTER</h3>
-        <p>Close the progression loop here. Restore the active squad, restock basic items, and trigger evolution tests so the game layer supports longer exploration instead of one-off encounters.</p>
+        <h3>FIELD STATION</h3>
+        <p>The field station anchors the route. Restore the active roster, refill core items, and trigger evolution checks before moving deeper into the challenge ladder.</p>
         <div class="badge-row" id="badge-row"></div>
         <div class="trainer-actions">
-          <button class="trainer-action-btn" onclick="openMonsterCenter()">Heal Party</button>
+          <button class="trainer-action-btn" onclick="openMonsterCenter()">Restore Team</button>
           <button class="trainer-action-btn" onclick="restockMonsterBag()">Restock Bag</button>
           <button class="trainer-action-btn" onclick="triggerEvolutionChamber()">Evolution Lab</button>
         </div>
         <div class="travel-row" id="travel-row"></div>
+        <div class="trainer-route">
+          <div class="trainer-route-step"><strong>1. Stabilize the team</strong><span>FIELD</span></div>
+          <div class="trainer-route-step"><strong>2. Clear Mika</strong><span>LOGIC</span></div>
+          <div class="trainer-route-step"><strong>3. Unlock deeper travel</strong><span>ROUTE</span></div>
+          <div class="trainer-route-step"><strong>4. Face Tao</strong><span>GATE</span></div>
+        </div>
       </div>
       <div class="trainer-arena-list">
         <div class="trainer-arena-card pixel-border">
           <h3>RESEARCHER MIKA</h3>
-          <p>An analytic trainer built around control and sustain. Defeating Mika grants stronger capture resources and opens the next layer of challenge progression.</p>
+          <p>An analytic rival built around control and sustain. Clearing Mika improves resource flow and opens the next layer of route progression.</p>
           <div class="trainer-actions">
-            <button class="trainer-action-btn" onclick="startTrainerBattle('researcher_mika')">Challenge</button>
+            <button class="trainer-action-btn" onclick="startTrainerBattle('researcher_mika')">Start Duel</button>
           </div>
         </div>
         <div class="trainer-arena-card pixel-border">
           <h3>RANGER TAO</h3>
-          <p>A field ranger with a more aggressive fire-and-dragon roster. This battle now functions as a midgame gate instead of a decorative side interaction.</p>
+          <p>A more aggressive rival with fire-and-dragon pressure. Tao functions as the route gate, pushing the companion and item systems to matter together.</p>
           <div class="trainer-actions">
-            <button class="trainer-action-btn" onclick="startTrainerBattle('ranger_tao')">Challenge</button>
+            <button class="trainer-action-btn" onclick="startTrainerBattle('ranger_tao')">Start Duel</button>
           </div>
         </div>
       </div>
@@ -4057,23 +4352,23 @@
   <div class="section-divider"><span class="divider-icon">🏟️</span></div>
 
   <!-- Boss Area -->
-  <section id="boss-area" class="section anim-target" data-zone="~ DRAGON'S LAIR ~" style="position:relative; text-align:center;">
-    <div class="section-title">DANGER ZONE</div>
+  <section id="boss-area" class="section anim-target" data-zone="~ BOSS DEMO ~" style="position:relative; text-align:center;">
+    <div class="section-title">BOSS DEMO</div>
     <div class="boss-container">
       <div class="boss-hp-bar"><div class="boss-hp-fill" id="boss-hp-fill"></div></div>
       <div class="boss-name pixel-font" style="color:var(--red);font-size:10px;margin-bottom:8px;">DRAGON KING</div>
       <div class="game-enemy boss-enemy" data-hp="200" data-max-hp="200" id="boss-enemy">
         <div class="enemy-sprite boss-dragon"></div>
       </div>
-      <p class="pixel-font" style="font-size:7px;color:var(--text-muted);margin-top:16px;">Press SPACE to attack!</p>
+      <p class="pixel-font" style="font-size:7px;color:var(--text-muted);margin-top:16px;">Press SPACE to test the combat loop.</p>
     </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">🔮</span></div>
 
-  <!-- Portals (Contact Links) -->
-  <section id="portals" class="section anim-target" data-zone="~ DIMENSIONAL GATEWAY ~" style="position:relative;">
-    <div class="section-title">PORTALS</div>
+  <!-- External Links -->
+  <section id="portals" class="section anim-target" data-zone="~ EXTERNAL LINKS ~" style="position:relative;">
+    <div class="section-title">LINKS</div>
     <div class="portal-row">
       <a href="https://github.com/yil384" target="_blank" class="portal-link pixel-border anim-target">
         <div class="portal-glow"></div>
@@ -4097,15 +4392,15 @@
     <div class="game-npc npc-link" data-npc-id="6" style="right:10px; top:30px;" aria-hidden="true">
       <span class="npc-sprite"></span>
       <div class="npc-exclaim">!</div>
-      <div class="speech-bubble" id="npc-bubble-6">Hyaa! 🗡️ The portals lead to other worlds... shall we go?</div>
+      <div class="speech-bubble" id="npc-bubble-6">These links open the external profiles if you want the direct sources.</div>
     </div>
   </section>
 
   <!-- Footer -->
   <footer class="site-footer">
-    <p class="footer-stats" id="footer-stats">⚔️ SESSION STATS: Lv.1 | Score: 0 | Enemies Defeated: 0 | Achievements: 0/12</p>
-    <p class="pixel-font">&copy; 2025&ndash;2026 Yichen Lin | Crafted with ⚔️ and ✨ | Use QWER to cast spells!</p>
-    <p class="footer-hint pixel-font">Use arrow keys or click to move the adventurer!</p>
+    <p class="footer-stats" id="footer-stats">Interactive session: stage 1 | score 0 | encounters cleared 0 | achievements 0/12</p>
+    <p class="pixel-font">&copy; 2025&ndash;2026 Yichen Lin | Research portfolio with an optional interactive layer</p>
+    <p class="footer-hint pixel-font">Interactive controls remain available below for visitors who want to explore the game systems.</p>
   </footer>
 
 </div>
@@ -4141,32 +4436,32 @@
     <div class="skill-tooltip"><div class="tooltip-name">Meteor Storm</div><div class="tooltip-desc"><span class="tooltip-dmg">50 dmg</span> area x5 · 80 MP · 30s cd</div></div>
   </div>
 </div>
-<button id="skill-bar-toggle" onclick="toggleSkillBar()">QWER</button>
+<button id="skill-bar-toggle" onclick="toggleSkillBar()">Interactive Tools</button>
 
 <div id="ach-unlock" class="ach-unlock">🏆 Achievement Unlocked!</div>
 <div id="pixel-char" aria-hidden="true"></div>
 
 <!-- Game HUD -->
 <div id="game-hud" aria-hidden="true">
-  <span class="hud-line">🪙 <span id="hud-coins">0</span>/8 <button class="ach-hud-btn" onclick="toggleAchievementPanel()" title="Achievements">🏆</button><button class="ach-hud-btn" onclick="toggleLeaderboard()" title="Leaderboard">🏅</button><button class="ach-hud-btn" onclick="toggleEquipPanel()" title="Equipment">🎒</button></span>
-  <span class="hud-line">SCORE: <span id="hud-score">0</span></span>
+  <span class="hud-line">Tokens <span id="hud-coins">0</span>/8 <button class="ach-hud-btn" onclick="toggleAchievementPanel()" title="Achievements">🏆</button><button class="ach-hud-btn" onclick="toggleLeaderboard()" title="Leaderboard">🏅</button><button class="ach-hud-btn" onclick="toggleEquipPanel()" title="Equipment">🎒</button></span>
+  <span class="hud-line">Progress score: <span id="hud-score">0</span></span>
 </div>
 
 <!-- Game Instructions Overlay -->
 <div id="game-instructions" aria-hidden="true">
   <div class="inst-title">CONTROLS</div>
-  <div>Click / Right-Click: Move (LOL style!)</div>
+  <div>Click / Right-Click: Move</div>
   <div>Arrow Keys: Move</div>
   <div>Space: Attack</div>
   <div>Q: Fireball | W: Heal | E: Lightning | R: Ultimate</div>
   <div>Walk near NPCs to interact</div>
-  <div>Collect coins, defeat enemies,</div>
-  <div>challenge the Dragon King!</div>
+  <div>Collect tokens, clear encounters,</div>
+  <div>and test the boss encounter.</div>
 </div>
 
 <!-- Victory Banner -->
 <div id="victory-banner" aria-hidden="true">
-  ALL COINS COLLECTED!<br>+500 BONUS
+  ALL TOKENS COLLECTED!<br>+500 BONUS
 </div>
 
 <!-- Shop Menu -->
@@ -4336,7 +4631,7 @@
 </div>
 
 <div id="monster-hud" aria-hidden="true">
-  <div class="monster-hud-title">TRAINER HUD</div>
+  <div class="monster-hud-title">FIELD KIT</div>
   <div class="monster-hud-line" id="monster-hud-buddy">Buddy: --</div>
   <div class="monster-hud-line" id="monster-hud-balls">Capsules: --</div>
   <div class="monster-hud-line" id="monster-hud-mount">Mount: On Foot</div>
@@ -4348,14 +4643,26 @@
   <div class="encounter-shell">
     <div class="encounter-stage">
       <div class="encounter-topline">
-        <div class="encounter-battle-chip" id="encounter-mode-chip">WILD BATTLE</div>
+        <div class="encounter-battle-chip" id="encounter-mode-chip">FIELD ENCOUNTER</div>
         <div class="encounter-roster-strip" id="encounter-roster-strip">
           <span class="encounter-roster-dot active"></span>
         </div>
       </div>
-      <div class="encounter-banner" id="encounter-banner">WILD ENCOUNTER</div>
+      <div class="encounter-banner" id="encounter-banner">FIELD ENCOUNTER</div>
+      <div class="encounter-battle-read">
+        <span class="encounter-read-chip" id="encounter-read-chip-1">Buddy: Eevee</span>
+        <span class="encounter-read-chip" id="encounter-read-chip-2">Capture odds: 25%</span>
+        <span class="encounter-read-chip" id="encounter-read-chip-3">Mount: none</span>
+      </div>
       <div class="encounter-arena">
         <div class="encounter-monster ally">
+          <div class="encounter-trainer-card">
+            <div>
+              <div class="encounter-trainer-name">PLAYER SIDE</div>
+              <div class="encounter-trainer-role" id="ally-trainer-role">Yichen Lin · Active Partner</div>
+            </div>
+            <div class="encounter-trainer-avatar">🎓</div>
+          </div>
           <div class="encounter-monster-icon" id="ally-monster-icon">🦊</div>
           <div class="encounter-monster-name" id="ally-monster-name">EEVEE</div>
           <div class="encounter-hp-track"><div class="encounter-hp-fill" id="ally-hp-fill"></div></div>
@@ -4364,6 +4671,13 @@
           <div class="encounter-mount-line" id="ally-mount-line">Mount talent: none</div>
         </div>
         <div class="encounter-monster enemy">
+          <div class="encounter-trainer-card">
+            <div>
+              <div class="encounter-trainer-name">ENEMY SIDE</div>
+              <div class="encounter-trainer-role" id="enemy-trainer-role">Wild creature</div>
+            </div>
+            <div class="encounter-trainer-avatar" id="enemy-trainer-avatar">🌿</div>
+          </div>
           <div class="encounter-monster-icon" id="enemy-monster-icon">⚡</div>
           <div class="encounter-monster-name" id="enemy-monster-name">PIKACHU</div>
           <div class="encounter-hp-track"><div class="encounter-hp-fill" id="enemy-hp-fill"></div></div>
@@ -4379,8 +4693,8 @@
         <div class="encounter-subpanel">
           <div class="encounter-subtitle">MOVES</div>
           <div class="encounter-actions-grid">
-            <button class="encounter-btn" id="encounter-move-1" onclick="useEncounterMove(0)">Move A</button>
-            <button class="encounter-btn" id="encounter-move-2" onclick="useEncounterMove(1)">Move B</button>
+            <button class="encounter-btn" id="encounter-move-1" onclick="useEncounterMove(0)">1 · Move A</button>
+            <button class="encounter-btn" id="encounter-move-2" onclick="useEncounterMove(1)">2 · Move B</button>
           </div>
           <div class="encounter-close" id="encounter-pp-line">PP: 10 / 10 · 10 / 10</div>
           <div class="encounter-command-note" id="encounter-move-note">Choose attacks to chip down the target before capture.</div>
@@ -4880,7 +5194,7 @@
     if (hpNumbers) hpNumbers.textContent = Math.round(playerHP) + '/' + playerMaxHP;
     if (mpNumbers) mpNumbers.textContent = Math.round(playerMP) + '/' + playerMaxMP;
     updateExpBar();
-    if (levelBadge) levelBadge.textContent = 'Lv.' + playerLevel;
+    if (levelBadge) levelBadge.textContent = 'Stage ' + playerLevel;
   }
 
   function updateExpBar() {
@@ -4913,7 +5227,7 @@
     }
     const lu = document.createElement('div');
     lu.className = 'level-up-text';
-    lu.textContent = 'LEVEL UP! Lv.' + playerLevel;
+    lu.textContent = 'STAGE UP! ' + playerLevel;
     document.body.appendChild(lu);
     setTimeout(() => lu.remove(), 1500);
   }
@@ -6471,7 +6785,7 @@
 
     const notif = document.getElementById('ach-notification');
     if (notif) {
-      notif.textContent = '\u{1F3C6} Achievement Unlocked: ' + achievements[key].name + '!';
+      notif.textContent = '\u{1F3C6} Achievement unlocked: ' + achievements[key].name + '!';
       notif.classList.add('show');
       setTimeout(() => notif.classList.remove('show'), 3000);
     }
@@ -7114,6 +7428,7 @@
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const zone = entry.target.dataset.zone;
+          const sectionId = entry.target.id;
           if (zone) {
             zoneEl.textContent = zone;
             zoneEl.classList.add('visible');
@@ -7121,6 +7436,10 @@
             zoneTimeout = setTimeout(() => {
               zoneEl.classList.remove('visible');
             }, 2000);
+          }
+          if (sectionId) {
+            setActiveMapZone(sectionId);
+            renderWorldMapStatus();
           }
         }
       });
@@ -7458,7 +7777,7 @@
   function updateFooterStats() {
     const el = document.getElementById('footer-stats');
     if (!el) return;
-    el.textContent = '\u2694\uFE0F SESSION STATS: Lv.' + playerLevel + ' | Score: ' + score + ' | Enemies Defeated: ' + totalEnemiesDefeated + ' | Achievements: ' + getAchievementCount() + '/12';
+    el.textContent = 'Interactive session: stage ' + playerLevel + ' | score ' + score + ' | encounters cleared ' + totalEnemiesDefeated + ' | achievements ' + getAchievementCount() + '/12';
   }
   // Update footer stats periodically
   setInterval(updateFooterStats, 2000);
@@ -8435,7 +8754,7 @@
     window.toggleSkillBar = function() {
       skillBarHidden = !skillBarHidden;
       sb.style.display = skillBarHidden ? 'none' : 'flex';
-      toggle.textContent = skillBarHidden ? 'Show QWER' : 'QWER';
+      toggle.textContent = skillBarHidden ? 'Show Interactive Tools' : 'Interactive Tools';
     };
 
     // Re-show briefly when a skill is cast
@@ -8731,10 +9050,10 @@
     const el = document.getElementById('travel-row');
     if (!el) return;
     const spots = [
-      { key: 'character', label: 'Guild', target: 'character' },
-      { key: 'monster-lab', label: 'Lab', target: 'monster-lab' },
-      { key: 'trainer-circuit', label: 'Circuit', target: 'trainer-circuit' },
-      { key: 'portals', label: 'Portals', target: 'portals' }
+      { key: 'character', label: 'Profile', target: 'character' },
+      { key: 'monster-lab', label: 'Interactive', target: 'monster-lab' },
+      { key: 'trainer-circuit', label: 'Challenges', target: 'trainer-circuit' },
+      { key: 'portals', label: 'Links', target: 'portals' }
     ];
     el.innerHTML = spots.map(spot => {
       const unlocked = trainerState.fastTravel.includes(spot.key);
@@ -8752,6 +9071,39 @@
     if (dexEl) dexEl.textContent = dex + ' / ' + Object.keys(monsterSpecies).length;
     if (badgeEl) badgeEl.textContent = badges + ' / 2';
     if (travelEl) travelEl.textContent = travel + ' unlocked';
+  }
+
+  const worldMapSectionLabels = {
+    character: 'Profile',
+    achievements: 'Publications',
+    equipment: 'Projects',
+    'monster-lab': 'Interactive Systems',
+    'trainer-circuit': 'Optional Challenges',
+    portals: 'External Links'
+  };
+
+  function setActiveMapZone(targetId) {
+    document.querySelectorAll('.world-map-node').forEach(node => {
+      node.classList.toggle('active', node.dataset.target === targetId);
+    });
+    const zoneEl = document.getElementById('world-map-current-zone');
+    if (zoneEl && worldMapSectionLabels[targetId]) {
+      zoneEl.textContent = worldMapSectionLabels[targetId];
+    }
+  }
+
+  function renderWorldMapStatus() {
+    const buddy = getBuddySpecies();
+    const mount = getCurrentMount();
+    const zoneEl = document.getElementById('world-map-current-zone');
+    const travelEl = document.getElementById('world-map-fast-travel');
+    const buddyEl = document.getElementById('world-map-active-buddy');
+    const mountEl = document.getElementById('world-map-active-mount');
+    if (zoneEl && !zoneEl.textContent.trim()) zoneEl.textContent = 'Profile';
+    if (!document.querySelector('.world-map-node.active')) setActiveMapZone('character');
+    if (travelEl) travelEl.textContent = trainerState.fastTravel.length + ' unlocked';
+    if (buddyEl) buddyEl.textContent = buddy.name;
+    if (mountEl) mountEl.textContent = mount ? mount.mountName : 'On Foot';
   }
 
   function updateMonsterHud() {
@@ -8782,6 +9134,7 @@
     renderBadgeRow();
     renderTravelRow();
     renderProgressStrip();
+    renderWorldMapStatus();
     updateMonsterHud();
     saveTrainerState();
   }
@@ -8790,14 +9143,14 @@
     if (!trainerState.party.includes(id)) return;
     trainerState.activeBuddy = id;
     renderMonsterSystems();
-    showNotification(monsterSpecies[id].name + ' is now your active buddy.');
+    showNotification(monsterSpecies[id].name + ' is now the active companion.');
   }
   window.setActiveBuddy = setActiveBuddy;
 
   function setActiveMount(id) {
     trainerState.activeMount = id || null;
     renderMonsterSystems();
-    showNotification(id ? monsterSpecies[id].mountName + ' engaged.' : 'Back on foot.');
+    showNotification(id ? monsterSpecies[id].mountName + ' is now active.' : 'Traversal reset to on foot.');
   }
   window.setActiveMount = setActiveMount;
 
@@ -8886,7 +9239,7 @@
     renderEncounter();
     const overlay = document.getElementById('encounter-overlay');
     if (overlay) overlay.classList.add('show');
-    showEncounterLog('Wild ' + enemy.name + ' appeared in the ' + biome.replace(/-/g, ' ') + '!');
+    showEncounterLog(enemy.name + ' appeared in the ' + biome.replace(/-/g, ' ') + ' zone.');
     playHitSound();
   }
 
@@ -8903,10 +9256,19 @@
     const modeChip = document.getElementById('encounter-mode-chip');
     const rosterStrip = document.getElementById('encounter-roster-strip');
     const moveNote = document.getElementById('encounter-move-note');
+    const allyRole = document.getElementById('ally-trainer-role');
+    const enemyRole = document.getElementById('enemy-trainer-role');
+    const enemyAvatar = document.getElementById('enemy-trainer-avatar');
+    const readChip1 = document.getElementById('encounter-read-chip-1');
+    const readChip2 = document.getElementById('encounter-read-chip-2');
+    const readChip3 = document.getElementById('encounter-read-chip-3');
+    const mount = getCurrentMount();
+    const hpFactor = 1 - (encounterState.enemyHp / enemy.maxHp);
+    const captureChance = Math.min(0.92, enemy.captureRate + hpFactor * 0.55);
     document.getElementById('encounter-banner').textContent = encounterState.mode === 'trainer'
-      ? encounterState.trainerName.toUpperCase() + ' SENT OUT ' + enemy.name.toUpperCase()
-      : 'WILD ' + enemy.name.toUpperCase() + ' ENCOUNTER';
-    if (modeChip) modeChip.textContent = encounterState.mode === 'trainer' ? 'TRAINER BATTLE' : 'WILD BATTLE';
+      ? encounterState.trainerName.toUpperCase() + ' DEPLOYED ' + enemy.name.toUpperCase()
+      : enemy.name.toUpperCase() + ' ENCOUNTER';
+    if (modeChip) modeChip.textContent = encounterState.mode === 'trainer' ? 'STRUCTURED MATCH' : 'FIELD ENCOUNTER';
     if (rosterStrip) {
       rosterStrip.innerHTML = encounterState.enemyRoster.map((_, idx) =>
         '<span class="encounter-roster-dot' + (idx === encounterState.enemyIndex ? ' active' : '') + '"></span>'
@@ -8916,12 +9278,22 @@
     document.getElementById('ally-monster-name').textContent = ally.name.toUpperCase() + ' ' + levelText;
     document.getElementById('ally-monster-type').textContent = ally.type + ' / Partner';
     document.getElementById('ally-mount-line').textContent = ally.mountName ? 'Mount talent: ' + ally.mountName : 'Mount talent: none';
+    if (allyRole) allyRole.textContent = 'Yichen Lin · Active Partner';
     document.getElementById('enemy-monster-icon').textContent = enemy.icon;
     document.getElementById('enemy-monster-name').textContent = enemy.name.toUpperCase();
-    document.getElementById('enemy-monster-type').textContent = enemy.type + (encounterState.mode === 'trainer' ? ' / Trainer Squad' : ' / Wild');
+    document.getElementById('enemy-monster-type').textContent = enemy.type + (encounterState.mode === 'trainer' ? ' / Structured Match' : ' / Field Encounter');
     document.getElementById('enemy-capture-line').textContent = encounterState.mode === 'trainer'
       ? 'Remaining roster: ' + (encounterState.enemyRoster.length - encounterState.enemyIndex)
       : 'Capture base rate: ' + Math.round(enemy.captureRate * 100) + '%';
+    if (enemyRole) enemyRole.textContent = encounterState.mode === 'trainer' ? encounterState.trainerName + ' · Opposing Side' : 'Field encounter · Untamed target';
+    if (enemyAvatar) enemyAvatar.textContent = encounterState.mode === 'trainer' ? '🧭' : '🌿';
+    if (readChip1) readChip1.textContent = 'Buddy: ' + ally.name + ' · ' + ally.type;
+    if (readChip2) readChip2.textContent = encounterState.mode === 'trainer'
+      ? 'Roster: ' + (encounterState.enemyRoster.length - encounterState.enemyIndex) + ' active'
+      : 'Capture odds: ' + Math.round(captureChance * 100) + '%';
+    if (readChip3) readChip3.textContent = encounterState.mode === 'trainer'
+        ? 'Mount: ' + (mount ? mount.mountName : 'None') + ' · PP matters'
+        : 'Mount: ' + (mount ? mount.mountName : 'None') + ' · Keep HP low';
     updateEncounterBars();
     document.getElementById('encounter-move-1').textContent = '1 · ' + ally.moves[0].name;
     document.getElementById('encounter-move-2').textContent = '2 · ' + ally.moves[1].name;
@@ -8932,7 +9304,7 @@
     if (moveNote) {
       moveNote.textContent = encounterState.mode === 'trainer'
         ? 'Read the matchup, preserve PP, and survive the full opposing roster.'
-        : 'Weaken the target, manage PP, then capture before it escapes the sequence.';
+        : 'Weaken the target, manage PP, then capture before the sequence resets.';
     }
     document.getElementById('encounter-move-1').disabled = encounterState.currentPP[0] <= 0;
     document.getElementById('encounter-move-2').disabled = encounterState.currentPP[1] <= 0;
@@ -9043,8 +9415,8 @@
       }
       renderMonsterSystems();
       finishEncounter((encounterState.mode === 'trainer'
-        ? encounterState.trainerName + ' was defeated!'
-        : 'Wild ' + monsterSpecies[encounterState.enemyId].name + ' fainted.') + ' Rewards added.');
+        ? encounterState.trainerName + ' was cleared.'
+        : monsterSpecies[encounterState.enemyId].name + ' encounter resolved.') + ' Rewards added.');
       encounterBusy = false;
       return;
     }
@@ -9133,7 +9505,7 @@
     playerMP = playerMaxMP;
     updateBars();
     renderMonsterSystems();
-    showNotification('Monster Center restored your trainer and squad.');
+    showNotification('Support Station restored the active roster.');
   }
   window.openMonsterCenter = openMonsterCenter;
 
@@ -9164,6 +9536,8 @@
   function fastTravelTo(targetId) {
     const el = document.getElementById(targetId);
     if (!el) return;
+    setActiveMapZone(targetId);
+    renderWorldMapStatus();
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     showNotification('Fast traveled to ' + targetId.replace(/-/g, ' ') + '.');
   }
