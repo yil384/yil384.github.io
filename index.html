@@ -1699,6 +1699,481 @@
       100% { transform: scale(1.5); opacity: 0; }
     }
 
+    /* ========== MONSTER TRAINER UPGRADE ========== */
+    .wild-grass {
+      position: absolute;
+      width: 140px;
+      height: 72px;
+      border: 2px dashed rgba(74,222,128,0.35);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(74,222,128,0.06), rgba(22,101,52,0.22)),
+        repeating-linear-gradient(90deg, rgba(134,239,172,0.18) 0 6px, rgba(34,197,94,0.2) 6px 12px);
+      box-shadow: inset 0 0 24px rgba(34,197,94,0.18), 0 0 18px rgba(34,197,94,0.08);
+      overflow: hidden;
+    }
+    .wild-grass::before,
+    .wild-grass::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(120deg, transparent 0 10px, rgba(134,239,172,0.22) 10px 12px, transparent 12px 24px);
+      animation: grassWave 2.8s ease-in-out infinite;
+    }
+    .wild-grass::after { opacity: 0.4; animation-delay: -1.2s; }
+    .wild-grass-label {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: #dcfce7;
+      text-shadow: 0 0 8px rgba(34,197,94,0.45);
+    }
+    @keyframes grassWave {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(8px); }
+    }
+    .monster-hub {
+      display: grid;
+      grid-template-columns: 1.2fr 0.9fr;
+      gap: 18px;
+    }
+    .monster-panel { padding: 20px; }
+    .monster-progress-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 16px 0 18px;
+    }
+    .monster-progress-cell {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(59,130,246,0.12), rgba(15,23,42,0.85));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .monster-progress-label {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .monster-progress-value {
+      font-family: var(--font-pixel);
+      font-size: 12px;
+      color: var(--gold);
+    }
+    .monster-kicker {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: #0f172a;
+      background: linear-gradient(90deg, var(--gold), #fde68a);
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      margin-bottom: 12px;
+    }
+    .monster-lead {
+      font-size: 18px;
+      color: #f8fafc;
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+    .monster-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .monster-card {
+      padding: 14px;
+      border: 1px solid rgba(148,163,184,0.2);
+      border-radius: 10px;
+      background:
+        radial-gradient(circle at top right, rgba(250,204,21,0.14), transparent 34%),
+        linear-gradient(180deg, rgba(15,23,42,0.9), rgba(30,41,59,0.7));
+      min-height: 120px;
+      transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+    .monster-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,215,0,0.28);
+      box-shadow: 0 18px 32px rgba(2,6,23,0.3);
+    }
+    .monster-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .monster-icon { font-size: 26px; line-height: 1; }
+    .monster-name-tag {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+    .monster-chip {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--text-dim);
+      padding: 4px 7px;
+      border: 1px solid rgba(148,163,184,0.24);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .monster-desc {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    .monster-move-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .monster-move-pill {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: #dbeafe;
+      background: rgba(96,165,250,0.1);
+      border: 1px solid rgba(96,165,250,0.25);
+      border-radius: 999px;
+      padding: 4px 7px;
+    }
+    .trainer-meta { display: grid; gap: 12px; }
+    .trainer-stat-box {
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,215,0,0.18);
+      background:
+        radial-gradient(circle at top left, rgba(129,140,248,0.14), transparent 34%),
+        linear-gradient(180deg, rgba(51,65,85,0.55), rgba(15,23,42,0.78));
+      box-shadow: 0 14px 30px rgba(2,6,23,0.22);
+    }
+    .trainer-stat-title {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .party-list,
+    .bag-list,
+    .mount-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .party-slot,
+    .bag-slot,
+    .mount-slot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.72);
+      border: 1px solid rgba(148,163,184,0.16);
+      font-size: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .party-slot.active {
+      border-color: rgba(255,215,0,0.35);
+      box-shadow: 0 0 0 1px rgba(255,215,0,0.16);
+    }
+    .party-slot button,
+    .mount-slot button,
+    .encounter-btn,
+    .encounter-action-btn {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gold);
+      background: rgba(15,15,35,0.92);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 6px;
+      padding: 7px 9px;
+      cursor: pointer;
+    }
+    .party-slot button:hover,
+    .mount-slot button:hover,
+    .encounter-btn:hover,
+    .encounter-action-btn:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+    .party-slot button.active,
+    .mount-slot button.active {
+      color: #0f172a;
+      background: var(--gold);
+    }
+    .monster-dex-footer {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+    .trainer-circuit {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .trainer-facility,
+    .trainer-arena-card {
+      padding: 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: linear-gradient(180deg, rgba(15,23,42,0.85), rgba(30,41,59,0.72));
+    }
+    .trainer-arena-list {
+      display: grid;
+      gap: 12px;
+    }
+    .trainer-arena-card h3,
+    .trainer-facility h3 {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .trainer-arena-card p,
+    .trainer-facility p {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      line-height: 1.6;
+    }
+    .trainer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .badge-row,
+    .travel-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .badge-chip,
+    .travel-chip {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.22);
+      color: var(--text-dim);
+      background: rgba(15,23,42,0.72);
+    }
+    .badge-chip.unlocked,
+    .travel-chip.unlocked {
+      color: #0f172a;
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+    .trainer-action-btn {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gold);
+      background: rgba(15,15,35,0.92);
+      border: 1px solid rgba(255,215,0,0.28);
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    .trainer-action-btn:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+    #monster-hud {
+      position: fixed;
+      top: 68px;
+      right: 16px;
+      z-index: 94;
+      min-width: 210px;
+      padding: 12px 14px;
+      border: 2px solid rgba(255,215,0,0.3);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at top right, rgba(250,204,21,0.16), transparent 32%),
+        rgba(15,15,35,0.92);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.26);
+      backdrop-filter: blur(8px);
+    }
+    .monster-hud-title {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .monster-hud-line {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+    #mount-sprite {
+      position: fixed;
+      width: 42px;
+      height: 24px;
+      z-index: 89;
+      pointer-events: none;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+    }
+    #mount-sprite.active { display: flex; }
+    #encounter-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, rgba(34,197,94,0.16), transparent 40%), rgba(2,6,23,0.86);
+      backdrop-filter: blur(6px);
+    }
+    #encounter-overlay.show { display: flex; }
+    .encounter-shell {
+      width: min(940px, calc(100vw - 32px));
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+    .encounter-stage,
+    .encounter-panel {
+      padding: 20px;
+      border: 2px solid rgba(255,215,0,0.28);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at top, rgba(96,165,250,0.12), transparent 28%),
+        linear-gradient(180deg, rgba(15,23,42,0.95), rgba(30,41,59,0.88));
+      box-shadow: 0 20px 60px rgba(0,0,0,0.34);
+    }
+    .encounter-banner {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: #0f172a;
+      background: linear-gradient(90deg, var(--gold), #fde68a);
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .encounter-arena {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      min-height: 260px;
+      align-items: end;
+    }
+    .encounter-monster {
+      padding: 18px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at top, rgba(255,255,255,0.06), transparent 30%),
+        linear-gradient(180deg, rgba(15,15,35,0.55), rgba(15,23,42,0.88));
+      border: 1px solid rgba(148,163,184,0.16);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .encounter-monster::after {
+      content: '';
+      position: absolute;
+      inset: auto -10% -55% -10%;
+      height: 110px;
+      background: radial-gradient(circle, rgba(74,222,128,0.12), transparent 66%);
+      pointer-events: none;
+    }
+    .encounter-monster.enemy { transform: translateY(-18px); }
+    .encounter-monster-icon {
+      font-size: 82px;
+      line-height: 1;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 8px 20px rgba(0,0,0,0.3));
+    }
+    .encounter-monster-name {
+      font-family: var(--font-pixel);
+      font-size: 10px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .encounter-hp-track {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.95);
+      overflow: hidden;
+      border: 1px solid rgba(148,163,184,0.24);
+      margin-bottom: 6px;
+    }
+    .encounter-hp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4ade80, #84cc16);
+      width: 100%;
+      transition: width 0.25s ease;
+    }
+    .encounter-hp-text,
+    .encounter-type-line,
+    .encounter-mount-line,
+    .encounter-log {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .encounter-log {
+      min-height: 58px;
+      line-height: 1.6;
+      padding: 14px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(30,41,59,0.72), rgba(2,6,23,0.42));
+      border: 1px solid rgba(148,163,184,0.16);
+      margin-bottom: 12px;
+    }
+    .encounter-actions { display: grid; gap: 10px; }
+    .encounter-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .encounter-btn,
+    .encounter-action-btn {
+      width: 100%;
+      text-align: left;
+      line-height: 1.5;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .encounter-btn:disabled,
+    .encounter-action-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .encounter-subpanel {
+      padding: 14px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(51,65,85,0.36), rgba(2,6,23,0.38));
+      border: 1px solid rgba(148,163,184,0.14);
+    }
+    .encounter-subtitle {
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .encounter-close {
+      margin-top: 6px;
+      color: var(--text-dim);
+      text-align: center;
+      font-size: 11px;
+    }
+
     /* Hide parallax/skill bar on mobile */
     @media (max-width: 768px) {
       #world-bg-far, #world-bg-mid, #world-particles { display: none; }
@@ -1709,6 +2184,14 @@
       #achievement-panel { display: none; }
       #memory-game { display: none; }
       .ach-hud-btn { display: none !important; }
+      #monster-hud,
+      #mount-sprite { display: none !important; }
+      .monster-hub,
+      .trainer-circuit,
+      .encounter-shell,
+      .encounter-arena { grid-template-columns: 1fr; }
+      .monster-mini-grid,
+      .encounter-actions-grid { grid-template-columns: 1fr; }
     }
 
     /* ========== ACHIEVEMENT SYSTEM ========== */
@@ -2519,6 +3002,8 @@
       <a href="#achievements" class="nav-item" data-close>▶ Achievements</a>
       <a href="#quests" class="nav-item" data-close>▶ Quest Log</a>
       <a href="#equipment" class="nav-item" data-close>▶ Equipment</a>
+      <a href="#monster-lab" class="nav-item" data-close>▶ Monster Lab</a>
+      <a href="#trainer-circuit" class="nav-item" data-close>▶ Trainer Circuit</a>
       <a href="#portals" class="nav-item" data-close>▶ Portals</a>
     </div>
   </div>
@@ -2666,6 +3151,9 @@
       <span class="npc-sprite"></span>
       <div class="npc-exclaim">!</div>
       <div class="speech-bubble" id="npc-bubble-1">Pika pika! Python Lv.9... that's super effective! ⚡</div>
+    </div>
+    <div class="wild-grass" data-encounter-zone="attributes" data-biome="spark-field" style="right:90px; bottom:20px;">
+      <div class="wild-grass-label">SPARK FIELD</div>
     </div>
   </section>
 
@@ -2817,6 +3305,9 @@
       <div class="npc-exclaim">!</div>
       <div class="speech-bubble" id="npc-bubble-4">It's-a me! So many quests completed... Mamma mia! 🍄</div>
     </div>
+    <div class="wild-grass" data-encounter-zone="quests" data-biome="camp-route" style="right:100px; bottom:24px;">
+      <div class="wild-grass-label">CAMP ROUTE</div>
+    </div>
   </section>
 
   <!-- Mini-Boss 2: Shadow Mage -->
@@ -2909,9 +3400,92 @@
       <div class="npc-exclaim">!</div>
       <div class="speech-bubble" id="npc-bubble-5">Poyo~! ⭐ These legendary items look delicious!</div>
     </div>
+    <div class="wild-grass" data-encounter-zone="equipment" data-biome="forge-wilds" style="left:90px; bottom:14px;">
+      <div class="wild-grass-label">FORGE WILDS</div>
+    </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">✦</span></div>
+
+  <section id="monster-lab" class="section anim-target" data-zone="~ MONSTER RESEARCH LAB ~" style="position:relative;">
+    <div class="section-title">MONSTER LAB</div>
+    <div class="monster-hub">
+      <div class="monster-panel pixel-border">
+        <div class="monster-kicker">WILD ENCOUNTERS / CAPTURE / PARTY</div>
+        <p class="monster-lead">主页现在不只是 RPG，而是带完整训练师循环的探索地图。穿过草丛会偶遇野生伙伴，战斗后可捕捉，队伍和坐骑会持续保存在本地。</p>
+        <div class="monster-progress-strip">
+          <div class="monster-progress-cell">
+            <div class="monster-progress-label">DEX</div>
+            <div class="monster-progress-value" id="monster-progress-dex">1 / 7</div>
+          </div>
+          <div class="monster-progress-cell">
+            <div class="monster-progress-label">BADGES</div>
+            <div class="monster-progress-value" id="monster-progress-badges">0 / 2</div>
+          </div>
+          <div class="monster-progress-cell">
+            <div class="monster-progress-label">TRAVEL</div>
+            <div class="monster-progress-value" id="monster-progress-travel">1 unlocked</div>
+          </div>
+        </div>
+        <div class="monster-mini-grid" id="monster-dex-grid"></div>
+        <p class="monster-dex-footer">提示：进入绿色草丛触发遭遇，低血量时再扔胶囊成功率更高。捕捉特定伙伴会解锁新的坐骑机动性。</p>
+      </div>
+      <div class="trainer-meta">
+        <div class="trainer-stat-box">
+          <div class="trainer-stat-title">ACTIVE PARTY</div>
+          <div class="party-list" id="party-list"></div>
+        </div>
+        <div class="trainer-stat-box">
+          <div class="trainer-stat-title">BAG</div>
+          <div class="bag-list" id="bag-list"></div>
+        </div>
+        <div class="trainer-stat-box">
+          <div class="trainer-stat-title">MOUNTS</div>
+          <div class="mount-list" id="mount-list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="wild-grass" data-encounter-zone="monster-lab" data-biome="research-garden" style="left:20px; bottom:18px;">
+      <div class="wild-grass-label">RESEARCH GARDEN</div>
+    </div>
+  </section>
+
+  <div class="section-divider"><span class="divider-icon">🐾</span></div>
+
+  <section id="trainer-circuit" class="section anim-target" data-zone="~ TRAINER CIRCUIT ~" style="position:relative;">
+    <div class="section-title">TRAINER CIRCUIT</div>
+    <div class="trainer-circuit">
+      <div class="trainer-facility pixel-border">
+        <h3>MONSTER CENTER</h3>
+        <p>把训练师循环闭合起来。这里可以回复队伍、补充基础道具、执行进化试验，避免每次都只能靠野外硬撑。</p>
+        <div class="badge-row" id="badge-row"></div>
+        <div class="trainer-actions">
+          <button class="trainer-action-btn" onclick="openMonsterCenter()">Heal Party</button>
+          <button class="trainer-action-btn" onclick="restockMonsterBag()">Restock Bag</button>
+          <button class="trainer-action-btn" onclick="triggerEvolutionChamber()">Evolution Lab</button>
+        </div>
+        <div class="travel-row" id="travel-row"></div>
+      </div>
+      <div class="trainer-arena-list">
+        <div class="trainer-arena-card pixel-border">
+          <h3>RESEARCHER MIKA</h3>
+          <p>学术型训练家，主打控制与续航。击败后获得高级捕捉胶囊和额外经验。</p>
+          <div class="trainer-actions">
+            <button class="trainer-action-btn" onclick="startTrainerBattle('researcher_mika')">Challenge</button>
+          </div>
+        </div>
+        <div class="trainer-arena-card pixel-border">
+          <h3>RANGER TAO</h3>
+          <p>野外巡护员，阵容偏火与龙，压迫感更强。更适合作为中后期目标。</p>
+          <div class="trainer-actions">
+            <button class="trainer-action-btn" onclick="startTrainerBattle('ranger_tao')">Challenge</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><span class="divider-icon">🏟️</span></div>
 
   <!-- Boss Area -->
   <section id="boss-area" class="section anim-target" data-zone="~ DRAGON'S LAIR ~" style="position:relative; text-align:center;">
@@ -3190,6 +3764,69 @@
 <!-- Companion Pet -->
 <div id="companion-pet" class="hidden" aria-hidden="true">
   <div class="pet-sprite npc-charmander"></div>
+</div>
+
+<div id="monster-hud" aria-hidden="true">
+  <div class="monster-hud-title">TRAINER HUD</div>
+  <div class="monster-hud-line" id="monster-hud-buddy">Buddy: --</div>
+  <div class="monster-hud-line" id="monster-hud-balls">Capsules: --</div>
+  <div class="monster-hud-line" id="monster-hud-mount">Mount: On Foot</div>
+</div>
+
+<div id="mount-sprite" aria-hidden="true"></div>
+
+<div id="encounter-overlay" aria-hidden="true">
+  <div class="encounter-shell">
+    <div class="encounter-stage">
+      <div class="encounter-banner" id="encounter-banner">WILD ENCOUNTER</div>
+      <div class="encounter-arena">
+        <div class="encounter-monster ally">
+          <div class="encounter-monster-icon" id="ally-monster-icon">🦊</div>
+          <div class="encounter-monster-name" id="ally-monster-name">EEVEE</div>
+          <div class="encounter-hp-track"><div class="encounter-hp-fill" id="ally-hp-fill"></div></div>
+          <div class="encounter-hp-text" id="ally-hp-text">HP 70 / 70</div>
+          <div class="encounter-type-line" id="ally-monster-type">Normal Trainer Buddy</div>
+          <div class="encounter-mount-line" id="ally-mount-line">Mount talent: none</div>
+        </div>
+        <div class="encounter-monster enemy">
+          <div class="encounter-monster-icon" id="enemy-monster-icon">⚡</div>
+          <div class="encounter-monster-name" id="enemy-monster-name">PIKACHU</div>
+          <div class="encounter-hp-track"><div class="encounter-hp-fill" id="enemy-hp-fill"></div></div>
+          <div class="encounter-hp-text" id="enemy-hp-text">HP 58 / 58</div>
+          <div class="encounter-type-line" id="enemy-monster-type">Electric / Wild</div>
+          <div class="encounter-mount-line" id="enemy-capture-line">Capture chance rises as HP drops.</div>
+        </div>
+      </div>
+    </div>
+    <div class="encounter-panel">
+      <div class="encounter-log" id="encounter-log">A wild creature stepped out of the grass.</div>
+      <div class="encounter-actions">
+        <div class="encounter-subpanel">
+          <div class="encounter-subtitle">MOVES</div>
+          <div class="encounter-actions-grid">
+            <button class="encounter-btn" id="encounter-move-1" onclick="useEncounterMove(0)">Move A</button>
+            <button class="encounter-btn" id="encounter-move-2" onclick="useEncounterMove(1)">Move B</button>
+          </div>
+          <div class="encounter-close" id="encounter-pp-line">PP: 10 / 10 · 10 / 10</div>
+        </div>
+        <div class="encounter-subpanel">
+          <div class="encounter-subtitle">ITEMS</div>
+          <div class="encounter-actions-grid">
+            <button class="encounter-action-btn" id="encounter-ball-btn" onclick="throwCaptureCapsule()">Throw Capsule</button>
+            <button class="encounter-action-btn" id="encounter-potion-btn" onclick="useEncounterPotion()">Use Potion</button>
+          </div>
+        </div>
+        <div class="encounter-subpanel">
+          <div class="encounter-subtitle">TACTICS</div>
+          <div class="encounter-actions-grid">
+            <button class="encounter-action-btn" onclick="swapNextBuddy()">Swap Buddy</button>
+            <button class="encounter-action-btn" onclick="fleeEncounter()">Flee</button>
+          </div>
+        </div>
+        <div class="encounter-close">Hotkeys: 1/2 moves, C capture, P potion, F flee</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -7234,6 +7871,817 @@
       };
     }
   })();
+
+  // =============================================
+  // MONSTER TRAINER SYSTEM
+  // =============================================
+  const monsterSpecies = {
+    eevee: {
+      id: 'eevee',
+      name: 'Eevee',
+      icon: '🦊',
+      type: 'Normal',
+      maxHp: 76,
+      captureRate: 0.25,
+      mountName: null,
+      mountIcon: null,
+      mountBonus: 0,
+      description: 'Starter scout. Balanced stats and reliable finishing damage.',
+      moves: [
+        { name: 'Quick Attack', power: 18, text: 'Eevee rushed in with Quick Attack!' },
+        { name: 'Charm Pulse', power: 10, heal: 10, text: 'Eevee softened the target and restored a little HP.' }
+      ]
+    },
+    pikachu: {
+      id: 'pikachu',
+      name: 'Pikachu',
+      icon: '⚡',
+      type: 'Electric',
+      maxHp: 62,
+      captureRate: 0.34,
+      mountName: 'Volt Dash',
+      mountIcon: '⚡',
+      mountBonus: 1.1,
+      description: 'Fast opener. Good for trigger-happy burst encounters.',
+      moves: [
+        { name: 'Thunder Jolt', power: 22, text: 'Pikachu fired a crackling Thunder Jolt!' },
+        { name: 'Static Field', power: 14, text: 'Pikachu spread static energy across the arena!' }
+      ]
+    },
+    growlithe: {
+      id: 'growlithe',
+      name: 'Growlithe',
+      icon: '🐯',
+      type: 'Fire',
+      maxHp: 74,
+      captureRate: 0.31,
+      mountName: 'Blaze Runner',
+      mountIcon: '🔥',
+      mountBonus: 2.2,
+      description: 'Unlocks the fastest land mount and heavy single-hit damage.',
+      moves: [
+        { name: 'Flame Wheel', power: 24, text: 'Growlithe burst forward in a spinning flame wheel!' },
+        { name: 'Howl Guard', power: 12, heal: 12, text: 'Growlithe howled, boosting morale and HP.' }
+      ]
+    },
+    lapras: {
+      id: 'lapras',
+      name: 'Lapras',
+      icon: '🐬',
+      type: 'Water',
+      maxHp: 88,
+      captureRate: 0.28,
+      mountName: 'Aqua Glide',
+      mountIcon: '🌊',
+      mountBonus: 1.5,
+      description: 'Bulky support creature. Makes exploration smoother and safer.',
+      moves: [
+        { name: 'Bubble Beam', power: 20, text: 'Lapras launched a broad Bubble Beam!' },
+        { name: 'Ocean Song', power: 8, heal: 18, text: 'Lapras sang a restorative ocean hymn.' }
+      ]
+    },
+    dragonair: {
+      id: 'dragonair',
+      name: 'Dragonair',
+      icon: '🐉',
+      type: 'Dragon',
+      maxHp: 92,
+      captureRate: 0.2,
+      mountName: 'Sky Ribbon',
+      mountIcon: '☁️',
+      mountBonus: 1.7,
+      description: 'Late-game elegant bruiser with the rarest mount aura.',
+      moves: [
+        { name: 'Dragon Pulse', power: 28, text: 'Dragonair released a compressed Dragon Pulse!' },
+        { name: 'Mist Guard', power: 12, heal: 14, text: 'Dragonair summoned a veil of mist and recovered HP.' }
+      ]
+    },
+    raichu: {
+      id: 'raichu',
+      name: 'Raichu',
+      icon: '🌩️',
+      type: 'Electric',
+      maxHp: 90,
+      captureRate: 0.16,
+      mountName: 'Storm Surfer',
+      mountIcon: '🌩️',
+      mountBonus: 2.5,
+      description: 'Evolved electric ace. Heavy burst and the fastest movement bonus.',
+      moves: [
+        { name: 'Volt Crash', power: 30, text: 'Raichu crashed forward in a storm of electricity!' },
+        { name: 'Charge Bloom', power: 16, heal: 10, text: 'Raichu stored charge and stabilized itself.' }
+      ]
+    },
+    arcanine: {
+      id: 'arcanine',
+      name: 'Arcanine',
+      icon: '🦁',
+      type: 'Fire',
+      maxHp: 96,
+      captureRate: 0.16,
+      mountName: 'Royal Gallop',
+      mountIcon: '🦁',
+      mountBonus: 2.8,
+      description: 'Evolved fire mount. Massive physical pressure and premier riding speed.',
+      moves: [
+        { name: 'Inferno Rush', power: 32, text: 'Arcanine barreled through with Inferno Rush!' },
+        { name: 'Guardian Roar', power: 14, heal: 16, text: 'Arcanine let out a guardian roar and recovered HP.' }
+      ]
+    }
+  };
+
+  const typeChart = {
+    Fire: { Grass: 1.5, Water: 0.75, Dragon: 0.9, Fire: 0.85 },
+    Water: { Fire: 1.5, Electric: 0.85, Dragon: 0.95, Water: 0.85 },
+    Electric: { Water: 1.5, Fire: 1.05, Dragon: 0.85, Electric: 0.85 },
+    Dragon: { Dragon: 1.35, Fire: 1.1, Water: 1.1, Electric: 1.1 },
+    Normal: { Dragon: 0.95, Fire: 1, Water: 1, Electric: 1 }
+  };
+
+  const trainerBattleCatalog = {
+    researcher_mika: {
+      name: 'Researcher Mika',
+      roster: ['lapras', 'pikachu'],
+      reward: { score: 260, xp: 70, capsules: 2 },
+      intro: 'Researcher Mika challenges you to a structured battle!'
+    },
+    ranger_tao: {
+      name: 'Ranger Tao',
+      roster: ['growlithe', 'dragonair', 'arcanine'],
+      reward: { score: 420, xp: 110, potions: 2 },
+      intro: 'Ranger Tao blocks the route with an elite field squad!'
+    }
+  };
+
+  const encounterTables = {
+    'spark-field': ['pikachu', 'eevee', 'pikachu'],
+    'camp-route': ['growlithe', 'eevee', 'lapras'],
+    'forge-wilds': ['growlithe', 'dragonair', 'pikachu'],
+    'research-garden': ['eevee', 'lapras', 'pikachu', 'dragonair']
+  };
+
+  const defaultTrainerState = {
+    captured: { eevee: true },
+    party: ['eevee'],
+    activeBuddy: 'eevee',
+    mounts: [],
+    activeMount: null,
+    bag: { capsules: 6, potions: 3 },
+    seen: { eevee: true },
+    buddyLevels: { eevee: 1 },
+    battleWins: {},
+    badges: [],
+    fastTravel: ['character']
+  };
+
+  let trainerState = null;
+  let encounterState = null;
+  let encounterCooldownUntil = 0;
+  let lastEncounterStepX = 0;
+  let lastEncounterStepY = 0;
+  let encounterBusy = false;
+
+  function loadTrainerState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem('monster_trainer_state') || 'null');
+      trainerState = saved ? saved : JSON.parse(JSON.stringify(defaultTrainerState));
+    } catch (err) {
+      trainerState = JSON.parse(JSON.stringify(defaultTrainerState));
+    }
+    if (!trainerState.party || !trainerState.party.length) trainerState.party = ['eevee'];
+    if (!trainerState.activeBuddy || !trainerState.party.includes(trainerState.activeBuddy)) {
+      trainerState.activeBuddy = trainerState.party[0];
+    }
+    if (!trainerState.mounts) trainerState.mounts = [];
+    if (!trainerState.bag) trainerState.bag = { capsules: 6, potions: 3 };
+    if (!trainerState.seen) trainerState.seen = { eevee: true };
+    if (!trainerState.captured) trainerState.captured = { eevee: true };
+    if (!trainerState.buddyLevels) trainerState.buddyLevels = { eevee: 1 };
+    if (!trainerState.battleWins) trainerState.battleWins = {};
+    if (!trainerState.badges) trainerState.badges = [];
+    if (!trainerState.fastTravel) trainerState.fastTravel = ['character'];
+    trainerState.party.forEach(id => {
+      if (!trainerState.buddyLevels[id]) trainerState.buddyLevels[id] = 1;
+    });
+  }
+
+  function saveTrainerState() {
+    localStorage.setItem('monster_trainer_state', JSON.stringify(trainerState));
+  }
+
+  function getBuddySpecies() {
+    return monsterSpecies[trainerState.activeBuddy] || monsterSpecies.eevee;
+  }
+
+  function getCurrentMount() {
+    return trainerState.activeMount ? monsterSpecies[trainerState.activeMount] : null;
+  }
+
+  function renderMonsterDex() {
+    const grid = document.getElementById('monster-dex-grid');
+    if (!grid) return;
+    grid.innerHTML = Object.values(monsterSpecies).map(spec => {
+      const seen = trainerState.seen[spec.id];
+      const captured = trainerState.captured[spec.id];
+      const level = trainerState.buddyLevels[spec.id] || 1;
+      const moves = spec.moves.map(move => '<span class="monster-move-pill">' + move.name + '</span>').join('');
+      return (
+        '<div class="monster-card">' +
+          '<div class="monster-card-head">' +
+            '<div><div class="monster-name-tag">' + spec.name.toUpperCase() + '</div><div class="monster-desc">' + (seen ? spec.description : 'Unknown lifeform. Encounter it in the grass first.') + '</div></div>' +
+            '<div class="monster-icon">' + (seen ? spec.icon : '❔') + '</div>' +
+          '</div>' +
+          '<div class="monster-chip">' + (seen ? spec.type : '???') + '</div>' +
+          '<div class="monster-move-list">' + (seen ? moves : '<span class="monster-move-pill">Locked</span>') + '</div>' +
+          '<div class="monster-desc" style="margin-top:10px;">' + (captured ? ('Captured · Lv.' + level) : seen ? 'Seen in the wild' : 'Not discovered') + (spec.mountName ? ' · Mount: ' + spec.mountName : '') + '</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function renderPartyList() {
+    const list = document.getElementById('party-list');
+    if (!list) return;
+    list.innerHTML = trainerState.party.map(id => {
+      const spec = monsterSpecies[id];
+      const level = trainerState.buddyLevels[id] || 1;
+      return (
+        '<div class="party-slot' + (trainerState.activeBuddy === id ? ' active' : '') + '">' +
+          '<span>' + spec.icon + ' ' + spec.name + ' · ' + spec.type + ' · Lv.' + level + '</span>' +
+          '<button class="' + (trainerState.activeBuddy === id ? 'active' : '') + '" onclick="setActiveBuddy(\'' + id + '\')">' + (trainerState.activeBuddy === id ? 'ACTIVE' : 'SET') + '</button>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  function renderBagList() {
+    const list = document.getElementById('bag-list');
+    if (!list) return;
+    list.innerHTML =
+      '<div class="bag-slot"><span>🧿 Capture Capsules</span><strong>' + trainerState.bag.capsules + '</strong></div>' +
+      '<div class="bag-slot"><span>🧪 Potions</span><strong>' + trainerState.bag.potions + '</strong></div>';
+  }
+
+  function renderMountList() {
+    const list = document.getElementById('mount-list');
+    if (!list) return;
+    if (!trainerState.mounts.length) {
+      list.innerHTML = '<div class="mount-slot"><span>No mounts unlocked yet</span><button onclick="setActiveMount(\'\')">FOOT</button></div>';
+      return;
+    }
+    list.innerHTML = trainerState.mounts.map(id => {
+      const spec = monsterSpecies[id];
+      const active = trainerState.activeMount === id;
+      return (
+        '<div class="mount-slot">' +
+          '<span>' + spec.mountIcon + ' ' + spec.mountName + ' · +' + spec.mountBonus.toFixed(1) + ' speed</span>' +
+          '<button class="' + (active ? 'active' : '') + '" onclick="setActiveMount(\'' + id + '\')">' + (active ? 'RIDING' : 'RIDE') + '</button>' +
+        '</div>'
+      );
+    }).join('') + '<div class="mount-slot"><span>🚶 On Foot</span><button class="' + (!trainerState.activeMount ? 'active' : '') + '" onclick="setActiveMount(\'\')">FOOT</button></div>';
+  }
+
+  function renderBadgeRow() {
+    const el = document.getElementById('badge-row');
+    if (!el) return;
+    const badges = [
+      { key: 'logic-badge', label: 'Logic Badge' },
+      { key: 'wild-badge', label: 'Wild Badge' }
+    ];
+    el.innerHTML = badges.map(b => '<span class="badge-chip' + (trainerState.badges.includes(b.key) ? ' unlocked' : '') + '">' + b.label + '</span>').join('');
+  }
+
+  function renderTravelRow() {
+    const el = document.getElementById('travel-row');
+    if (!el) return;
+    const spots = [
+      { key: 'character', label: 'Guild', target: 'character' },
+      { key: 'monster-lab', label: 'Lab', target: 'monster-lab' },
+      { key: 'trainer-circuit', label: 'Circuit', target: 'trainer-circuit' },
+      { key: 'portals', label: 'Portals', target: 'portals' }
+    ];
+    el.innerHTML = spots.map(spot => {
+      const unlocked = trainerState.fastTravel.includes(spot.key);
+      return '<button class="travel-chip' + (unlocked ? ' unlocked' : '') + '" ' + (unlocked ? 'onclick="fastTravelTo(\'' + spot.target + '\')"' : 'disabled') + '>' + spot.label + '</button>';
+    }).join('');
+  }
+
+  function renderProgressStrip() {
+    const dex = Object.keys(trainerState.seen).length;
+    const badges = trainerState.badges.length;
+    const travel = trainerState.fastTravel.length;
+    const dexEl = document.getElementById('monster-progress-dex');
+    const badgeEl = document.getElementById('monster-progress-badges');
+    const travelEl = document.getElementById('monster-progress-travel');
+    if (dexEl) dexEl.textContent = dex + ' / ' + Object.keys(monsterSpecies).length;
+    if (badgeEl) badgeEl.textContent = badges + ' / 2';
+    if (travelEl) travelEl.textContent = travel + ' unlocked';
+  }
+
+  function updateMonsterHud() {
+    const buddy = getBuddySpecies();
+    const mount = getCurrentMount();
+    const buddyEl = document.getElementById('monster-hud-buddy');
+    const ballsEl = document.getElementById('monster-hud-balls');
+    const mountEl = document.getElementById('monster-hud-mount');
+    if (buddyEl) buddyEl.textContent = 'Buddy: ' + buddy.icon + ' ' + buddy.name;
+    if (ballsEl) ballsEl.textContent = 'Capsules: ' + trainerState.bag.capsules + ' · Potions: ' + trainerState.bag.potions;
+    if (mountEl) mountEl.textContent = 'Mount: ' + (mount ? mount.mountName : 'On Foot');
+    const mountSprite = document.getElementById('mount-sprite');
+    if (mountSprite) {
+      if (mount) {
+        mountSprite.textContent = mount.mountIcon;
+        mountSprite.classList.add('active');
+      } else {
+        mountSprite.classList.remove('active');
+      }
+    }
+  }
+
+  function renderMonsterSystems() {
+    renderMonsterDex();
+    renderPartyList();
+    renderBagList();
+    renderMountList();
+    renderBadgeRow();
+    renderTravelRow();
+    renderProgressStrip();
+    updateMonsterHud();
+    saveTrainerState();
+  }
+
+  function setActiveBuddy(id) {
+    if (!trainerState.party.includes(id)) return;
+    trainerState.activeBuddy = id;
+    renderMonsterSystems();
+    showNotification(monsterSpecies[id].name + ' is now your active buddy.');
+  }
+  window.setActiveBuddy = setActiveBuddy;
+
+  function setActiveMount(id) {
+    trainerState.activeMount = id || null;
+    renderMonsterSystems();
+    showNotification(id ? monsterSpecies[id].mountName + ' engaged.' : 'Back on foot.');
+  }
+  window.setActiveMount = setActiveMount;
+
+  function getEncounterBiome() {
+    const px = charX + 16;
+    const py = charY + 16;
+    const grasses = document.querySelectorAll('.wild-grass');
+    for (const grass of grasses) {
+      const rect = grass.getBoundingClientRect();
+      if (px >= rect.left && px <= rect.right && py >= rect.top && py <= rect.bottom) {
+        return grass.dataset.biome || 'research-garden';
+      }
+    }
+    return null;
+  }
+
+  function maybeTriggerEncounter() {
+    if (window.innerWidth < 768 || encounterState || !titleDismissed) return;
+    if (Date.now() < encounterCooldownUntil) return;
+    const biome = getEncounterBiome();
+    if (!biome) return;
+    const dx = charX - lastEncounterStepX;
+    const dy = charY - lastEncounterStepY;
+    const moved = Math.hypot(dx, dy);
+    if (moved < 16) return;
+    lastEncounterStepX = charX;
+    lastEncounterStepY = charY;
+    const mount = getCurrentMount();
+    const encounterRatePenalty = mount ? mount.mountBonus * 0.01 : 0;
+    if (Math.random() < Math.max(0.06, 0.18 - encounterRatePenalty)) {
+      startWildEncounter(biome);
+    }
+  }
+
+  function randomFrom(array) {
+    return array[Math.floor(Math.random() * array.length)];
+  }
+
+  function getTypeMultiplier(attackerType, defenderType) {
+    return (typeChart[attackerType] && typeChart[attackerType][defenderType]) || 1;
+  }
+
+  function getBuddyLevel(id) {
+    return trainerState.buddyLevels[id] || 1;
+  }
+
+  function grantBuddyProgress(id, amount) {
+    trainerState.buddyLevels[id] = Math.min(12, getBuddyLevel(id) + amount);
+  }
+
+  function maybeEvolveSpecies(id) {
+    const level = getBuddyLevel(id);
+    if (id === 'pikachu' && level >= 5 && trainerState.captured.pikachu && !trainerState.captured.raichu) {
+      return { from: 'pikachu', to: 'raichu' };
+    }
+    if (id === 'growlithe' && level >= 5 && trainerState.captured.growlithe && !trainerState.captured.arcanine) {
+      return { from: 'growlithe', to: 'arcanine' };
+    }
+    return null;
+  }
+
+  function replacePartySpecies(fromId, toId) {
+    trainerState.party = trainerState.party.map(id => id === fromId ? toId : id);
+    if (trainerState.activeBuddy === fromId) trainerState.activeBuddy = toId;
+    if (trainerState.activeMount === fromId) trainerState.activeMount = toId;
+  }
+
+  function startWildEncounter(biome) {
+    const speciesId = randomFrom(encounterTables[biome] || encounterTables['research-garden']);
+    const enemy = monsterSpecies[speciesId];
+    const ally = getBuddySpecies();
+    trainerState.seen[speciesId] = true;
+    encounterState = {
+      biome,
+      mode: 'wild',
+      allyId: trainerState.activeBuddy,
+      allyHp: ally.maxHp,
+      enemyId: speciesId,
+      enemyHp: enemy.maxHp,
+      enemyRoster: [speciesId],
+      enemyIndex: 0,
+      trainerName: null,
+      currentPP: [10, 10]
+    };
+    renderMonsterSystems();
+    renderEncounter();
+    const overlay = document.getElementById('encounter-overlay');
+    if (overlay) overlay.classList.add('show');
+    showEncounterLog('Wild ' + enemy.name + ' appeared in the ' + biome.replace(/-/g, ' ') + '!');
+    playHitSound();
+  }
+
+  function showEncounterLog(text) {
+    const log = document.getElementById('encounter-log');
+    if (log) log.textContent = text;
+  }
+
+  function renderEncounter() {
+    if (!encounterState) return;
+    const ally = monsterSpecies[encounterState.allyId];
+    const enemy = monsterSpecies[encounterState.enemyId];
+    const levelText = 'Lv.' + getBuddyLevel(encounterState.allyId);
+    document.getElementById('encounter-banner').textContent = encounterState.mode === 'trainer'
+      ? encounterState.trainerName.toUpperCase() + ' SENT OUT ' + enemy.name.toUpperCase()
+      : 'WILD ' + enemy.name.toUpperCase() + ' ENCOUNTER';
+    document.getElementById('ally-monster-icon').textContent = ally.icon;
+    document.getElementById('ally-monster-name').textContent = ally.name.toUpperCase() + ' ' + levelText;
+    document.getElementById('ally-monster-type').textContent = ally.type + ' / Partner';
+    document.getElementById('ally-mount-line').textContent = ally.mountName ? 'Mount talent: ' + ally.mountName : 'Mount talent: none';
+    document.getElementById('enemy-monster-icon').textContent = enemy.icon;
+    document.getElementById('enemy-monster-name').textContent = enemy.name.toUpperCase();
+    document.getElementById('enemy-monster-type').textContent = enemy.type + (encounterState.mode === 'trainer' ? ' / Trainer Squad' : ' / Wild');
+    document.getElementById('enemy-capture-line').textContent = encounterState.mode === 'trainer'
+      ? 'Remaining roster: ' + (encounterState.enemyRoster.length - encounterState.enemyIndex)
+      : 'Capture base rate: ' + Math.round(enemy.captureRate * 100) + '%';
+    updateEncounterBars();
+    document.getElementById('encounter-move-1').textContent = '1 · ' + ally.moves[0].name;
+    document.getElementById('encounter-move-2').textContent = '2 · ' + ally.moves[1].name;
+    document.getElementById('encounter-ball-btn').textContent = 'C · Throw Capsule (' + trainerState.bag.capsules + ')';
+    document.getElementById('encounter-potion-btn').textContent = 'P · Use Potion (' + trainerState.bag.potions + ')';
+    const ppEl = document.getElementById('encounter-pp-line');
+    if (ppEl) ppEl.textContent = 'PP: ' + encounterState.currentPP[0] + ' / 10 · ' + encounterState.currentPP[1] + ' / 10';
+    document.getElementById('encounter-move-1').disabled = encounterState.currentPP[0] <= 0;
+    document.getElementById('encounter-move-2').disabled = encounterState.currentPP[1] <= 0;
+  }
+
+  function updateEncounterBars() {
+    if (!encounterState) return;
+    const ally = monsterSpecies[encounterState.allyId];
+    const enemy = monsterSpecies[encounterState.enemyId];
+    const allyPct = Math.max(0, encounterState.allyHp / ally.maxHp * 100);
+    const enemyPct = Math.max(0, encounterState.enemyHp / enemy.maxHp * 100);
+    document.getElementById('ally-hp-fill').style.width = allyPct + '%';
+    document.getElementById('enemy-hp-fill').style.width = enemyPct + '%';
+    document.getElementById('ally-hp-text').textContent = 'HP ' + encounterState.allyHp + ' / ' + ally.maxHp;
+    document.getElementById('enemy-hp-text').textContent = 'HP ' + encounterState.enemyHp + ' / ' + enemy.maxHp;
+    document.getElementById('encounter-ball-btn').disabled = trainerState.bag.capsules <= 0;
+    document.getElementById('encounter-potion-btn').disabled = trainerState.bag.potions <= 0;
+  }
+
+  function finishEncounter(resultText) {
+    showEncounterLog(resultText);
+    encounterCooldownUntil = Date.now() + 3000;
+    setTimeout(() => {
+      encounterState = null;
+      const overlay = document.getElementById('encounter-overlay');
+      if (overlay) overlay.classList.remove('show');
+      renderMonsterSystems();
+    }, 1200);
+  }
+
+  function enemyTurn() {
+    if (!encounterState) return;
+    encounterBusy = true;
+    const enemy = monsterSpecies[encounterState.enemyId];
+    const move = randomFrom(enemy.moves);
+    const typeBonus = getTypeMultiplier(enemy.type, monsterSpecies[encounterState.allyId].type);
+    const damage = Math.round((move.power + Math.floor(Math.random() * 8)) * typeBonus);
+    setTimeout(() => {
+      encounterState.allyHp = Math.max(0, encounterState.allyHp - damage);
+      if (move.heal) {
+        encounterState.enemyHp = Math.min(enemy.maxHp, encounterState.enemyHp + move.heal);
+      }
+      updateEncounterBars();
+      const typeMsg = typeBonus > 1.15 ? ' It was super effective.' : typeBonus < 0.95 ? ' It was resisted.' : '';
+      showEncounterLog(move.text + ' You took ' + damage + ' damage.' + typeMsg);
+      if (encounterState.allyHp <= 0) {
+        takeDamage(18);
+        finishEncounter('Your buddy was overwhelmed. You escaped the grass.');
+        encounterBusy = false;
+        return;
+      }
+      encounterBusy = false;
+    }, 700);
+  }
+
+  function useEncounterMove(index) {
+    if (!encounterState || encounterBusy) return;
+    const ally = monsterSpecies[encounterState.allyId];
+    const move = ally.moves[index];
+    if (!move) return;
+    if (encounterState.currentPP[index] <= 0) {
+      showEncounterLog('That move is out of PP.');
+      return;
+    }
+    encounterBusy = true;
+    encounterState.currentPP[index] -= 1;
+    const typeBonus = getTypeMultiplier(ally.type, monsterSpecies[encounterState.enemyId].type);
+    const levelBonus = 1 + (getBuddyLevel(encounterState.allyId) - 1) * 0.08;
+    const damage = Math.round((move.power + Math.floor(Math.random() * 7)) * typeBonus * levelBonus);
+    encounterState.enemyHp = Math.max(0, encounterState.enemyHp - damage);
+    if (move.heal) {
+      encounterState.allyHp = Math.min(ally.maxHp, encounterState.allyHp + move.heal);
+    }
+    updateEncounterBars();
+    const typeMsg = typeBonus > 1.15 ? ' It was super effective.' : typeBonus < 0.95 ? ' It was resisted.' : '';
+    showEncounterLog(move.text + ' It dealt ' + damage + ' damage.' + typeMsg);
+    if (encounterState.enemyHp <= 0) {
+      grantBuddyProgress(encounterState.allyId, 1);
+      if (encounterState.mode === 'trainer' && encounterState.enemyIndex < encounterState.enemyRoster.length - 1) {
+        encounterState.enemyIndex += 1;
+        encounterState.enemyId = encounterState.enemyRoster[encounterState.enemyIndex];
+        encounterState.enemyHp = monsterSpecies[encounterState.enemyId].maxHp;
+        encounterState.currentPP = [10, 10];
+        renderEncounter();
+        showEncounterLog(encounterState.trainerName + ' sent out ' + monsterSpecies[encounterState.enemyId].name + '!');
+        encounterBusy = false;
+        return;
+      }
+      score += encounterState.mode === 'trainer' ? 150 : 90;
+      updateHUD();
+      gainXP(encounterState.mode === 'trainer' ? 40 : 24);
+      if (encounterState.mode === 'trainer' && encounterState.trainerReward) {
+        if (encounterState.trainerReward.capsules) trainerState.bag.capsules += encounterState.trainerReward.capsules;
+        if (encounterState.trainerReward.potions) trainerState.bag.potions += encounterState.trainerReward.potions;
+        if (encounterState.trainerReward.score) score += encounterState.trainerReward.score;
+        if (encounterState.trainerReward.xp) gainXP(encounterState.trainerReward.xp);
+        trainerState.battleWins[encounterState.trainerKey] = true;
+        if (encounterState.trainerKey === 'researcher_mika' && !trainerState.badges.includes('logic-badge')) {
+          trainerState.badges.push('logic-badge');
+          trainerState.fastTravel.push('monster-lab');
+        }
+        if (encounterState.trainerKey === 'ranger_tao' && !trainerState.badges.includes('wild-badge')) {
+          trainerState.badges.push('wild-badge');
+          if (!trainerState.fastTravel.includes('trainer-circuit')) trainerState.fastTravel.push('trainer-circuit');
+          if (!trainerState.fastTravel.includes('portals')) trainerState.fastTravel.push('portals');
+        }
+        updateHUD();
+      }
+      renderMonsterSystems();
+      finishEncounter((encounterState.mode === 'trainer'
+        ? encounterState.trainerName + ' was defeated!'
+        : 'Wild ' + monsterSpecies[encounterState.enemyId].name + ' fainted.') + ' Rewards added.');
+      encounterBusy = false;
+      return;
+    }
+    setTimeout(enemyTurn, 650);
+  }
+  window.useEncounterMove = useEncounterMove;
+
+  function tryUnlockMount(speciesId) {
+    const spec = monsterSpecies[speciesId];
+    if (!spec.mountName) return;
+    if (!trainerState.mounts.includes(speciesId)) {
+      trainerState.mounts.push(speciesId);
+      showNotification('Mount unlocked: ' + spec.mountName + '!');
+    }
+  }
+
+  function throwCaptureCapsule() {
+    if (!encounterState || encounterBusy || trainerState.bag.capsules <= 0 || encounterState.mode === 'trainer') return;
+    encounterBusy = true;
+    trainerState.bag.capsules--;
+    const enemy = monsterSpecies[encounterState.enemyId];
+    const hpFactor = 1 - (encounterState.enemyHp / enemy.maxHp);
+    const chance = Math.min(0.92, enemy.captureRate + hpFactor * 0.55);
+    renderEncounter();
+    showEncounterLog('You threw a capture capsule...');
+    setTimeout(() => {
+      if (Math.random() < chance) {
+        trainerState.captured[enemy.id] = true;
+        if (!trainerState.buddyLevels[enemy.id]) trainerState.buddyLevels[enemy.id] = 1;
+        if (!trainerState.party.includes(enemy.id)) {
+          if (trainerState.party.length >= 4) trainerState.party.shift();
+          trainerState.party.push(enemy.id);
+        }
+        tryUnlockMount(enemy.id);
+        score += 140;
+        updateHUD();
+        gainXP(40);
+        encounterBusy = false;
+        finishEncounter(enemy.name + ' was captured and added to your squad!');
+      } else {
+        encounterBusy = false;
+        showEncounterLog(enemy.name + ' broke free!');
+        setTimeout(enemyTurn, 600);
+      }
+    }, 900);
+  }
+  window.throwCaptureCapsule = throwCaptureCapsule;
+
+  function useEncounterPotion() {
+    if (!encounterState || encounterBusy || trainerState.bag.potions <= 0) return;
+    trainerState.bag.potions--;
+    const ally = monsterSpecies[encounterState.allyId];
+    encounterState.allyHp = Math.min(ally.maxHp, encounterState.allyHp + 24);
+    updateEncounterBars();
+    renderEncounter();
+    showEncounterLog('Potion applied. ' + ally.name + ' recovered 24 HP.');
+    setTimeout(enemyTurn, 650);
+  }
+  window.useEncounterPotion = useEncounterPotion;
+
+  function fleeEncounter() {
+    if (!encounterState || encounterBusy) return;
+    finishEncounter('You slipped away from the encounter.');
+  }
+  window.fleeEncounter = fleeEncounter;
+
+  function swapNextBuddy() {
+    if (!encounterState || encounterBusy || trainerState.party.length < 2) return;
+    const idx = trainerState.party.indexOf(encounterState.allyId);
+    const nextId = trainerState.party[(idx + 1) % trainerState.party.length];
+    encounterState.allyId = nextId;
+    encounterState.allyHp = monsterSpecies[nextId].maxHp;
+    trainerState.activeBuddy = nextId;
+    renderEncounter();
+    renderMonsterSystems();
+    showEncounterLog(monsterSpecies[nextId].name + ', I choose you!');
+    setTimeout(enemyTurn, 600);
+  }
+  window.swapNextBuddy = swapNextBuddy;
+
+  function openMonsterCenter() {
+    trainerState.party.forEach(id => {
+      trainerState.buddyLevels[id] = Math.max(1, trainerState.buddyLevels[id] || 1);
+    });
+    playerHP = playerMaxHP;
+    playerMP = playerMaxMP;
+    updateBars();
+    renderMonsterSystems();
+    showNotification('Monster Center restored your trainer and squad.');
+  }
+  window.openMonsterCenter = openMonsterCenter;
+
+  function restockMonsterBag() {
+    trainerState.bag.capsules += 2;
+    trainerState.bag.potions += 1;
+    renderMonsterSystems();
+    showNotification('Bag restocked: +2 capsules, +1 potion.');
+  }
+  window.restockMonsterBag = restockMonsterBag;
+
+  function triggerEvolutionChamber() {
+    const evo = maybeEvolveSpecies(trainerState.activeBuddy);
+    if (!evo) {
+      showNotification('No evolution available for the active buddy yet.');
+      return;
+    }
+    trainerState.captured[evo.to] = true;
+    trainerState.seen[evo.to] = true;
+    trainerState.buddyLevels[evo.to] = trainerState.buddyLevels[evo.from];
+    replacePartySpecies(evo.from, evo.to);
+    tryUnlockMount(evo.to);
+    renderMonsterSystems();
+    showNotification(monsterSpecies[evo.from].name + ' evolved into ' + monsterSpecies[evo.to].name + '!');
+  }
+  window.triggerEvolutionChamber = triggerEvolutionChamber;
+
+  function fastTravelTo(targetId) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showNotification('Fast traveled to ' + targetId.replace(/-/g, ' ') + '.');
+  }
+  window.fastTravelTo = fastTravelTo;
+
+  function startTrainerBattle(key) {
+    const config = trainerBattleCatalog[key];
+    if (!config || encounterState) return;
+    if (key === 'ranger_tao' && !trainerState.badges.includes('logic-badge')) {
+      showNotification('Defeat Researcher Mika first to unlock this challenge.');
+      return;
+    }
+    const firstEnemy = monsterSpecies[config.roster[0]];
+    const ally = getBuddySpecies();
+    trainerState.seen[firstEnemy.id] = true;
+    encounterState = {
+      biome: 'trainer-arena',
+      mode: 'trainer',
+      allyId: trainerState.activeBuddy,
+      allyHp: ally.maxHp,
+      enemyId: firstEnemy.id,
+      enemyHp: firstEnemy.maxHp,
+      enemyRoster: config.roster.slice(),
+      enemyIndex: 0,
+      trainerName: config.name,
+      trainerReward: config.reward,
+      trainerKey: key,
+      currentPP: [10, 10]
+    };
+    renderMonsterSystems();
+    renderEncounter();
+    document.getElementById('encounter-overlay').classList.add('show');
+    showEncounterLog(config.intro);
+  }
+  window.startTrainerBattle = startTrainerBattle;
+
+  function syncMountSprite() {
+    const mount = getCurrentMount();
+    const mountSprite = document.getElementById('mount-sprite');
+    if (!mountSprite || !mount) return;
+    mountSprite.style.left = (charX - 2) + 'px';
+    mountSprite.style.top = (charY + 8) + 'px';
+  }
+
+  function applyMountMovementBonus() {
+    const mount = getCurrentMount();
+    if (!mount || encounterState || window.innerWidth < 768) return;
+    let moved = false;
+    if (keysHeld['ArrowUp']) { charY -= mount.mountBonus; moved = true; }
+    if (keysHeld['ArrowDown']) { charY += mount.mountBonus; moved = true; }
+    if (keysHeld['ArrowLeft']) { charX -= mount.mountBonus; moved = true; }
+    if (keysHeld['ArrowRight']) { charX += mount.mountBonus; moved = true; }
+    if (isClickMoving && moveTargetX !== null && moveTargetY !== null) {
+      const dx = moveTargetX - charX;
+      const dy = moveTargetY - charY;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 1) {
+        charX += (dx / dist) * mount.mountBonus;
+        charY += (dy / dist) * mount.mountBonus;
+        moved = true;
+      }
+    }
+    if (moved) {
+      charX = Math.max(0, Math.min(charX, window.innerWidth - 32));
+      charY = Math.max(8, Math.min(charY, window.innerHeight - 40));
+    }
+  }
+
+  loadTrainerState();
+  renderMonsterSystems();
+
+  const _origUpdateCharForEncounter = updateChar;
+  updateChar = function() {
+    if (encounterState) return;
+    _origUpdateCharForEncounter();
+  };
+
+  const _origPlayerAttackForEncounter = playerAttack;
+  playerAttack = function() {
+    if (encounterState) return;
+    _origPlayerAttackForEncounter();
+  };
+  window.playerAttack = playerAttack;
+
+  const _origCastSkillForEncounter = castSkill;
+  castSkill = function(name) {
+    if (encounterState) return;
+    _origCastSkillForEncounter(name);
+  };
+  window.castSkill = castSkill;
+
+  const _origRunNewSystemsForMonster = runNewSystems;
+  runNewSystems = function() {
+    applyMountMovementBonus();
+    syncMountSprite();
+    maybeTriggerEncounter();
+    _origRunNewSystemsForMonster();
+  };
+
+  document.addEventListener('keydown', function(e) {
+    if (!encounterState) return;
+    const key = e.key.toLowerCase();
+    if (key === '1') useEncounterMove(0);
+    else if (key === '2') useEncounterMove(1);
+    else if (key === 'c') throwCaptureCapsule();
+    else if (key === 'p') useEncounterPotion();
+    else if (key === 'f' || e.key === 'Escape') fleeEncounter();
+  });
 
 </script>
 </body>
