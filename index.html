@@ -3882,6 +3882,15 @@
         </div>
       </div>
     </div>
+    <!-- Secret Brick -->
+    <div id="secret-brick" aria-hidden="true"></div>
+    <!-- Coin 1: Character section right side -->
+    <div class="game-coin" data-coin-id="1" style="right:30px; top:60px;" aria-hidden="true"></div>
+    <!-- Enemy: Green Slime -->
+    <div class="game-enemy" data-type="slime-green" data-hp="30" data-max-hp="30" data-speed="1" data-section="character" data-damage="10" style="position:absolute; right:30px; top:40%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-slime-green"></div>
+    </div>
   </section>
 
   <!-- Secret Room (hidden) -->
@@ -3924,6 +3933,14 @@
         <div class="tree-node-detail">Advisor: Prof. Yufei Ding</div>
         <div class="tree-node-date">2025 – Now</div>
       </div>
+    </div>
+    <!-- Coin 2: Skill tree, between nodes -->
+    <div class="game-coin" data-coin-id="2" style="left:50%; top:80px; margin-left:-10px;" aria-hidden="true"></div>
+    <!-- NPC 2: Charmander -->
+    <div class="game-npc npc-charmander" data-npc-id="2" style="left:50%; bottom:20px; margin-left:30px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-2">Char! 🔥 From Tsinghua to UCSD — evolution complete!</div>
     </div>
   </section>
 
@@ -3978,6 +3995,32 @@
         <span class="tool-badge pixel-font">MongoDB</span>
       </div>
     </div>
+    <!-- Coin 3: Attributes top right -->
+    <div class="game-coin" data-coin-id="3" style="right:20px; top:20px;" aria-hidden="true"></div>
+    <!-- Enemy: Red Slime -->
+    <div class="game-enemy" data-type="slime-red" data-hp="40" data-max-hp="40" data-speed="1.5" data-section="attributes" data-damage="10" style="position:absolute; left:30px; top:50%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-slime-red"></div>
+    </div>
+    <!-- NPC 1: Pikachu (near Attributes) -->
+    <div class="game-npc npc-pikachu" data-npc-id="1" style="right:20px; top:60px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-1">Pika pika! Python Lv.9... that's super effective! ⚡</div>
+    </div>
+    <div class="wild-grass" data-encounter-zone="attributes" data-biome="spark-field" style="right:90px; bottom:20px;">
+      <div class="wild-grass-label">SPARK FIELD</div>
+    </div>
+  </section>
+
+  <!-- Mini-Boss 1: Ice Golem -->
+  <section class="miniboss-section anim-target" id="miniboss-ice" data-zone="~ ICE CAVERN ~" style="position:relative;">
+    <div class="miniboss-zone-banner" style="color:#8ec5e8;">~ ICE CAVERN ~</div>
+    <div class="miniboss-arena pixel-border" id="ice-golem-arena">
+      <div class="miniboss-nameplate" style="color:#8ec5e8;">ICE GOLEM</div>
+      <div class="miniboss-hp-bar"><div class="miniboss-hp-fill" id="ice-golem-hp" style="background:linear-gradient(90deg,#60a5fa,#93c5fd);"></div></div>
+      <div class="miniboss-sprite ice-golem-sprite" id="ice-golem-sprite"></div>
+    </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">🔮</span></div>
@@ -4019,6 +4062,19 @@
           <div class="ach-summary">Explores scenario generation for autonomous driving with a hybrid offline-and-online reinforcement learning setup, focusing on robustness and controllable scenario construction.</div>
         </div>
       </div>
+    </div>
+    <!-- Coin 4: Achievements left side -->
+    <div class="game-coin" data-coin-id="4" style="left:10px; top:80px;" aria-hidden="true"></div>
+    <!-- Enemy: Bat -->
+    <div class="game-enemy" data-type="bat" data-hp="25" data-max-hp="25" data-speed="2.5" data-section="achievements" data-damage="10" style="position:absolute; right:60px; top:30%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-bat"></div>
+    </div>
+    <!-- NPC 3: Squirtle (near Achievements) -->
+    <div class="game-npc npc-squirtle" data-npc-id="3" style="left:10px; top:120px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-3">Squirtle! 💧 These publications are a real splash!</div>
     </div>
   </section>
 
@@ -4111,6 +4167,34 @@
         </div>
       </div>
     </div>
+    <!-- Coin 5: Quest log ~1/3 down -->
+    <div class="game-coin" data-coin-id="5" style="left:10px; top:33%;" aria-hidden="true"></div>
+    <!-- Enemy: Skeleton -->
+    <div class="game-enemy" data-type="skeleton" data-hp="50" data-max-hp="50" data-speed="1.5" data-section="quests" data-damage="10" style="position:absolute; right:20px; top:25%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-skeleton"></div>
+    </div>
+    <!-- Coin 6: Quest log ~2/3 down -->
+    <div class="game-coin" data-coin-id="6" style="right:10px; top:66%;" aria-hidden="true"></div>
+    <!-- NPC 4: Mario (near Quest Log) -->
+    <div class="game-npc npc-mario" data-npc-id="4" style="left:10px; top:66%;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-4">It's-a me! So many quests completed... Mamma mia! 🍄</div>
+    </div>
+    <div class="wild-grass" data-encounter-zone="quests" data-biome="camp-route" style="right:100px; bottom:24px;">
+      <div class="wild-grass-label">CAMP ROUTE</div>
+    </div>
+  </section>
+
+  <!-- Mini-Boss 2: Shadow Mage -->
+  <section class="miniboss-section anim-target" id="miniboss-shadow" data-zone="~ SHADOW REALM ~" style="position:relative;">
+    <div class="miniboss-zone-banner" style="color:#c084fc;">~ SHADOW REALM ~</div>
+    <div class="miniboss-arena pixel-border" id="shadow-mage-arena">
+      <div class="miniboss-nameplate" style="color:#c084fc;">SHADOW MAGE</div>
+      <div class="miniboss-hp-bar"><div class="miniboss-hp-fill" id="shadow-mage-hp" style="background:linear-gradient(90deg,#7c3aed,#c084fc);"></div></div>
+      <div class="miniboss-sprite shadow-mage-sprite" id="shadow-mage-sprite"></div>
+    </div>
   </section>
 
   <div class="section-divider"><span class="divider-icon">⚔️</span></div>
@@ -4192,6 +4276,22 @@
           <span class="equip-link pixel-font" style="color:var(--text-muted); border-color:rgba(148,163,184,0.16);">Paper-linked work</span>
         </div>
       </article>
+    </div>
+    <!-- Coin 7: Equipment center -->
+    <div class="game-coin" data-coin-id="7" style="left:50%; top:50%; margin-left:-10px;" aria-hidden="true"></div>
+    <!-- Enemy: Dark Slime -->
+    <div class="game-enemy" data-type="slime-dark" data-hp="45" data-max-hp="45" data-speed="1.5" data-section="equipment" data-damage="10" style="position:absolute; left:20px; top:35%;">
+      <div class="enemy-hp-bar"><div class="enemy-hp-fill"></div></div>
+      <div class="enemy-sprite enemy-slime-dark"></div>
+    </div>
+    <!-- NPC 5: Kirby (near Equipment) -->
+    <div class="game-npc npc-kirby" data-npc-id="5" style="right:10px; bottom:20px;" aria-hidden="true">
+      <span class="npc-sprite"></span>
+      <div class="npc-exclaim">!</div>
+      <div class="speech-bubble" id="npc-bubble-5">Poyo~! ⭐ These legendary items look delicious!</div>
+    </div>
+    <div class="wild-grass" data-encounter-zone="equipment" data-biome="forge-wilds" style="left:90px; bottom:14px;">
+      <div class="wild-grass-label">FORGE WILDS</div>
     </div>
   </section>
 
