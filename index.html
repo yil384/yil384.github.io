@@ -3071,13 +3071,18 @@
     }
     .world-hero-shell {
       display: grid;
-      grid-template-columns: 1.25fr 0.95fr;
+      grid-template-columns: 1.15fr 1fr;
       gap: 22px;
       padding: 28px;
       background:
         radial-gradient(circle at top right, rgba(129,140,248,0.14), transparent 30%),
         radial-gradient(circle at bottom left, rgba(250,204,21,0.1), transparent 26%),
         linear-gradient(180deg, rgba(15,23,42,0.94), rgba(30,41,59,0.74));
+    }
+    .world-hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
     .world-hero-kicker {
       font-family: var(--font-pixel);
@@ -3103,6 +3108,21 @@
       max-width: 56ch;
       line-height: 1.75;
     }
+    .world-hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .world-hero-meta-chip {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: #dbeafe;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.18);
+      background: rgba(15,23,42,0.72);
+    }
     .world-hero-actions {
       display: flex;
       flex-wrap: wrap;
@@ -3127,9 +3147,45 @@
     }
     .world-hero-grid {
       display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+      align-content: center;
+    }
+    .world-hero-portrait {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 16px;
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(148,163,184,0.14);
+      background:
+        radial-gradient(circle at top, rgba(255,215,0,0.12), transparent 32%),
+        rgba(15,23,42,0.8);
+      align-items: center;
+    }
+    .world-hero-portrait img {
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 2px solid rgba(255,215,0,0.28);
+      box-shadow: 0 18px 30px rgba(2,6,23,0.28);
+    }
+    .world-hero-portrait h3 {
+      font-family: var(--font-pixel);
+      font-size: 11px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .world-hero-portrait p {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+    .world-hero-stat-grid {
+      display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      align-content: center;
     }
     .world-hero-stat {
       min-height: 120px;
@@ -3153,6 +3209,48 @@
       font-size: 20px;
       line-height: 1.2;
       color: #f8fafc;
+    }
+    .world-map-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .world-map-card {
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(148,163,184,0.14);
+      background:
+        radial-gradient(circle at top right, rgba(96,165,250,0.12), transparent 30%),
+        linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.76));
+      box-shadow: 0 18px 34px rgba(2,6,23,0.22);
+    }
+    .world-map-card h3 {
+      font-family: var(--font-pixel);
+      font-size: 9px;
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .world-map-card p {
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.7;
+      margin-bottom: 12px;
+      min-height: 84px;
+    }
+    .world-map-card button {
+      width: 100%;
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: var(--gold);
+      background: rgba(15,23,42,0.78);
+      border: 1px solid rgba(255,215,0,0.22);
+      border-radius: 999px;
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+    .world-map-card button:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
     }
     .section {
       max-width: 1040px;
@@ -3214,6 +3312,69 @@
     .portal-row {
       gap: 24px;
     }
+    .encounter-shell {
+      position: relative;
+    }
+    .encounter-shell::before {
+      content: '';
+      position: absolute;
+      inset: 10px;
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,0.04);
+      pointer-events: none;
+    }
+    .encounter-stage {
+      position: relative;
+      overflow: hidden;
+    }
+    .encounter-stage::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 85%, rgba(74,222,128,0.12), transparent 22%),
+        radial-gradient(circle at 80% 28%, rgba(96,165,250,0.14), transparent 20%);
+      pointer-events: none;
+    }
+    .encounter-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .encounter-battle-chip {
+      font-family: var(--font-pixel);
+      font-size: 7px;
+      color: #dbeafe;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.16);
+      background: rgba(15,23,42,0.7);
+    }
+    .encounter-roster-strip {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .encounter-roster-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.2);
+      border: 1px solid rgba(148,163,184,0.25);
+    }
+    .encounter-roster-dot.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(255,215,0,0.45);
+    }
+    .encounter-command-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      line-height: 1.6;
+    }
     #skill-bar {
       border-radius: 18px;
       background:
@@ -3253,7 +3414,7 @@
       .world-hero-shell {
         grid-template-columns: 1fr;
       }
-      .world-hero-grid {
+      .world-map-grid {
         grid-template-columns: 1fr 1fr;
       }
     }
@@ -3267,6 +3428,18 @@
       }
       .world-hero-shell {
         padding: 20px;
+      }
+      .world-hero-portrait {
+        grid-template-columns: 1fr;
+      }
+      .world-hero-portrait img {
+        width: 100%;
+        max-width: 180px;
+        height: 180px;
+      }
+      .world-hero-stat-grid,
+      .world-map-grid {
+        grid-template-columns: 1fr;
       }
       .section {
         padding-top: 54px;
@@ -3334,31 +3507,46 @@
   <section class="section world-hero anim-target" data-zone="~ TRAINER HQ ~">
     <div class="world-hero-shell pixel-border">
       <div class="world-hero-copy">
-        <div class="world-hero-kicker">PIXEL RESEARCH ODYSSEY</div>
-        <h2 class="world-hero-title">A scholar homepage rebuilt as a roaming monster-training RPG.</h2>
-        <p class="world-hero-text">Research, internships, projects, wild encounters, trainer duels, mounts, evolutions and boss fights now live in one continuous world map. Scroll as a visitor, or move as a player.</p>
+        <div class="world-hero-kicker">YICHEN LIN · PHD STUDENT · UC SAN DIEGO CSE</div>
+        <h2 class="world-hero-title">Systems, compilers, and AI systems research presented as a playable world.</h2>
+        <p class="world-hero-text">I am Yichen Lin, a Ph.D. student in Computer Science and Engineering at UC San Diego advised by Prof. Yufei Ding. This site keeps the portfolio front and center, while layering game-like exploration on top to showcase research, engineering, and projects with more energy.</p>
+        <div class="world-hero-meta">
+          <span class="world-hero-meta-chip">Advisor: Yufei Ding</span>
+          <span class="world-hero-meta-chip">Focus: Systems + AI</span>
+          <span class="world-hero-meta-chip">Email: yil384@ucsd.edu</span>
+        </div>
         <div class="world-hero-actions">
-          <a href="#monster-lab" class="world-hero-link">Open Dex</a>
-          <a href="#trainer-circuit" class="world-hero-link">Enter Circuit</a>
-          <a href="#portals" class="world-hero-link">Jump Portals</a>
+          <a href="#character" class="world-hero-link">About Me</a>
+          <a href="#achievements" class="world-hero-link">Publications</a>
+          <a href="#equipment" class="world-hero-link">Projects</a>
+          <a href="#monster-lab" class="world-hero-link">Game Layer</a>
         </div>
       </div>
       <div class="world-hero-grid">
-        <div class="world-hero-stat">
-          <span class="world-hero-stat-label">World</span>
-          <strong class="world-hero-stat-value">9 Zones</strong>
+        <div class="world-hero-portrait">
+          <img src="./static/selfpic_yichenlin.jpg" alt="Portrait of Yichen Lin">
+          <div>
+            <h3>RESEARCH PROFILE</h3>
+            <p>Compiler systems, GPU code generation, agentic workflows, and practical software engineering. The visual layer is playful; the homepage still leads with academic identity and technical work.</p>
+          </div>
         </div>
-        <div class="world-hero-stat">
-          <span class="world-hero-stat-label">Combat</span>
-          <strong class="world-hero-stat-value">Wild + Trainer</strong>
-        </div>
-        <div class="world-hero-stat">
-          <span class="world-hero-stat-label">Systems</span>
-          <strong class="world-hero-stat-value">Capture / Mount / Evolve</strong>
-        </div>
-        <div class="world-hero-stat">
-          <span class="world-hero-stat-label">Theme</span>
-          <strong class="world-hero-stat-value">Academic JRPG</strong>
+        <div class="world-hero-stat-grid">
+          <div class="world-hero-stat">
+            <span class="world-hero-stat-label">Base</span>
+            <strong class="world-hero-stat-value">UCSD CSE</strong>
+          </div>
+          <div class="world-hero-stat">
+            <span class="world-hero-stat-label">Research</span>
+            <strong class="world-hero-stat-value">Systems + LLM Tooling</strong>
+          </div>
+          <div class="world-hero-stat">
+            <span class="world-hero-stat-label">Play Layer</span>
+            <strong class="world-hero-stat-value">Wild / Trainer / Mount</strong>
+          </div>
+          <div class="world-hero-stat">
+            <span class="world-hero-stat-label">Current Site</span>
+            <strong class="world-hero-stat-value">Portfolio First</strong>
+          </div>
         </div>
       </div>
     </div>
@@ -3765,7 +3953,7 @@
     <div class="monster-hub">
       <div class="monster-panel pixel-border">
         <div class="monster-kicker">WILD ENCOUNTERS / CAPTURE / PARTY</div>
-        <p class="monster-lead">主页现在不只是 RPG，而是带完整训练师循环的探索地图。穿过草丛会偶遇野生伙伴，战斗后可捕捉，队伍和坐骑会持续保存在本地。</p>
+        <p class="monster-lead">The site now includes a full trainer loop layered on top of the portfolio. Step into tall grass for wild encounters, weaken creatures, capture them, and carry a persistent party and mount roster across sessions.</p>
         <div class="monster-progress-strip">
           <div class="monster-progress-cell">
             <div class="monster-progress-label">DEX</div>
@@ -3781,7 +3969,7 @@
           </div>
         </div>
         <div class="monster-mini-grid" id="monster-dex-grid"></div>
-        <p class="monster-dex-footer">提示：进入绿色草丛触发遭遇，低血量时再扔胶囊成功率更高。捕捉特定伙伴会解锁新的坐骑机动性。</p>
+        <p class="monster-dex-footer">Tip: tall grass starts encounters, lower enemy HP improves capture odds, and certain creatures unlock higher-speed mounts that change overworld traversal.</p>
       </div>
       <div class="trainer-meta">
         <div class="trainer-stat-box">
@@ -3805,12 +3993,40 @@
 
   <div class="section-divider"><span class="divider-icon">🐾</span></div>
 
+  <section id="world-map" class="section anim-target" data-zone="~ WORLD MAP ~" style="position:relative;">
+    <div class="section-title">WORLD MAP</div>
+    <div class="world-map-grid">
+      <div class="world-map-card">
+        <h3>ADVENTURER'S GUILD</h3>
+        <p>The personal core of the site. Bio, academic identity, affiliation, and direct contact live here first.</p>
+        <button onclick="fastTravelTo('character')">Travel to Character</button>
+      </div>
+      <div class="world-map-card">
+        <h3>TROPHY ROOM</h3>
+        <p>Publications and research output presented as major achievements, with the portfolio still carrying the main signal.</p>
+        <button onclick="fastTravelTo('achievements')">Travel to Achievements</button>
+      </div>
+      <div class="world-map-card">
+        <h3>MONSTER LAB</h3>
+        <p>The game systems layer: dex, party management, capture flow, mounts, levels, PP, and progression tracking.</p>
+        <button onclick="fastTravelTo('monster-lab')">Travel to Monster Lab</button>
+      </div>
+      <div class="world-map-card">
+        <h3>TRAINER CIRCUIT</h3>
+        <p>Structured challenge route with badges, healing, fast travel, gated battles, and long-term exploration progression.</p>
+        <button onclick="fastTravelTo('trainer-circuit')">Travel to Circuit</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"><span class="divider-icon">🗺️</span></div>
+
   <section id="trainer-circuit" class="section anim-target" data-zone="~ TRAINER CIRCUIT ~" style="position:relative;">
     <div class="section-title">TRAINER CIRCUIT</div>
     <div class="trainer-circuit">
       <div class="trainer-facility pixel-border">
         <h3>MONSTER CENTER</h3>
-        <p>把训练师循环闭合起来。这里可以回复队伍、补充基础道具、执行进化试验，避免每次都只能靠野外硬撑。</p>
+        <p>Close the progression loop here. Restore the active squad, restock basic items, and trigger evolution tests so the game layer supports longer exploration instead of one-off encounters.</p>
         <div class="badge-row" id="badge-row"></div>
         <div class="trainer-actions">
           <button class="trainer-action-btn" onclick="openMonsterCenter()">Heal Party</button>
@@ -3822,14 +4038,14 @@
       <div class="trainer-arena-list">
         <div class="trainer-arena-card pixel-border">
           <h3>RESEARCHER MIKA</h3>
-          <p>学术型训练家，主打控制与续航。击败后获得高级捕捉胶囊和额外经验。</p>
+          <p>An analytic trainer built around control and sustain. Defeating Mika grants stronger capture resources and opens the next layer of challenge progression.</p>
           <div class="trainer-actions">
             <button class="trainer-action-btn" onclick="startTrainerBattle('researcher_mika')">Challenge</button>
           </div>
         </div>
         <div class="trainer-arena-card pixel-border">
           <h3>RANGER TAO</h3>
-          <p>野外巡护员，阵容偏火与龙，压迫感更强。更适合作为中后期目标。</p>
+          <p>A field ranger with a more aggressive fire-and-dragon roster. This battle now functions as a midgame gate instead of a decorative side interaction.</p>
           <div class="trainer-actions">
             <button class="trainer-action-btn" onclick="startTrainerBattle('ranger_tao')">Challenge</button>
           </div>
@@ -4131,6 +4347,12 @@
 <div id="encounter-overlay" aria-hidden="true">
   <div class="encounter-shell">
     <div class="encounter-stage">
+      <div class="encounter-topline">
+        <div class="encounter-battle-chip" id="encounter-mode-chip">WILD BATTLE</div>
+        <div class="encounter-roster-strip" id="encounter-roster-strip">
+          <span class="encounter-roster-dot active"></span>
+        </div>
+      </div>
       <div class="encounter-banner" id="encounter-banner">WILD ENCOUNTER</div>
       <div class="encounter-arena">
         <div class="encounter-monster ally">
@@ -4161,6 +4383,7 @@
             <button class="encounter-btn" id="encounter-move-2" onclick="useEncounterMove(1)">Move B</button>
           </div>
           <div class="encounter-close" id="encounter-pp-line">PP: 10 / 10 · 10 / 10</div>
+          <div class="encounter-command-note" id="encounter-move-note">Choose attacks to chip down the target before capture.</div>
         </div>
         <div class="encounter-subpanel">
           <div class="encounter-subtitle">ITEMS</div>
@@ -8677,9 +8900,18 @@
     const ally = monsterSpecies[encounterState.allyId];
     const enemy = monsterSpecies[encounterState.enemyId];
     const levelText = 'Lv.' + getBuddyLevel(encounterState.allyId);
+    const modeChip = document.getElementById('encounter-mode-chip');
+    const rosterStrip = document.getElementById('encounter-roster-strip');
+    const moveNote = document.getElementById('encounter-move-note');
     document.getElementById('encounter-banner').textContent = encounterState.mode === 'trainer'
       ? encounterState.trainerName.toUpperCase() + ' SENT OUT ' + enemy.name.toUpperCase()
       : 'WILD ' + enemy.name.toUpperCase() + ' ENCOUNTER';
+    if (modeChip) modeChip.textContent = encounterState.mode === 'trainer' ? 'TRAINER BATTLE' : 'WILD BATTLE';
+    if (rosterStrip) {
+      rosterStrip.innerHTML = encounterState.enemyRoster.map((_, idx) =>
+        '<span class="encounter-roster-dot' + (idx === encounterState.enemyIndex ? ' active' : '') + '"></span>'
+      ).join('');
+    }
     document.getElementById('ally-monster-icon').textContent = ally.icon;
     document.getElementById('ally-monster-name').textContent = ally.name.toUpperCase() + ' ' + levelText;
     document.getElementById('ally-monster-type').textContent = ally.type + ' / Partner';
@@ -8697,6 +8929,11 @@
     document.getElementById('encounter-potion-btn').textContent = 'P · Use Potion (' + trainerState.bag.potions + ')';
     const ppEl = document.getElementById('encounter-pp-line');
     if (ppEl) ppEl.textContent = 'PP: ' + encounterState.currentPP[0] + ' / 10 · ' + encounterState.currentPP[1] + ' / 10';
+    if (moveNote) {
+      moveNote.textContent = encounterState.mode === 'trainer'
+        ? 'Read the matchup, preserve PP, and survive the full opposing roster.'
+        : 'Weaken the target, manage PP, then capture before it escapes the sequence.';
+    }
     document.getElementById('encounter-move-1').disabled = encounterState.currentPP[0] <= 0;
     document.getElementById('encounter-move-2').disabled = encounterState.currentPP[1] <= 0;
   }
