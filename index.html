@@ -1384,6 +1384,39 @@
       100% { opacity: 0; width: 36px; }
     }
 
+    /* -- Ranged laser beam -- */
+    .laser-beam {
+      position: fixed;
+      height: 3px;
+      pointer-events: none;
+      z-index: 96;
+      transform-origin: left center;
+      animation: laserFire 0.35s ease-out forwards;
+      background: linear-gradient(90deg, rgba(74,222,128,0.2), #4ade80, #22d3ee, rgba(34,211,238,0.2));
+      box-shadow: 0 0 6px rgba(74,222,128,0.7), 0 0 12px rgba(34,211,238,0.4);
+      border-radius: 2px;
+    }
+    @keyframes laserFire {
+      0% { opacity: 1; clip-path: inset(0 100% 0 0); }
+      30% { opacity: 1; clip-path: inset(0 0 0 0); }
+      80% { opacity: 0.8; clip-path: inset(0 0 0 0); }
+      100% { opacity: 0; clip-path: inset(0 0 0 0); }
+    }
+    .laser-impact {
+      position: fixed;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+      z-index: 96;
+      border-radius: 50%;
+      background: radial-gradient(circle, #4ade80, rgba(34,211,238,0.5), transparent);
+      animation: laserHit 0.3s ease-out forwards;
+    }
+    @keyframes laserHit {
+      0% { transform: scale(0.5); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
     /* -- Fireball -- */
     .fireball {
       position: fixed;
@@ -5705,6 +5738,11 @@
     const comboDamage = comboCount >= 2 ? 5 : 0;
     const totalDamage = baseDamage + comboDamage;
 
+    // Attack range scales with level: 40 base + 10 per level (max ~200 at high levels)
+    const attackRange = Math.min(40 + playerLevel * 10, 200);
+    const isRanged = playerLevel >= 3;
+    let hitSomething = false;
+
     // Check enemies
     enemyStates.forEach(state => {
       if (state.dead) return;
@@ -5712,8 +5750,10 @@
       const ex = r.left + r.width / 2;
       const ey = r.top + r.height / 2;
       const dist = Math.hypot(px - ex, py - ey);
-      if (dist < 40) {
+      if (dist < attackRange) {
         damageEnemy(state, totalDamage);
+        if (isRanged && dist > 45) spawnLaserBeam(px, py, ex, ey);
+        hitSomething = true;
       }
     });
 
@@ -5723,10 +5763,34 @@
       const bx = r.left + r.width / 2;
       const by = r.top + r.height / 2;
       const dist = Math.hypot(px - bx, py - by);
-      if (dist < 50) {
+      if (dist < attackRange + 10) {
         damageBoss(totalDamage);
+        if (isRanged && dist > 45) spawnLaserBeam(px, py, bx, by);
+        hitSomething = true;
       }
     }
+  }
+
+  function spawnLaserBeam(fromX, fromY, toX, toY) {
+    const dx = toX - fromX, dy = toY - fromY;
+    const dist = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx);
+    const beam = document.createElement('div');
+    beam.className = 'laser-beam';
+    beam.style.left = fromX + 'px';
+    beam.style.top = (fromY - 1.5) + 'px';
+    beam.style.width = dist + 'px';
+    beam.style.transform = 'rotate(' + angle + 'rad)';
+    document.body.appendChild(beam);
+    setTimeout(() => beam.remove(), 350);
+
+    // Impact spark at target
+    const impact = document.createElement('div');
+    impact.className = 'laser-impact';
+    impact.style.left = (toX - 8) + 'px';
+    impact.style.top = (toY - 8) + 'px';
+    document.body.appendChild(impact);
+    setTimeout(() => impact.remove(), 300);
   }
 
   // =============================================
@@ -8168,11 +8232,16 @@
     if (gameOverActive || shopOpen || typingOpen || memoryGameOpen || dialogOpen || snakeOpen || breakoutOpen) return;
     const px = charX + 16, py = charY + 16;
     const baseDamage = powerBoostActive ? 20 : 10;
+    const mbRange = Math.min(40 + playerLevel * 10, 200) + 10;
+    const isRanged = playerLevel >= 3;
     Object.values(miniBosses).forEach(mb => {
       if (mb.dead || !mb.spriteEl) return;
       const r = mb.spriteEl.getBoundingClientRect();
-      if (Math.hypot(px - (r.left + r.width / 2), py - (r.top + r.height / 2)) < 50) {
+      const mx = r.left + r.width / 2, my = r.top + r.height / 2;
+      const dist = Math.hypot(px - mx, py - my);
+      if (dist < mbRange) {
         damageMiniBoss(mb, baseDamage);
+        if (isRanged && dist > 45) spawnLaserBeam(px, py, mx, my);
       }
     });
   };
