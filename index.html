@@ -305,33 +305,39 @@
     }
 
     /* -- Character Card -- */
+    @keyframes avatar-comic {
+      0%   { transform: scale(1) rotate(0deg);       filter: contrast(1.1); }
+      18%  { transform: scale(1.07) rotate(-1.5deg); filter: contrast(1.6) brightness(1.4); }
+      42%  { transform: scaleX(0.04) scaleY(1.08);   filter: contrast(3) brightness(6); }
+      58%  { transform: scaleX(0.04) scaleY(1.08);   filter: contrast(3) brightness(6); }
+      78%  { transform: scale(1.06) rotate(1deg);    filter: contrast(1.3) brightness(1.15); }
+      100% { transform: scale(1) rotate(0deg);       filter: contrast(1.1); }
+    }
     .char-card {
-      display: flex;
-      gap: 24px;
+      display: block;
       padding: 28px;
-      align-items: flex-start;
       background:
         radial-gradient(circle at top right, rgba(250,204,21,0.12), transparent 24%),
         linear-gradient(180deg, rgba(15,23,42,0.92), rgba(30,41,59,0.74));
     }
+    .char-card::after { content: ''; display: table; clear: both; }
     .char-avatar-wrap {
       position: relative;
-      width: 120px;
-      height: 120px;
-      flex-shrink: 0;
+      width: 160px;
+      height: 160px;
+      float: left;
+      margin: 0 28px 16px 0;
+      cursor: pointer;
     }
     .char-avatar {
       width: 100%;
       height: 100%;
       object-fit: cover;
       border-radius: 4px;
-      image-rendering: pixelated;
       filter: contrast(1.1);
-      transition: image-rendering 0.3s, filter 0.3s;
     }
-    .char-avatar-wrap:hover .char-avatar {
-      image-rendering: auto;
-      filter: none;
+    .char-avatar.comic-switching {
+      animation: avatar-comic 0.38s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .char-avatar-border {
       position: absolute;
@@ -341,7 +347,7 @@
       pointer-events: none;
       box-shadow: 0 0 12px rgba(255,215,0,0.2);
     }
-    .char-info { flex: 1; }
+    .char-info { display: block; }
     .char-name { font-size: 16px; margin-bottom: 12px; }
     .char-class { font-family: var(--font-pixel); font-size: 10px; margin-bottom: 8px; color: var(--text); }
     .char-detail { font-size: 14px; margin-bottom: 4px; color: var(--text); }
@@ -360,7 +366,6 @@
       font-size: 14px;
       color: var(--text-dim);
       line-height: 1.75;
-      max-width: 62ch;
     }
     .char-actions {
       display: flex;
@@ -3917,6 +3922,7 @@
         <div class="char-detail"><span class="text-dim">Phone:</span> (858) 319-7361</div>
         <div class="char-detail"><span class="blue">✉</span> <a href="mailto:yil384@ucsd.edu" class="char-link">yil384@ucsd.edu</a></div>
         <p class="char-summary">I am a Ph.D. student in Computer Science and Engineering at UC San Diego. My work sits around systems, compilers, GPU code generation, and practical AI tooling. I like building things that are technically grounded, useful in practice, and presented clearly enough that the engineering signal is easy to evaluate.</p>
+        <p class="char-summary">My roommate is <a href="https://scholar.google.com/citations?user=FVCg0C4AAAAJ&hl=en" class="char-link" target="_blank" rel="noopener">Zhuo Chen</a>, a Tsinghua Yao Class graduate and my labmate — and easily the best cook in the building.</p>
         <div class="char-actions">
           <a href="#achievements" class="char-action">Publications</a>
           <a href="#equipment" class="char-action">Projects</a>
@@ -5869,7 +5875,13 @@
   function toggleAvatar() {
     avatarIndex = (avatarIndex + 1) % avatarSources.length;
     const img = document.getElementById('profile-avatar');
-    if (img) img.src = avatarSources[avatarIndex];
+    if (!img) return;
+    img.classList.remove('comic-switching');
+    void img.offsetWidth; // restart animation
+    img.classList.add('comic-switching');
+    // Swap src at midpoint when scaleX ≈ 0 (42% of 380ms)
+    setTimeout(() => { img.src = avatarSources[avatarIndex]; }, 160);
+    img.addEventListener('animationend', () => img.classList.remove('comic-switching'), { once: true });
   }
   window.toggleAvatar = toggleAvatar;
 
