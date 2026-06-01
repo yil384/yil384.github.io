@@ -2832,14 +2832,40 @@
       transform: scale(3);
       filter: blur(8px);
       pointer-events: none;
-      transition: opacity 0.6s ease, transform 0.6s ease, filter 0.6s ease;
+      transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
     }
     #title-screen.dismissed .star {
-      animation: starZoom 0.6s ease-in forwards !important;
+      animation: starZoom 0.35s ease-in forwards !important;
     }
     @keyframes starZoom {
       0% { transform: scale(1); }
       100% { transform: scale(8); opacity: 0; }
+    }
+    /* Welcome toast */
+    #welcome-toast {
+      position: fixed;
+      top: -56px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 215, 0, 0.22);
+      border-radius: 999px;
+      padding: 9px 22px;
+      font-family: var(--font-pixel);
+      font-size: 8px;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      z-index: 500;
+      white-space: nowrap;
+      pointer-events: none;
+      transition: top 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+      opacity: 0;
+    }
+    #welcome-toast.show {
+      top: 68px;
+      opacity: 1;
     }
 
     /* ========== ZONE NAMES ========== */
@@ -3849,7 +3875,6 @@
   <div class="title-sword title-shield right-s" style="right:20%;top:58%;font-size:18px;">✦</div>
   <div class="title-content">
     <h1 class="title-name" id="title-name-el"></h1>
-    <p class="title-subtitle" id="title-subtitle">PhD Student · UCSD CSE</p>
     <div class="title-deck">
       <div class="title-card">
         <div class="title-card-label">WORLD</div>
@@ -3868,6 +3893,9 @@
   </div>
   <button id="music-toggle" class="pixel-font" aria-label="Toggle music" title="Music (no audio loaded)">🔇</button>
 </div>
+
+<!-- Welcome toast -->
+<div id="welcome-toast">YICHEN LIN · PHD STUDENT · UCSD CSE</div>
 
 <!-- Main Content (hidden initially) -->
 <div id="main-content" style="display:none;">
@@ -4921,7 +4949,13 @@
     const mc = document.getElementById('main-content');
     ts.classList.add('dismissed');
     mc.style.display = 'block';
-    setTimeout(() => ts.style.display = 'none', 800);
+    setTimeout(() => ts.style.display = 'none', 400);
+    // Show frosted glass welcome toast briefly
+    const toast = document.getElementById('welcome-toast');
+    if (toast) {
+      setTimeout(() => toast.classList.add('show'), 300);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.top = '-56px'; }, 3500);
+    }
     onTitleDismissCallbacks.forEach(cb => cb());
   }
 
@@ -4929,7 +4963,7 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !titleDismissed) dismissTitle();
   });
-  setTimeout(dismissTitle, 5000);
+  setTimeout(dismissTitle, 2200);
 
   // -- Menu toggle --
   const menuBtn = document.getElementById('menu-btn');
@@ -7656,20 +7690,14 @@
 
     const typeInterval = setInterval(() => {
       if (charIndex < fullText.length) {
-        // Insert character before cursor
         const charSpan = document.createTextNode(fullText[charIndex]);
         nameEl.insertBefore(charSpan, cursor);
         charIndex++;
       } else {
         clearInterval(typeInterval);
-        // Remove cursor after a brief pause
-        setTimeout(() => {
-          cursor.style.display = 'none';
-          // Fade in subtitle with glow
-          if (subtitleEl) subtitleEl.classList.add('visible');
-        }, 800);
+        setTimeout(() => { cursor.style.display = 'none'; }, 300);
       }
-    }, 150);
+    }, 65);
   })();
 
   // =============================================
