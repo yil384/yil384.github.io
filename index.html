@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yichen Lin | RPG Portfolio</title>
+  <title>Yichen Lin | PhD Student @ UCSD CSE</title>
+  <link rel="icon" type="image/jpeg" href="static/selfpic_yichenlin.jpg">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     /* -- Reset & Base -- */
@@ -2477,6 +2478,22 @@
       text-align: center;
       font-size: 11px;
     }
+    .encounter-x-btn {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 16px;
+      line-height: 1;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .encounter-x-btn:hover { border-color: var(--gold); color: var(--gold); }
 
     /* Hide parallax/skill bar on mobile */
     @media (max-width: 768px) {
@@ -4781,6 +4798,7 @@
 
 <div id="encounter-overlay" aria-hidden="true">
   <div class="encounter-shell">
+    <button class="encounter-x-btn" onclick="fleeEncounter()" title="Close encounter (Flee)">×</button>
     <div class="encounter-stage">
       <div class="encounter-topline">
         <div class="encounter-battle-chip" id="encounter-mode-chip">FIELD ENCOUNTER</div>
@@ -5845,7 +5863,7 @@
   // -- Avatar Toggle --
   const avatarSources = [
     './static/selfpic_yichenlin.jpg',
-    'https://raw.githubusercontent.com/yil384/Picasso-Lab/main/static/selfpics/yichenlin.png'
+    './static/michelin_pic.jpg'
   ];
   let avatarIndex = 0;
   function toggleAvatar() {
@@ -5854,6 +5872,9 @@
     if (img) img.src = avatarSources[avatarIndex];
   }
   window.toggleAvatar = toggleAvatar;
+
+  // Auto-cycle avatar every 5 seconds
+  setInterval(toggleAvatar, 5000);
 
   function showNotification(text) {
     const notif = document.getElementById('ach-unlock');
