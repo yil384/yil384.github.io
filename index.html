@@ -1203,22 +1203,23 @@
     /* -- Game Instructions Overlay -- */
     #game-instructions {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      top: 68px;
+      right: 16px;
       z-index: 180;
-      background: rgba(15,15,35,0.97);
-      border: 2px solid var(--gold);
-      border-radius: 4px;
-      padding: 20px 28px;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 215, 0, 0.2);
+      border-radius: 12px;
+      padding: 14px 20px;
       font-family: var(--font-pixel);
-      font-size: 9px;
-      color: var(--text);
+      font-size: 8px;
+      color: var(--text-dim);
       line-height: 2;
-      text-align: center;
+      text-align: left;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.5s;
+      transition: opacity 0.4s;
     }
     #game-instructions.show { opacity: 1; }
     #game-instructions .inst-title { color: var(--gold); font-size: 11px; margin-bottom: 10px; }
