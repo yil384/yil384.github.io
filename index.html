@@ -305,13 +305,13 @@
     }
 
     /* -- Character Card -- */
-    @keyframes avatar-comic {
-      0%   { transform: scale(1) rotate(0deg);       filter: contrast(1.1); }
-      18%  { transform: scale(1.07) rotate(-1.5deg); filter: contrast(1.6) brightness(1.4); }
-      42%  { transform: scaleX(0.04) scaleY(1.08);   filter: contrast(3) brightness(6); }
-      58%  { transform: scaleX(0.04) scaleY(1.08);   filter: contrast(3) brightness(6); }
-      78%  { transform: scale(1.06) rotate(1deg);    filter: contrast(1.3) brightness(1.15); }
-      100% { transform: scale(1) rotate(0deg);       filter: contrast(1.1); }
+    @keyframes avatar-flip-out {
+      from { transform: perspective(600px) rotateY(0deg); }
+      to   { transform: perspective(600px) rotateY(90deg); }
+    }
+    @keyframes avatar-flip-in {
+      from { transform: perspective(600px) rotateY(-90deg); }
+      to   { transform: perspective(600px) rotateY(0deg); }
     }
     .char-card {
       display: block;
@@ -335,9 +335,6 @@
       object-fit: cover;
       border-radius: 4px;
       filter: contrast(1.1);
-    }
-    .char-avatar.comic-switching {
-      animation: avatar-comic 0.38s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .char-avatar-border {
       position: absolute;
@@ -3914,7 +3911,6 @@
         <div class="char-avatar-border"></div>
       </div>
       <div class="char-info">
-        <div class="char-kicker">YICHEN LIN · PHD STUDENT · UC SAN DIEGO CSE</div>
         <div class="char-name pixel-font gold">YICHEN LIN</div>
         <div class="char-class"><span class="purple">Role:</span> Ph.D. Student, Computer Science and Engineering</div>
         <div class="char-detail"><span class="text-dim">Department:</span> UC San Diego · CSE</div>
@@ -5872,16 +5868,23 @@
     './static/michelin_pic.jpg'
   ];
   let avatarIndex = 0;
+  let avatarAnimating = false;
   function toggleAvatar() {
-    avatarIndex = (avatarIndex + 1) % avatarSources.length;
+    if (avatarAnimating) return;
+    const wrap = document.querySelector('.char-avatar-wrap');
     const img = document.getElementById('profile-avatar');
-    if (!img) return;
-    img.classList.remove('comic-switching');
-    void img.offsetWidth; // restart animation
-    img.classList.add('comic-switching');
-    // Swap src at midpoint when scaleX ≈ 0 (42% of 380ms)
-    setTimeout(() => { img.src = avatarSources[avatarIndex]; }, 160);
-    img.addEventListener('animationend', () => img.classList.remove('comic-switching'), { once: true });
+    if (!wrap || !img) return;
+    avatarAnimating = true;
+    wrap.style.animation = 'avatar-flip-out 0.18s ease-in forwards';
+    setTimeout(() => {
+      avatarIndex = (avatarIndex + 1) % avatarSources.length;
+      img.src = avatarSources[avatarIndex];
+      wrap.style.animation = 'avatar-flip-in 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+      wrap.addEventListener('animationend', () => {
+        wrap.style.animation = '';
+        avatarAnimating = false;
+      }, { once: true });
+    }, 180);
   }
   window.toggleAvatar = toggleAvatar;
 
