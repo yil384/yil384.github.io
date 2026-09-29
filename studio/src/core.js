@@ -207,6 +207,8 @@ function centred(pts, draw) {
 }
 function paint(pts, o = {}) { centred(pts, (P) => paintAt(P, o)); }
 function paintAt(pts, o) {
+  if (o.fill) BUDGET.fills++;
+  if (o.ink !== null) BUDGET.strokes++;
   if (o.wash || o.fill || o.hatch) {
     if (o.wash) brush.wash(o.wash, o.washOp ?? 255); else brush.noWash();
     if (o.fill) { brush.fill(o.fill, o.fillOp ?? 170); brush.fillBleed(o.bleed ?? .1); brush.fillTexture(o.tex ?? .4, o.border ?? .35); } else brush.noFill();
@@ -235,6 +237,7 @@ function clipSeg([ax, ay], [bx, by], R = CLIP) {
 const inFrame = (p, R = CLIP) => p[0] >= R.x0 && p[0] <= R.x1 && p[1] >= R.y0 && p[1] <= R.y1;
 function inkLine(pts, sw = 1, col = PAL.ink, br = 'ink', curv = .5) {
   if (pts.length < 2) return;
+  BUDGET.strokes++;
   const world = CAM ? pts.map(p => toScreen(p[0], p[1])) : pts;   // clip in screen space, draw in world space
   if (pts.length === 2 || !world.every(inFrame)) {
     for (let i = 0; i + 1 < pts.length; i++) {
@@ -334,10 +337,23 @@ function draw() {
   LETTERS = []; CAM = LAST_CAM = null;
   push(); translate(-CW() / 2, -CH() / 2); scale(S);
   BOILN = Math.floor(T * BOIL); ACTOR_N = 0; boilSeed('frame'); noiseSeed(77);
+  BUDGET.fills = 0; BUDGET.faces = 0; BUDGET.strokes = 0;
   push(); resetMatrix(); translate(-CW() / 2, -CH() / 2); image(paperG, 0, 0); pop();
   drawWorld(T);
   pop();
+  checkBudget();
 }
+// Per-frame budgets (ANIMATION_GUIDE §3/§4). Counted by paint() / inkLine() / cel3dPaint(); render.mjs collects the
+// warnings so an over-budget shot is caught on the contact sheet, not by a stalled render.
+const BUDGET = { fills: 0, faces: 0, strokes: 0, maxFills: 3, maxFaces: 400, maxStrokes: 300 };
+function checkBudget() {
+  const over = [];
+  if (BUDGET.fills > BUDGET.maxFills) over.push(`fills ${BUDGET.fills} > ${BUDGET.maxFills}`);
+  if (BUDGET.faces > BUDGET.maxFaces) over.push(`faces ${BUDGET.faces} > ${BUDGET.maxFaces}`);
+  if (BUDGET.strokes > BUDGET.maxStrokes) over.push(`strokes ${BUDGET.strokes} > ${BUDGET.maxStrokes}`);
+  if (over.length) console.warn(`[budget] t=${T.toFixed(3)} ${over.join(', ')}`);
+}
+window.frameBudget = () => ({ ...BUDGET });
 function composite() {
   const c = outX;
   c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1;

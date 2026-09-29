@@ -154,6 +154,7 @@ function cel3dPaint(cam, parts, o = {}) {
       faces.push({ f, n, front, depth });
     }
     const vis = faces.filter(x => x.front).sort((a, b) => b.depth - a.depth);
+    if (typeof BUDGET !== 'undefined') BUDGET.faces += vis.length;
     if (part.shadow) {
       const g = cam.project([part.shadow[0], part.shadow[1], part.shadow[2]]), s = cam.scaleAt(part.shadow);
       if (Number.isFinite(g[0])) paint(ellPts(g[0], g[1], part.shadow[3] * s, part.shadow[3] * s * .28, 22), { fill: PAL.ink, fillOp: 110, bleed: .25, tex: .3, border: .1, ink: null });
