@@ -44,7 +44,11 @@ if (args.encode) {
   process.exit(0);
 }
 
-const gpu = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+// Software GL (SwiftShader) for WebGL, and a SOFTWARE 2D canvas: with the accelerated 2D canvas, p5.brush's watercolour
+// fill masks make Chromium's GPU process slower with every fill until a frame takes tens of seconds (measured here:
+// 4 fills/frame -> 60 ms for five frames, then 15-40 s). Software canvas 2D is a steady ~130 ms per fill.
+const gpu = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-accelerated-2d-canvas',
+  ...(process.env.CHROME_EXTRA ? process.env.CHROME_EXTRA.split(' ') : [])];
 const browser = await chromium.launch({ executablePath: args.chromium, args: [...gpu, '--disable-renderer-backgrounding', '--disable-background-timer-throttling'] });
 async function openPage(tag = '') {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
