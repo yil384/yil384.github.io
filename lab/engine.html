@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Engine lab</title>
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; height: 100%; background: #0a0d14; color: #dbe4ff; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    canvas { display: block; width: 100vw; height: 100vh; background: #0a0d14; }
+    #hud { position: fixed; left: 12px; top: 10px; padding: 6px 10px; background: rgba(8, 10, 18, .6); border: 1px solid rgba(255,255,255,.12); border-radius: 6px; white-space: pre; pointer-events: none; }
+    #hud b { color: #8ff4ff; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "../assets/vendor/three/build/three.webgpu.js",
+      "three/webgpu": "../assets/vendor/three/build/three.webgpu.js",
+      "three/tsl": "../assets/vendor/three/build/three.tsl.js",
+      "three/addons/": "../assets/vendor/three/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <canvas id="c" aria-hidden="true"></canvas>
+  <div id="hud">booting…</div>
+  <script type="module">
+    // Engine lab: exercises every module in assets/js/engine/ on one scene.
+    // ?quality=cheap   cheap post stack        ?sky=warp   light-speed background
+    // ?webgl=1         force the WebGL2 backend (boot.js)   ?shim=swizzle  WebGPU IDL test shim (boot.js)
+    import * as THREE from 'three/webgpu';
+    import { pass, toonOutlinePass, mrt, output, emissive, vec4, vec3, screenUV, uniform, Fn, luminance, step, smoothstep, mix } from 'three/tsl';
+    import { bloom } from 'three/addons/tsl/display/BloomNode.js';
+    import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
+    import { createRobustRenderer, runLoop, probeGPU } from '../assets/js/three/boot.js';
+    import { CelNodeMaterial, makeHull, posterizeOutput } from '../assets/js/engine/cel.js';
+    import { createAnimePipeline } from '../assets/js/engine/post.js';
+    import { paintedSky, warpSky, starfield } from '../assets/js/engine/sky.js';
+    import { hologramMaterial, neonMaterial, animeGround, energyShield } from '../assets/js/engine/materials.js';
+    import { sparks, aura, streaks, shockwave } from '../assets/js/engine/particles.js';
+
+    const q = new URLSearchParams(location.search);
+    const quality = q.get('quality') === 'cheap' ? 'cheap' : 'full';
+    const skyMode = q.get('sky') === 'warp' ? 'warp' : 'painted';
+    const hud = document.getElementById('hud');
+    const log = (...a) => console.log('[lab]', ...a);
+
+    // ---------- scene ----------
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.1, 300);
+    camera.position.set(0, 4.2, 14);
+    camera.lookAt(0, 2, 0);
+
+    scene.add(new THREE.HemisphereLight('#c7d2fe', '#2a1a3a', 0.9));
+    const sun = new THREE.DirectionalLight('#fff3d6', 2.4);
+    sun.position.set(6, 9, 5);
+    scene.add(sun);
+
+    // sky + stars
+    const warp = skyMode === 'warp' ? warpSky({ speed: 1.2 }) : null;
+    scene.backgroundNode = warp || paintedSky();
+    scene.add(starfield(2500, { radius: 120 }));
+
+    // cel-shaded "character": torus knot + capsule + hard box with hull
+    const celA = new CelNodeMaterial({ color: '#4ea3ff' }, { steps: 3, rimStrength: 0.8 });
+    const celB = new CelNodeMaterial({ color: '#ff7ab8' }, { steps: 3, shadowTint: new THREE.Color('#4a2a6a') });
+    const celC = new CelNodeMaterial({ color: '#ffb347' }, { steps: 2, rimStrength: 0.5 });
+    const character = new THREE.Group();
+    const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(0.9, 0.3, 160, 24), celA);
+    knot.position.y = 2.6;
+    const capsule = new THREE.Mesh(new THREE.CapsuleGeometry(0.45, 1.2, 8, 24), celB);
+    capsule.position.set(0, 0.9, 0);
+    const box = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), celC);
+    box.position.set(1.7, 0.6, 0.4);
+    box.rotation.set(0.3, 0.6, 0);
+    makeHull(box, { thickness: 0.035, color: '#120a1e', mode: 'box' });
+    makeHull(capsule, { thickness: 0.03, color: '#120a1e' });
+    character.add(knot, capsule, box);
+    scene.add(character);
+
+    // 500 voxel cubes, instance colours, box hull sharing the instance matrix
+    const VOX = 500;
+    const celVox = new CelNodeMaterial({}, { steps: 2, shadowTint: new THREE.Color('#3a2e6e') });
+    const vox = new THREE.InstancedMesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), celVox, VOX);
+    {
+      const m4 = new THREE.Matrix4();
+      const col = new THREE.Color();
+      const pal = ['#4fb56b', '#3f9d5a', '#e6e9ef', '#9aa5b5', '#8a5a2b', '#5ec8ff'];
+      let i = 0;
+      for (let x = -12; x <= 12 && i < VOX; x++) {
+        for (let z = 0; z < 4 && i < VOX; z++) {
+          const h = 1 + Math.round(2 + 1.5 * Math.sin(x * 0.7) + Math.cos(z * 1.3));
+          for (let y = 0; y < h && i < VOX; y++, i++) {
+            m4.makeTranslation(x * 0.5, 0.25 + y * 0.5, -6 - z * 0.5);
+            vox.setMatrixAt(i, m4);
+            vox.setColorAt(i, col.set(pal[(x * 7 + y * 3 + z * 5 + 1000) % pal.length]));
+          }
+        }
+      }
+      vox.count = i;
+    }
+    scene.add(vox);
+    makeHull(vox, { thickness: 0.03, color: '#0a0612', mode: 'box' });
+
+    // neon tubes (unlit emissive -> selective bloom)
+    const tubeGeo = new THREE.TorusGeometry(1.1, 0.06, 10, 64);
+    const neons = [['#ff3fd8', -4.5, 1.4, 2], ['#3fffd8', 4.6, 1.6, 2], ['#ffd23f', 4.9, 3.6, -1]].map(([c, x, y, z]) => {
+      const t = new THREE.Mesh(tubeGeo, neonMaterial(c, 3));
+      t.position.set(x, y, z);
+      scene.add(t);
+      return t;
+    });
+    // a posterised standard-material prop
+    const prop = new THREE.Mesh(new THREE.IcosahedronGeometry(0.7, 1), posterizeOutput(new THREE.MeshStandardNodeMaterial({ color: '#c7f0ff', roughness: 0.4 }), 4));
+    prop.position.set(-2.4, 0.7, 2.2);
+    scene.add(prop);
+
+    // hologram plane
+    const holo = new THREE.Mesh(new THREE.PlaneGeometry(3, 4), hologramMaterial({ tint: '#37e2ff' }));
+    holo.position.set(-5.2, 2.8, -1.5);
+    holo.rotation.y = 0.5;
+    scene.add(holo);
+
+    // energy shield around the character
+    const shieldMat = energyShield({ color: '#7fe9ff', power: 3 });
+    const shield = new THREE.Mesh(new THREE.SphereGeometry(2.4, 48, 32), shieldMat);
+    shield.position.y = 2;
+    scene.add(shield);
+
+    // ground
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(240, 240), animeGround());
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+    // particles
+    const fxSparks = sparks({ count: 500, gravity: -9.8, life: 0.9 });
+    const fxAura = aura({ count: 1200, radius: 1.6, height: 4, center: new THREE.Vector3(0, 0.6, 0) });
+    const fxStreaks = streaks({ count: 140, length: 40, radius: 7, center: new THREE.Vector3(0, 3, -4), dir: new THREE.Vector3(0, 0, 1) });
+    const fxWave = shockwave({ size: 14, color: '#8ff4ff' });
+    fxWave.object.position.y = 0.02;
+    scene.add(fxSparks.object, fxAura.object, fxStreaks.object, fxWave.object);
+
+    // ---------- renderer + post ----------
+    let live = document.getElementById('c');
+    let post = null;
+    const resize = (r) => {
+      const w = window.innerWidth, h = window.innerHeight;
+      if (post) post.setSize(w, h, false); else { r.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+    };
+    const probe = probeGPU();
+    const { renderer, backend, recovered, initMs } = await createRobustRenderer(
+      () => {
+        const c = document.createElement('canvas');
+        c.id = 'c';
+        c.setAttribute('aria-hidden', 'true');
+        live.replaceWith(c);
+        live = c;
+        return c;
+      },
+      async (r) => {
+        r.toneMapping = THREE.NeutralToneMapping;
+        r.info.autoReset = false; // pipelines render many passes; we reset once per frame
+        resize(r);
+        await r.compileAsync(scene, camera);
+        if (q.get('post') === 'off' || q.get('post')?.startsWith('stage')) { // debug: plain pass, default output transform
+          const p = new THREE.RenderPipeline(r);
+          const stage = +(q.get('post')?.split(':')[1] || 0);
+          if (stage === 0) p.outputNode = pass(scene, camera);
+          else {
+            const sp = toonOutlinePass(scene, camera, new THREE.Color('#0a0a12'), 0.0035, 1);
+            if (stage >= 2) sp.setMRT(mrt({ output, emissive }));
+            let n = stage >= 2 ? sp.getTextureNode('output') : sp;
+            if (stage >= 3) n = n.add(bloom(sp.getTextureNode('emissive'), 1.2, 0.6, 0));
+            if (stage >= 4) { p.outputColorTransform = false; n = n.renderOutput(); }
+            if (stage >= 5) n = vec4(n.rgb, 1);
+            if (stage === 7) n = n.mul(screenUV.distance(.5).remap(.6, 1).mul(2).clamp().oneMinus());
+            if (stage === 8) { const imp = uniform(0); const src = n; n = Fn(() => { const g = luminance(src.rgb); const inv = vec3(step(0.5, g).oneMinus()); const peak = smoothstep(0.6, 1.0, imp); return vec4(mix(mix(src.rgb, inv, step(0.01, imp)), vec3(1), peak), 1); })(); }
+            if (stage === 9) n = vec4(sp.getTextureNode('emissive').rgb, 1);
+            if (stage >= 6 && stage !== 7 && stage !== 8 && stage !== 9) n = fxaa(n);
+            p.outputNode = n;
+          }
+          const u = {}; for (const k of ['impact', 'shake', 'aberration', 'speedLines', 'vignette', 'scanlines', 'flash']) u[k] = { value: k === 'shake' ? new THREE.Vector2() : 0 };
+          post = { pipeline: p, uniforms: u, render: () => p.render(), setSize(w, h) { r.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); } };
+        } else {
+          const debug = { noVignette: q.has('noVignette'), noImpact: q.has('noImpact') };
+          post = createAnimePipeline(r, scene, camera, { quality, scanlines: true, outline: { color: '#0a0a12', thickness: 0.0035 }, bloom: { strength: 1.2, radius: 0.6, threshold: 0 }, debug });
+        }
+        resize(r);
+        post.render();
+      },
+      { maxDpr: 1, antialias: false, alpha: false },
+    );
+    window.addEventListener('resize', () => resize(renderer));
+
+    // ---------- animation ----------
+    const U = post.uniforms;
+    U.aberration.value = 0.003;
+    let impactFrames = 0, shakeAmp = 0, nextBurst = 1.0, frames = 0;
+    const info = { drawCalls: 0, triangles: 0 };
+    const origin = new THREE.Vector3();
+    const tick = (dt, t) => {
+      renderer.info.reset();
+      character.rotation.y += dt * 0.6;
+      knot.rotation.x += dt * 0.8;
+      prop.rotation.y -= dt * 0.7;
+      neons.forEach((n, i) => { n.rotation.y = t * (0.4 + i * 0.2); n.rotation.x = Math.sin(t + i) * 0.4; });
+      fxAura.uniforms.center.value.set(0, 0.6, 0);
+      fxSparks.update(t, dt); fxAura.update(t, dt); fxStreaks.update(t, dt); fxWave.update(t, dt);
+      fxStreaks.uniforms.speed.value = 0.6 + 0.4 * Math.sin(t * 0.7);
+      U.speedLines.value = Math.max(0, Math.sin(t * 0.8)) * 0.8;
+      if (t >= nextBurst) { // every 2 s: burst + shockwave + hit-stop post
+        nextBurst = t + 2;
+        box.getWorldPosition(origin);
+        fxSparks.burst(origin, new THREE.Vector3(0.3, 1, 0.2));
+        fxWave.play(0.7);
+        impactFrames = 3; shakeAmp = 0.03; U.aberration.value = 0.02; U.flash.value = 0.5; shieldMat.shield.hit.value = 0.6;
+      }
+      U.impact.value = impactFrames-- > 0 ? 1 : 0;
+      U.shake.value.set((Math.random() - 0.5) * shakeAmp, (Math.random() - 0.5) * shakeAmp);
+      shakeAmp *= 0.85;
+      U.aberration.value += (0.003 - U.aberration.value) * Math.min(1, dt * 6);
+      U.flash.value *= 0.8;
+      shieldMat.shield.hit.value *= 0.85;
+      post.render();
+      info.drawCalls = renderer.info.render.drawCalls;
+      info.triangles = renderer.info.render.triangles;
+      frames++;
+      if (frames === 1) {
+        window.__lab = {
+          renderer, backend, pipeline: post.pipeline, post, uniforms: U, scene, camera, recovered, probe, quality, sky: skyMode,
+          stats: () => ({ ...loop.stats(), ...info, frames, memory: { programs: renderer.info.memory.programs, textures: renderer.info.memory.textures } }),
+          hold(name, v) { U[name].value = v; }, // test hook: pin an effect for a screenshot
+          ready: true,
+        };
+        log(`ready backend=${backend} quality=${quality} sky=${skyMode} initMs=${initMs.toFixed(0)}${recovered ? ' recovered=' + recovered : ''} gpu=${probe.renderer}`);
+      }
+      if (frames % 30 === 0) {
+        const s = loop.stats();
+        hud.textContent = `backend ${backend}  quality ${quality}  sky ${skyMode}\nframe ${s ? s.avgMs + ' ms avg / p95 ' + s.p95 : '…'}  draws ${info.drawCalls}  tris ${info.triangles}`;
+      }
+    };
+    const loop = runLoop(renderer, tick);
+  </script>
+</body>
+</html>

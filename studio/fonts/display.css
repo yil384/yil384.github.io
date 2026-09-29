@@ -1,0 +1,3 @@
+/* Display faces for title cards (SIL OFL, from @fontsource): Bebas Neue, Anton. */
+@font-face { font-family: 'Bebas Neue'; font-style: normal; font-weight: 400; font-display: block; src: url('bebas-neue-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Anton'; font-style: normal; font-weight: 400; font-display: block; src: url('anton-latin-400-normal.woff2') format('woff2'); }

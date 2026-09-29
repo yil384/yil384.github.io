@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Studio</title>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="fonts/display.css">
+<style>
+  html, body { margin: 0; background: #0b0d16; color: #ddd; font: 13px system-ui, sans-serif; }
+  main { padding: 12px; display: grid; gap: 8px; }
+  #out { width: min(100%, 1280px); aspect-ratio: 16 / 9; height: auto; background: #0E1120; }
+  .p5Canvas { display: none !important; }
+  .bar { display: flex; gap: 10px; align-items: center; max-width: 1280px; }
+  #scrub { flex: 1; }
+  #tt { font-variant-numeric: tabular-nums; min-width: 260px; }
+  /* Force the display fonts to load before the first frame (WebGL canvases can't trigger font fetches). */
+  .preload { position: absolute; left: -9999px; top: -9999px; font-family: 'Bebas Neue'; }
+</style>
+<script src="../assets/vendor/p5/p5.min.js"></script>
+<script src="../assets/vendor/p5.brush/p5.brush.js"></script>
+</head>
+<body>
+<main>
+  <canvas id="out" width="1280" height="720"></canvas>
+  <div class="bar"><input id="scrub" type="range" min="0" max="8" step="0.0417" value="0"><span id="tt">loading…</span></div>
+</main>
+<span class="preload">Aa</span><span class="preload" style="font-family:'JetBrains Mono'">Aa</span>
+<!-- engine -->
+<script src="src/core.js"></script>
+<script src="src/timeline.js"></script>
+<script src="src/cel3d.js"></script>
+<script src="src/cast.js"></script>
+<script src="src/props.js"></script>
+<script>
+  // studio.html?video=opening loads src/videos/opening.js (the file calls VIDEO(...) which sets duration/bpm/scale);
+  // ?loop=name shows a standalone loop; ?t=2.5 jumps to a time; ?render is used by render.mjs (no scrubber).
+  (() => {
+    const q = new URLSearchParams(location.search), name = q.get('video') || 'opening';
+    const s = document.createElement('script'); s.src = `src/videos/${name}.js`; s.async = false;
+    s.onerror = () => { console.error(`no video file src/videos/${name}.js`); };
+    s.onload = () => { const l = q.get('loop'); if (l && LOOPS[l]) window.LOOP = LOOPS[l]; window.videoLoaded = true; };
+    document.currentScript.after(s);
+  })();
+</script>
+</body>
+</html>
