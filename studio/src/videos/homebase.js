@@ -70,7 +70,7 @@
     if (t >= 5.0 && t < 5.05) impactFrame(.8, PAL.cream);
     // the scholar and Bit run in along the plaza line, then the islanders wave
     const right = vnorm(vcross(cam.f, [0, 1, 0])), P0 = vadd(vadd(CAM_B.pos, vmul(vnorm([cam.f[0], 0, cam.f[2]]), 9.5)), [0, TOP - CAM_B.pos[1] + .2, 0]);
-    const run = stroll(t, 5.2, 6.4, -5.5, 2.6, 20), sq = t > 6.4 ? .1 * Math.exp(-8 * (t - 6.4)) * Math.cos(20 * (t - 6.4)) : 0;
+    const run = stroll(t, 5.2, 6.4, -11, 2.6, 20), sq = t > 6.4 ? .1 * Math.exp(-8 * (t - 6.4)) * Math.cos(20 * (t - 6.4)) : 0;
     const pp = vadd(P0, vmul(right, run.x));
     billboard(cam, pp, (px, py, s) => { const h = 1.75 * s; if (haveChar.pilot) pilot(px, py, h, { view: run.view, flip: run.flip, walk: onTwos(run.walk * 2) / 2, moving: run.view === 'q', emo: t > 6.8 ? 'joy' : 'calm', coat: false, sq, armR: t > 6.8 ? -1.3 + .4 * Math.sin(t * 12) : undefined, t }); else { flat(rrPts(px - h * .16, py - h, h * .32, h, h * .1), PAL.hull); flat(ellPts(px, py - h - h * .1, h * .12, h * .14, 16), PAL.skin); } });
     const bp = vadd(vadd(P0, vmul(right, run.x + 1.1)), [0, 2.4 + .2 * Math.sin(t * 6), 0]);
