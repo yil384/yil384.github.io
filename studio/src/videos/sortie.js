@@ -244,7 +244,7 @@
     if (dis > 0) for (let i = 0; i < 16; i++) flat(rectPts(-400, 60 + hash(i) * 960, 2700, 6 + 22 * hash(i + 4)), i % 2 ? PAL.mist : PAL.cream, 210 * dis);
   }
 
-  // ---- V1-G  20.0-24.0  The name ----
+  // ---- V1-G  20.0-24.0  The name (carried by the page's HTML title) ----
   function shotG(t, lt) {
     const cam = cam3({ pos: [-80, 8, 40], look: [0, 10, 40], fov: 40 });
     camBegin(960 + 10 * Math.sin(lt * .5), 540 + 6 * Math.sin(lt * .35), 1);
@@ -258,12 +258,8 @@
     cel3dPaint(cam, silhouette(mech.parts), { edges: 'none', light: [0, 1, 0] });
     for (const side of ['nozzleL', 'nozzleR']) { const p = cam.project(mech.anchor(side)); if (Number.isFinite(p[0])) glow(p[0], p[1], 46, PAL.gold, .95); }
     camEnd();
-    if (lt >= 1.0) {
-      const k = seg(t, 21.0, 21.4);
-      letter('YICHEN LIN', 300, 880, 120 * backOut(k), PAL.cream, { align: 'left', stroke: PAL.ink, strokeW: .1, alpha: seg(t, 21.0, 21.2) });
-      const uk = easeOut(seg(t, 21.6, 22.2));
-      if (uk > 0) inkLine([[300, 910], [300 + 700 * uk, 914]], 6, PAL.amber, 'dry', 0);
-    }
+    // No painted name card: the page stamps the real HTML title over this shot from 22.0 s (DESIGN §3.5), so the name stays
+    // sharp text at every viewport. The lower-left of the frame is left open for it.
   }
 
   // ---- V1-H  24.0-26.0  Glint ----

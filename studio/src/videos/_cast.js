@@ -1,11 +1,12 @@
 // _cast.js: the cast review sheet (movie `_cast`, 12 s @ 120 bpm). Not a real video: one shot that shows a different
 // part of the cast by time, so contact sheets with --sheet=... cover everything.
-//   t 0-1  pilot, 5 views on a floor line, helmet          t 5-6   Bit, 3 views x 3 emotions
-//   t 1-2  5 emotions: head close-ups (h 900) + medium     t 6-7   Bit with the scan-lamp beam
-//   t 2-3  pilot without the coat (front, q)               t 7-8   islanders waving (small + large)
-//   t 3-4  seated, reading a paper                         t 8-9   scale check: pilot, Bit, a 1.75-unit box
-//   t 4-5  walk cycle strip (--strip=4:5)                  t 9-10  silhouette test (ink only)
-//   t 10-12 extra: big head turnaround, big emotions (front, q), seated turntable
+//   t 0-1   pilot, 5 views on a floor line, helmet          t 5-6    Bit, 3 views x 3 emotions
+//   t 1-2   5 emotions: head close-ups (h 900) + medium     t 6-7    Bit with the scan-lamp beam
+//   t 2-3   pilot without the coat (front, q, side, back)   t 7-8    islanders waving (small + large)
+//   t 3-4   seated, reading a paper                         t 8-9    scale check: pilot, Bit, a 1.75-unit box
+//   t 4-5   walk cycle strip (--strip=4:5)                  t 9-10   silhouette test (ink only)
+//   t 10-12 extras: head turnaround (h 1600), emotions front / q (h 1600), seated turntable,
+//           option gallery (rim, ghost, tone, flip, squash, wave, silhouette colour) + face decals + helmet props
 (() => {
   const EMOS = ['calm', 'resolve', 'strain', 'joy', 'curious'];
   const VIEWS = ['front', 'q', 'side', 'qb', 'back'];
@@ -18,7 +19,7 @@
 
   function s0(t) {   // five views, helmet under the left arm
     bg(PAL.night, 830);
-    VIEWS.forEach((v, i) => pilot(slot(i, 5, 260), 830, 430, { view: v, hold: 'helmet', t, key: 'pilot' + i }));
+    VIEWS.forEach((v, i) => pilot(slot(i, 5, 260), 830, 430, { view: v, hold: 'helmet', t, key: 'pilot' + i, shadow: true }));
   }
   function s1(t) {   // emotions: heads at h 900 (shoulders-up), the same five at the medium-shot size below
     bg(PAL.night);
@@ -27,7 +28,7 @@
     paint(rectPts(-50, 600, W + 100, H), { wash: PAL.indigo, ink: null });
     EMOS.forEach((e, i) => pilot(slot(i, 5, 230), 1040, 430, { view: i % 2 ? 'q' : 'front', emo: e, t, key: 'pilotm' + i }));
   }
-  function s2(t) {   // scholar (no coat)
+  function s2(t) {   // the game's scholar: robe only, bare head
     bg(PAL.indigo, 900, PAL.night);
     pilot(560, 930, 640, { view: 'front', coat: false, t, key: 'p0' });
     pilot(1010, 930, 640, { view: 'q', coat: false, t, key: 'p1' });
@@ -40,12 +41,12 @@
     paint(rectPts(-100, 700, 2200, 380), { wash: PAL.indigo, ink: null });
     pilot(420, 640, 640, { view: 'seated', hold: 'paper', t, key: 'p0' });
     pilot(920, 640, 640, { view: 'seated', hold: 'paper', yaw: .75, emo: 'curious', t, key: 'p1' });
-    pilot(1400, 640, 640, { view: 'seated', hold: 'paper', yaw: 1.5708, emo: 'calm', flip: true, t, key: 'p2' });
+    pilot(1400, 640, 640, { view: 'seated', hold: 'paper', emo: 'calm', flip: true, t, key: 'p2' });
   }
-  function s4(t) {   // walk cycle strip, on twos: q, side and front views walking in place
+  function s4(t) {   // walk cycle strip, on twos: q, side and front views walking in place (walk phase counts steps)
     bg(PAL.night, 800);
     const tq = onTwos(t), wk = (tq - 4) * 2.4;
-    [['q', 480], ['side', 960], ['front', 1440]].forEach(([v, x], i) => pilot(x, 800, 520, { view: v, walk: wk, t: tq, hold: i === 0 ? 'helmet' : null, key: 'pw' + i }));
+    [['q', 480], ['side', 960], ['front', 1440]].forEach(([v, x], i) => pilot(x, 800, 520, { view: v, walk: wk, t: tq, hold: i === 0 ? 'helmet' : null, key: 'pw' + i, shadow: true }));
   }
   function s5(t) {   // Bit: 3 views x 3 emotions
     bg(PAL.indigo);
@@ -86,38 +87,29 @@
     bg(PAL.night);
     VIEWS.forEach((v, i) => pilot(200 + i * 380, 2000, 1600, { view: v, t, key: 'pilot' + i }));
   }
-  function s11(t) {
+  function s11(t) {  // extra: the five emotions at h 1600, front (t < 11) then three-quarter
     bg(PAL.night);
     EMOS.forEach((e, i) => pilot(200 + i * 380, 2000, 1600, { view: t < 11 ? 'front' : 'q', emo: e, t, key: 'pilot' + i }));
   }
-  function s12(t) {  // seated turntable
+  function s12(t) {  // extra: seated turntable
     bg(PAL.night, 900, PAL.indigo);
     [0, .6, 1.5708, 2.5].forEach((yw, i) => pilot(260 + i * 480, 780, 700, { view: 'seated', yaw: yw, hold: i % 2 ? 'paper' : null, t, key: 'p' + i }));
   }
+  function s13(t) {  // extra: option gallery, face decals, helmet props
+    bg(PAL.night, 620);
+    const o = [{ rim: PAL.amber }, { rim: PAL.cream, view: 'q' }, { op: 110, view: 'q' }, { tone: [PAL.ink, .75] }, { flip: true, view: 'q', hold: 'helmet' },
+      { sq: .16, lean: .08 }, { armR: -1.2 + .4 * Math.sin(t * 9), emo: 'joy', coat: false }, { sil: PAL.indigo, view: 'side' }];
+    o.forEach((oo, i) => pilot(150 + i * 235, 620, 360, { t, ...oo, key: 'g' + i }));
+    paint(rectPts(60, 700, 1800, 340), { wash: PAL.ink, ink: null });
+    EMOS.forEach((e, i) => faceDecal(200 + i * 300, 830, 260, e, { op: 255 }));
+    EMOS.forEach((e, i) => faceDecal(200 + i * 300, 960, 130, e, { op: 110, col: PAL.cyan }));
+    [0, .5, -.4].forEach((r, i) => helmetProp(1720, 760 + i * 110, 90, r, { eta: -.3 + i * .3 }));
+  }
 
-  function dev(t) {   // DEV (removed later): big full bodies
-    bg(PAL.night, 1040);
-    ['front', 'q', 'side', 'back'].forEach((v, i) => pilot(260 + i * 470, 1040, 1000, { view: v, hold: i < 3 ? 'helmet' : null, t, key: 'd' + i, shadow: true }));
-  }
-  function dev2(t) {   // DEV (removed later): options gallery
-    bg(PAL.night, 800);
-    const o = [{ rim: PAL.amber }, { rim: PAL.cream, view: 'q' }, { op: 110, view: 'q' }, { tone: [PAL.ink, .75] }, { flip: true, view: 'q', hold: 'helmet' }, { sq: .16, lean: .08 }, { armR: -1.2 + .4 * Math.sin(t * 9), emo: 'joy', coat: false }, { look: -1, hold: 'paper', emo: 'curious', view: 'q' }, { sil: PAL.indigo, view: 'side' }, { view: 'qb', hold: 'helmet', armL: -.9 }];
-    o.forEach((oo, i) => pilot(150 + i * 190, 800, 430, { t, ...oo, key: 'g' + i }));
-  }
-  function dev3(t) {   // DEV (removed later): decals and helmet props
-    bg(PAL.night);
-    paint(rectPts(100, 60, 1720, 420), { wash: PAL.ink, ink: null });
-    EMOS.forEach((e, i) => faceDecal(280 + i * 340, 270, 340, e, { op: 255 }));
-    EMOS.forEach((e, i) => faceDecal(280 + i * 340, 700, 340, e, { op: 110, col: PAL.cyan }));
-    [0, .5, -.4, 1.1].forEach((r, i) => helmetProp(300 + i * 300, 940, 200, r, { eta: -.3 + i * .25 }));
-  }
   function shot(t) {
-    if (t >= 22) return dev3(t);
-    if (t >= 21) return dev2(t);
-    if (t >= 20) return dev(t);
     if (t < 1) s0(t); else if (t < 2) s1(t); else if (t < 3) s2(t); else if (t < 4) s3(t); else if (t < 5) s4(t);
     else if (t < 6) s5(t); else if (t < 7) s6(t); else if (t < 8) s7(t); else if (t < 9) s8(t); else if (t < 10) s9(t);
-    else if (t < 10.5) s10(t); else if (t < 11.5) s11(t); else s12(t);
+    else if (t < 10.4) s10(t); else if (t < 11.2) s11(t); else if (t < 11.6) s12(t); else s13(t);
   }
   movie('_cast', { duration: 12, bpm: 120 }, [[0, shot]]);
 })();

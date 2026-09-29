@@ -1,4 +1,77 @@
-// cast.js: painted 2D characters (WIP, header API is written at the end of the work).
+// cast.js: the painted 2D cast. Flat cel washes in two tones + ink outlines (paint/inkLine), no watercolour `fill`,
+// nothing stored between frames, no Math.random: every function is a pure function of its arguments (and t).
+// Review sheet: `node render.mjs --video=_cast --sheet=0.5,1.5,2.5,3.5,4.2,4.5 --cols=3` (see src/videos/_cast.js).
+//
+// ALL COORDINATES are world px (y down). Draw inside camBegin/camEnd or a billboard hook: pass the screen point and
+// scale yourself (h = 1.75 * cam.scaleAt(p) for the pilot, r = .3 * scale for Bit). Each call runs boilSeed() per
+// part internally (keys `<o.key>|part`), so call boilSeed(yourKey) again before using jit() after a character.
+// Pass `t = onTwos(t)` (or the quantised walk time) for character poses: nothing in here calls onTwos.
+//
+// ----- pilot(x, y, h, o) -> { head:[x,y], eyes:[x,y], visor:[x,y]|null, visorVisible:bool } -----------------------------
+// Yichen's avatar. (x, y) = feet centre (seated: the point on the seat surface under the hips). h = total standing
+// height in px (medium shot 430, close 900+; a seated pilot uses the same h, so it is ~.53 h tall). Cost ~20-33 ink strokes.
+//   view    'front' | 'q' (3/4 front) | 'side' | 'qb' (3/4 back) | 'back' | 'seated' (profile, hip at (x, y)); default 'front'.
+//           The character faces screen-RIGHT unless flip. `yaw` (radians, 0 front, .70 q, PI/2 side, PI-.70 qb, PI back)
+//           overrides `view`'s angle, so a turn on twos is `yaw: kf(...)` (seated works with any yaw, e.g. .75).
+//   flip    mirror about x (everything, incl. which arm carries the helmet; light stays screen-left).
+//   emo     'calm' | 'resolve' | 'strain' | 'joy' | 'curious'. Pure switches, swap frame to frame. calm flat brows;
+//           resolve flat+lowered brows, squint, head down (~4 px at h 430); strain eyes shut + teeth bar; joy open eyes +
+//           small smile + blush; curious right brow up + head turned toward the facing side.
+//   look    -1..1 screen-space horizontal look (eyes lead, head follows a little). lookY -1 (down) .. 1 (up), default 0
+//           (-.6 when seated and not holding the helmet).
+//   coat    default true: long hull-blue flight coat, high collar, robe hem (#2C3E77, cream trim) below it.
+//           false: the scholar robe only (hull blue, sash, gold clasp, cream neckline, bell sleeves), bare head.
+//   hold    'helmet' (cream helmet, cyan visor, under the LEFT arm = the arm at screen-left when not flipped, and mirrored
+//           with flip) | 'paper' (bowed sheet in the RIGHT hand) | null.
+//   armL, armR  raise angles in radians, <= 0 raises (0 rest). armL with hold 'helmet': -.9 lifts the helmet to chest
+//           height (easeOut it); armL/armR otherwise = a wave pose (armR: -1.2 + .4*sin(...) waves; the paper is dropped).
+//   walk    walk-cycle phase counted in STEPS (one step = 1; feet cross at integers). Pass it quantised. Only animates
+//           if finite and o.moving !== false. NOTE core.js stroll() keeps returning a large `walk` after it stops:
+//           pass `moving: s.view === 'q'` (or walk: undefined) while standing. Step length ~ .21 h (stroll u = h / 19).
+//           Adds foot cycle, arm swing, hem spread, body bob/sway and a small yaw twist.
+//   t       idle time in seconds (breath on the beat with period 2 beats, coat-hem sway + a kick on each beat). Omit = still.
+//   dy      extra vertical offset in px (+ down). sq squash (+ = squash: y*(1-sq), x*(1+.6sq), pivot at the feet/seat, from
+//           jump()/take()). lean forward lean in radians about the feet.
+//   styling: shadeSide 1|-1 (cel shadow on screen right/left, default 1), rim: colour string = thin rim light on the lit
+//           side of head+collar (rimSide 1 puts it on the right), shadow: true|0..255 = soft contact shadow under the feet.
+//   looks:  sil: true | colour = flat silhouette (every wash and outline in one colour, no inner lines);
+//           tone: [colour, k] = mix every colour toward `colour` by k (dark "lights not here yet" version);
+//           op: 0..255 wash opacity (a ghost copy for smears: outlines are dropped below 250);  key: boil key (default 'pilot').
+// pilotAnchors(x, y, h, o) -> the same object without painting (pure; pilot() calls it, they cannot disagree). `visor` is
+//   the helmet visor's centre when hold === 'helmet' (else null); visorVisible is false when the visor faces away.
+//   `head` = head centre, `eyes` = midpoint between the eyes: iris/glow onto them.
+//
+// ----- bit(x, y, r, o) -> { x, y, lamp:[x, y], tip:[x, y] } ------------------------------------------------------------
+// The companion (cyan body #4FD6FF / shadow teal, big ink eyes, stubby arms, gold antenna). (x, y) = body centre before
+// the float wobble (6 px * r/60 vertical, 2 px horizontal, from t); r = body radius in px (Bit is .6 u: r = .3 * px/u).
+// Returns x, y = wobbled body centre, lamp = the scan-lamp lens point (where the beam starts, even if no lamp is drawn),
+// tip = the antenna tip (pulses on the beat; a gold glow() is drawn there).
+//   view 'front' | 'q' | 'side' (faces right; flip mirrors)   emo 'neutral' | 'excited' | 'alert'   t   tilt radians (whole body)
+//   lamp true = clip-on scan lamp on the rim toward `beam` (radians, world angle: 0 = +x, PI/2 = down; default 0, PI if flip)
+//   with a cyan beam drawn as streak() of length `beamLen` (default 260 * r/60);  sil, tone, op, key as for the pilot.
+// bitAnchors(x, y, r, o) -> the same { x, y, lamp, tip } without painting.
+//
+// ----- islander(name, x, y, h, o) -> { head:[x, y], hand:[x, y]|null } -------------------------------------------------
+// name 'nell' (owl archivist, long bone coat, book) | 'mo' (raccoon merchant, ember scarf, satchel, striped tail) | 'ash'
+// (hooded cartographer, steel apron, lantern that glows). Front view only, tiny: h 150-260 (Mo's tail reaches ~.3 h aside).
+// (x, y) = feet centre. wave 0..1 = how far the right arm is raised (0 = arm down); it swings at 2.2 Hz as
+// sin(2 pi 2.2 (t + wavePhase)): pass t and offset wavePhase (seconds) per person so nobody twins. hand = the waving hand.
+// Also sil, tone, op, key.
+//
+// ----- helpers ---------------------------------------------------------------------------------------------------------
+// faceDecal(cx, cy, size, emo, o) -> { x, y }: eyes + brows only, in one colour, for the compile-HUD reflection. `size` is the
+//   head height in px; the eyes/brows band is centred on (cx, cy). o.op = washOp (default 255), o.col (default PAL.cream),
+//   o.look, o.lookY, o.eyesOnly (default true; false also draws the nose mark and mouth).
+// helmetProp(x, y, s, rot, o) -> { visor:[x, y], visible }: the helmet alone (cream shell, hull stripe, cyan visor).
+//   s = helmet diameter in px, rot = roll radians, o.yaw = turn (default .35), o.eta = visor direction offset (default -.3).
+//
+// ----- notes for shot authors --------------------------------------------------------------------------------------------
+// * Budgets: pilot 20-33 ink strokes (never a fill), Bit 9-12, islander 18-20; 0 watercolour fills, so six characters fit a frame.
+// * Painters' order inside a frame: background, set, characters (far to near), then glow/streak/iris/flash on the anchors.
+// * Sizes: pilot h = 1.75 u; Bit r = .3 u; islanders ~ 0.5-1 u tall in cameo (h 150-260 px).
+// * Silhouette rule: sil:true draws all of them as one flat shape; the pilot reads as a tall narrow rectangle at 40 % frame height.
+// * Colours: coat #4E7DD1 / shadow #2C3E77, robe hem #2C3E77 + PAL.cream trim, skin #F1C9A5 (cel shadow toward #3A2E6B),
+//   hair PAL.ink, visor PAL.cyan; no pure black or white anywhere.
 (() => {
 'use strict';
 const PI = Math.PI;
@@ -98,13 +171,39 @@ function tubePoly(P, ws, caps = true, n = 5) {
 }
 const ellP = (cx, cy, rx, ry, n = 14, rot = 0) => ellPts(cx, cy, rx, ry, n, 0, rot);
 
+// ---------- clipping to the view ----------
+// A stroke costs a stamp every ~0.6 px, so outlines of shapes that run thousands of px off-screen (a close-up cuts the
+// body at the frame edge) would stall the renderer. Every polygon is clipped to the visible world rect + 240 px first.
+function viewRect() {
+  const m = 240;
+  if (!CAM) return [-m, -m, W + m, H + m];
+  const cs = [[-m, -m], [W + m, -m], [W + m, H + m], [-m, H + m]].map(([x, y]) => fromScreen(x, y));
+  return [Math.min(...cs.map(c => c[0])), Math.min(...cs.map(c => c[1])), Math.max(...cs.map(c => c[0])), Math.max(...cs.map(c => c[1]))];
+}
+function clipToRect(pts, R) {
+  let inside = true;
+  for (const p of pts) if (p[0] < R[0] || p[0] > R[2] || p[1] < R[1] || p[1] > R[3]) { inside = false; break; }
+  if (inside) return pts;
+  let out = pts;
+  for (const [ax, b, sg] of [[0, R[0], 1], [1, R[1], 1], [0, R[2], -1], [1, R[3], -1]]) {
+    const inp = out; out = [];
+    for (let i = 0; i < inp.length; i++) {
+      const a = inp[i], c = inp[(i + 1) % inp.length], ia = sg * (a[ax] - b) >= 0, ic = sg * (c[ax] - b) >= 0;
+      if (ia) out.push(a);
+      if (ia !== ic) { const t = (b - a[ax]) / (c[ax] - a[ax]); out.push([a[0] + (c[0] - a[0]) * t, a[1] + (c[1] - a[1]) * t]); }
+    }
+    if (!out.length) return out;
+  }
+  return out;
+}
+
 // ---------- painter context ----------
 // One per character call. Everything is drawn in an unflipped frame and mirrored about x0 on output; every part is warped
 // by a smooth boil field anchored to the character (so the wash and its ink outline always agree).
 function mkQ(o, h, key, x0, y0) {
   const sil = o.sil ? (o.sil === true ? PAL.ink : o.sil) : null, tone = o.tone || null, kk = .8 * Math.pow(clamp(h / 430, .45, 2.6), .55);
   const fl = o.flip ? -1 : 1, op = o.op ?? 255;
-  const Q = { h, kk, fl, sil, op, x0, y0 };
+  const Q = { h, kk, fl, sil, op, x0, y0, hi: h >= 760 };   // hi: stroke the micro-outlines (cuffs, thumbs, buckle) only in close-ups
   let W = pts => pts;
   Q.c = col => sil ? sil : tone ? mixCol(col, tone[0], tone[1]) : col;
   Q.part = name => {
@@ -114,10 +213,11 @@ function mkQ(o, h, key, x0, y0) {
   };
   Q.T = pts => { const w = W(pts); return fl < 0 ? w.map(p => [2 * x0 - p[0], p[1]]) : w; };
   Q.M = p => fl < 0 ? [2 * x0 - p[0], p[1]] : p;
-  Q.fillP = (pts, col, opac) => paint(Q.T(pts), { wash: Q.c(col), washOp: opac ?? op, ink: null });
-  Q.inkP = (pts, sw = 1.1, curv = .3, col = PAL.ink, br = 'ink') => op < 250 ? 0 : paint(Q.T(pts), { ink: sil ? sil : col, sw: sw * kk, br, curv });
+  const R = viewRect();
+  Q.fillP = (pts, col, opac) => { const P = clipToRect(Q.T(pts), R); if (P.length >= 3) paint(P, { wash: Q.c(col), washOp: opac ?? op, ink: null }); };
+  Q.inkP = (pts, sw = 1.1, curv = .3, col = PAL.ink, br = 'ink') => { if (op < 250) return; const P = clipToRect(Q.T(pts), R); if (P.length >= 3) paint(P, { ink: sil ? sil : col, sw: sw * kk, br, curv }); };
   Q.line = (pts, sw = .7, col = PAL.ink, br = 'inkfine', curv = .4) => { if (!sil && op >= 250) inkLine(Q.T(pts), sw * kk, Q.c(col), br, curv); };
-  Q.shade = (pts, col) => { if (!sil) paint(Q.T(pts), { wash: Q.c(col), washOp: op, ink: null }); };
+  Q.shade = (pts, col) => { if (!sil) { const P = clipToRect(Q.T(pts), R); if (P.length >= 3) paint(P, { wash: Q.c(col), washOp: op, ink: null }); } };
   return Q;
 }
 
@@ -188,7 +288,7 @@ function pilotPose(x, y, h, o) {
   const base = seated ? -.47 + SEAT_LIFT : 0;                              // seated: rig origin = the seat surface, hip joint SEAT_LIFT above it
   // head
   const look = (o.look || 0) * fl, lookY = o.lookY ?? (seated && o.hold !== 'helmet' ? -.6 : 0);
-  const turn = E.turn + look * .22, pit = E.pit + (seated ? .18 : 0), roll = E.roll;
+  const turn = E.turn + look * .30, pit = E.pit + (seated ? .18 : 0), roll = E.roll;
   const ct = Math.cos(turn), st = Math.sin(turn), cp = Math.cos(pit), sp = Math.sin(pit), cr = Math.cos(roll), sr = Math.sin(roll);
   const chinY = base + CHIN_Y + up - E.chin, zN = .010 + (seated ? .012 : 0);
   const hp = (X, v, Z) => {
@@ -287,7 +387,7 @@ function faceFeatures(Q, fm, Hpx, emo, o) {
     stroke([[s * .070, .588 + d[0]], [s * .195, .603 + d[1]], [s * .330, .590 + d[2]]], [.044 * th, .058 * th, .040 * th], inkC, 2.2);
   }
   // eyes: an upper-lid stroke and an iris stroke each
-  const op = EYEO[emo], lx = (o.look || 0) * .028, ly = (o.lookY || 0) * .018, lt = LIDT[emo];
+  const op = EYEO[emo], lx = (o.look || 0) * .048, ly = (o.lookY || 0) * .020, lt = LIDT[emo];
   for (const s of [-1, 1]) {
     const X0 = s * .195, v0 = .478, ew = .094;
     if (op > .05) {
@@ -417,7 +517,7 @@ function drawHead(Q, P, o) {
   for (const [X0, X1, Xt, vt, zt] of [[-.03, .17, .10, 1.165, .10], [-.22, -.05, -.14, 1.13, .05]]) {
     const at = (X, v) => { const s2 = sampleTab(HAIRT, v), q = clamp(X / s2[1], -.98, .98); return hp(X, v, s2[2] * Math.sqrt(1 - q * q)); };
     const pp = [at(X0, .99), hp(Xt, vt, zt), at(X1, .99)];
-    if (pp.every(p => p[2] > -.02)) { const t3 = pp.map(p => [p[0], p[1]]); Q.fillP(t3, HAIR); Q.inkP(t3, .9, .2); }
+    if (pp.every(p => p[2] > -.02)) { const t3 = pp.map(p => [p[0], p[1]]); Q.fillP(t3, HAIR); if (Q.hi) Q.inkP(t3, .9, .2); }
   }
   // 6. ears
   const sEar = skullAt(.45)[1];
@@ -486,12 +586,12 @@ function drawArm(Q, P, side, ch, style) {
     Q.fillP(band, dark ? SHELL_S : PAL.cream);
   }
   const cuff = tubePoly([[W[0] - ux * .026 * h, W[1] - uy * .026 * h], [W[0], W[1]]], [ws[2] * 1.05, ws[2] * 1.05], false);
-  Q.fillP(cuff, PAL.cream); Q.inkP(cuff, .7, .1);
+  Q.fillP(cuff, PAL.cream); if (Q.hi) Q.inkP(cuff, .7, .1);
   const hc = [W[0] + ux * .024 * h, W[1] + uy * .024 * h], ang = Math.atan2(uy, ux);
   const hand = ellR(hc[0], hc[1], .030 * h, .021 * h, ang);
   const tsg = Math.sign(P.x - hc[0]) || 1, tp = [-uy * tsg, ux * tsg];   // thumb toward the body
   const th = ellR(hc[0] + tp[0] * .019 * h - ux * .006 * h, hc[1] + tp[1] * .019 * h - uy * .006 * h, .015 * h, .0085 * h, ang - .35 * tsg * (uy > 0 ? 1 : -1));
-  Q.fillP(th, SKIN); Q.inkP(th, .6, .3);
+  Q.fillP(th, SKIN); if (Q.hi) Q.inkP(th, .6, .3);
   Q.fillP(hand, SKIN); Q.shade(ellR(hc[0] - tp[0] * .006 * h + ux * .004 * h, hc[1] - tp[1] * .006 * h + uy * .004 * h, .022 * h, .010 * h, ang), SKIN_S); Q.inkP(hand, .8, .3);
   return { S, E, W, hc, u: [ux, uy] };
 }
@@ -634,15 +734,15 @@ function drawBody(Q, P, o) {
     const belt = rowsOf(TB, .585, .622, 3, r => { ringMod(r); r.rx += .004; r.df += .004; r.db += .004; }), Bt = edgePoly(pr, belt, false);
     Q.fillP(Bt.pts, HULLS); Q.inkP(Bt.pts, .8, .2);
     const bk = sPt(.603, 0);
-    if (coat && bk[2] > .012) { const w = .026 * h * Math.max(.3, Math.cos(P.yaw)), q = rrPts(bk[0] - w / 2, bk[1] - .014 * h, w, .028 * h, Math.min(w, .028 * h) * .3); Q.fillP(q, PAL.cream); Q.inkP(q, .6, 0); }
+    if (coat && bk[2] > .012) { const w = .026 * h * Math.max(.3, Math.cos(P.yaw)), q = rrPts(bk[0] - w / 2, bk[1] - .014 * h, w, .028 * h, Math.min(w, .028 * h) * .3); Q.fillP(q, PAL.cream); if (Q.hi) Q.inkP(q, .6, 0); }
     if (coat) {   // yoke seam and a chest pocket flap
       const yk = [-.085, -.045, 0, .045, .085].map(X => sPt(.752 - .012 * (1 - Math.abs(X) / .085) * -1 - .0, X));
       if (visRun(yk)) Q.line(yk.map(p => [p[0], p[1]]), .8, mixCol(HULLS, PAL.ink, .35), 'inkfine', .4);
       const pk = [[.030, .715], [.078, .715], [.078, .667], [.054, .655], [.030, .667]].map(([X, y]) => sPt(y, X));
-      if (visRun(pk, .02)) { const pp = pk.map(p => [p[0], p[1]]); Q.fillP(pp, HULL_M); Q.inkP(pp, .55, 0, mixCol(HULLS, PAL.ink, .3), 'inkfine'); Q.line([pp[0], pp[1]], .7, PAL.cream, 'inkfine', 0); }
+      if (visRun(pk, .02)) { const pp = pk.map(p => [p[0], p[1]]); Q.fillP(pp, HULL_M); if (Q.hi) Q.inkP(pp, .55, 0, mixCol(HULLS, PAL.ink, .3), 'inkfine'); Q.line([pp[0], pp[1]], .7, PAL.cream, 'inkfine', 0); }
     }
     if (coat && !seated) {   // folds
-      for (const X of [-.062, .020, .078]) {
+      for (const X of (Q.hi ? [-.062, .020, .078] : [-.062, .078])) {
         const pts = [.565, .49, .41, .34, .275].map(y => sPt(y, X * (1 + (.565 - y) * 1.5)));
         if (visRun(pts)) Q.line(pts.map(p => [p[0], p[1]]), .7, mixCol(HULLS, PAL.ink, .4), 'inkfine', .4);
       }
@@ -665,7 +765,7 @@ function drawBody(Q, P, o) {
     add(hz + .0005, armDraw(-1, P.L));
   } else add(armZ(P.L), armDraw(-1, P.L));
   if (o.hold === 'paper' && o.armR == null) {
-    add(armZ(P.R) + (seated ? 1 : 0), () => {
+    add(armZ(P.R) + (seated && Math.cos(P.yaw) > -.15 ? 1 : 0), () => {
       const info = drawArm(Q, P, 1, P.R, sleeve);
       drawPaper(Q, P, [P.R.W[0] + .004, P.R.W[1] + .055, P.R.W[2] + .03], seated ? -.85 : -.45, seated ? .35 : .2, .10, .135);
       const th = ellR(info.hc[0], info.hc[1] - .006 * h, .014 * h, .010 * h, 0); Q.fillP(th, SKIN); Q.inkP(th, .6, .3);

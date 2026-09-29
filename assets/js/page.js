@@ -243,6 +243,8 @@ function initOpening() {
     }
   }, { threshold: [0, 0.35, 0.5, 1] });
   io.observe(hero);
+  // If the observer never reports (a tab opened in the background, say) the page must still open by itself.
+  setTimeout(() => { if (phase === 'idle' && first) { first = false; idleState(); } }, 12000);
 }
 
 /* ---------------------------------------------------------------- 4. loop panels (V2 to V4) */

@@ -112,7 +112,16 @@ async function run(label, { url, w, h, reduced = false, js = true, director = tr
   return { page, ctx, info };
 }
 
-const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, name), fullPage: true }); };
+// Software GL caps a raster tile at 8192 px, so a single full-page capture of a tall mobile page wraps around at the bottom.
+// Pages taller than 8000 px are written as name.png (top) + name-p2.png, ... in 6000 px chunks instead.
+const shot = async (page, name) => {
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  if (height <= 8000) { await page.screenshot({ path: path.join(OUT, name), fullPage: true }); return; }
+  const width = await page.evaluate(() => innerWidth);
+  for (let y = 0, i = 1; y < height; y += 6000, i++) {
+    await page.screenshot({ path: path.join(OUT, i === 1 ? name : name.replace('.png', `-p${i}.png`)), fullPage: true, clip: { x: 0, y, width, height: Math.min(6000, height - y) } });
+  }
+};
 
 /* ---- main passes: both URLs at both viewports ---- */
 const passes = [];
