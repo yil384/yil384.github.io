@@ -97,7 +97,7 @@
 
   function dev(t) {   // DEV (removed later): big full bodies
     bg(PAL.night, 1040);
-    ['front', 'q', 'side', 'back'].forEach((v, i) => pilot(260 + i * 470, 1040, 1000, { view: v, hold: i < 3 ? 'helmet' : null, t, key: 'd' + i }));
+    ['front', 'q', 'side', 'back'].forEach((v, i) => pilot(260 + i * 470, 1040, 1000, { view: v, hold: i < 3 ? 'helmet' : null, t, key: 'd' + i, shadow: true }));
   }
   function dev2(t) {   // DEV (removed later): options gallery
     bg(PAL.night, 800);

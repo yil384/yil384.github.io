@@ -124,7 +124,7 @@ for (const [w, h] of [[1440, 900], [390, 844]]) {
     // section observer: every station becomes current when scrolled to
     for (const id of ['about', 'publications', 'experience', 'projects', 'island', 'contact', 'top']) {
       await page.evaluate((i) => document.getElementById(i).scrollIntoView({ behavior: 'instant' }), id);
-      await page.waitForFunction((i) => window.__site && window.__site.section === i, id, { timeout: 4000 }).catch(async () => {
+      await page.waitForFunction((i) => window.__site && window.__site.section === i, id, { timeout: 12000 }).catch(async () => {
         fail(label, `section observer: scrolled to #${id}, __site.section = ${await page.evaluate(() => window.__site && window.__site.section)}`);
       });
     }

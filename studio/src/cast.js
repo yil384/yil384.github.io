@@ -177,18 +177,18 @@ function pilotPose(x, y, h, o) {
   o = o || {};
   const view = o.view || 'front', seated = view === 'seated', fl = o.flip ? -1 : 1;
   const emo = EMO[o.emo] ? o.emo : 'calm', E = EMO[emo], t = o.t || 0;
-  const walking = !seated && o.walk != null, phi = (o.walk || 0) * PI, sinP = Math.sin(phi), cosP = Math.cos(phi);
+  const walking = !seated && o.walk != null && o.moving !== false && Number.isFinite(o.walk), phi = (o.walk || 0) * PI, sinP = Math.sin(phi), cosP = Math.cos(phi);
   const sq = o.sq || 0, lean = (o.lean || 0) + (seated ? .10 : 0);
   const yaw = (o.yaw ?? YAWS[view] ?? 0) + (walking ? .055 * sinP : 0);
   const bobPx = walking ? .007 * h * (1 - Math.abs(cosP)) : 0, dy = (o.dy || 0) + bobPx;
   const pr = mkProj(x, y, h, yaw, lean, sq, dy, walking ? .007 * sinP : 0);
   const M = p => fl < 0 ? [2 * x - p[0], p[1], p[2]] : p;
   const br = Math.sin(bpOf(t) * PI), up = br * .0042;                        // breath, on the beat (period 2 beats)
-  const sw = .0075 * Math.sin(t * 2.3) + .008 * (pulse(t, 5) - .15);         // hem sway
+  const sw = o.t == null ? 0 : .0065 * Math.sin(t * 2.3) + .007 * pulse(t, 5) * ((beatN(t) & 1) ? 1 : -1);   // hem sway (zero-mean; a kick on each beat)
   const base = seated ? -.47 + SEAT_LIFT : 0;                              // seated: rig origin = the seat surface, hip joint SEAT_LIFT above it
   // head
   const look = (o.look || 0) * fl, lookY = o.lookY ?? (seated && o.hold !== 'helmet' ? -.6 : 0);
-  const turn = E.turn * (yaw > 1.4 && yaw < 4.7 ? 1 : 1) + look * .22, pit = E.pit + (seated ? .18 : 0), roll = E.roll;
+  const turn = E.turn + look * .22, pit = E.pit + (seated ? .18 : 0), roll = E.roll;
   const ct = Math.cos(turn), st = Math.sin(turn), cp = Math.cos(pit), sp = Math.sin(pit), cr = Math.cos(roll), sr = Math.sin(roll);
   const chinY = base + CHIN_Y + up - E.chin, zN = .010 + (seated ? .012 : 0);
   const hp = (X, v, Z) => {
@@ -203,7 +203,6 @@ function pilotPose(x, y, h, o) {
   // arms + helmet / paper (rig coords)
   const hold = o.hold ?? null, coat = o.coat !== false;
   P.hold = hold; P.coat = coat;
-  const armK = (v, k) => v == null ? null : v;
   const Sy = base + .772;
   const chain = (side, kind, param) => {
     const S = [side * .100, Sy + up, 0];
@@ -236,7 +235,6 @@ function pilotPose(x, y, h, o) {
   };
   const armSwing = (s) => walking ? -.42 * Math.sin(phi + (s > 0 ? PI : 0)) : 0;
   // L arm (screen-left at front) carries the helmet; R arm (screen-right) the paper
-  P.armLd = {};
   if (hold === 'helmet') P.L = chain(-1, 'helmet', o.armL ?? 0);
   else if (o.armL != null) P.L = chain(-1, 'wave', o.armL);
   else P.L = seated ? chain(-1, 'rest') : chain(-1, 'hang', armSwing(-1));
@@ -414,6 +412,12 @@ function drawHead(Q, P, o) {
   if (lead.length > 2 && Math.max(...lead.map((b, i) => Math.abs(b[0] - leadE[i][0]))) > 1.5) {
     const pl = lead.map(p => [p[0], p[1]]).concat(leadE.slice().reverse().map(p => [p[0], p[1]]));
     Q.fillP(pl, HAIR); Q.inkP(pl, .9, .15);
+  }
+  // crown tufts: a cowlick to break the bowl of the silhouette
+  for (const [X0, X1, Xt, vt, zt] of [[-.03, .17, .10, 1.165, .10], [-.22, -.05, -.14, 1.13, .05]]) {
+    const at = (X, v) => { const s2 = sampleTab(HAIRT, v), q = clamp(X / s2[1], -.98, .98); return hp(X, v, s2[2] * Math.sqrt(1 - q * q)); };
+    const pp = [at(X0, .99), hp(Xt, vt, zt), at(X1, .99)];
+    if (pp.every(p => p[2] > -.02)) { const t3 = pp.map(p => [p[0], p[1]]); Q.fillP(t3, HAIR); Q.inkP(t3, .9, .2); }
   }
   // 6. ears
   const sEar = skullAt(.45)[1];
@@ -695,6 +699,11 @@ function drawBody(Q, P, o) {
 function pilot(x, y, h, o = {}) {
   const P = pilotPose(x, y, h, o), Q = mkQ(o, h, o.key || 'pilot', x, y);
   P.sdU = P.fl * (o.shadeSide === -1 ? -1 : 1);
+  if (o.shadow && !P.seated) {   // soft contact shadow under the feet (o.shadow = true or an opacity 0..255)
+    Q.part('shadow');
+    const op = o.shadow === true ? 110 : o.shadow, yy = y + (o.dy || 0), sx = 1 + P.sq * .6;
+    paint(ellPts(x, yy + .004 * h, .17 * h * sx, .028 * h, 24, 0, 0), { wash: Q.sil ? Q.sil : PAL.ink, washOp: op * (Q.op / 255), ink: null });
+  }
   drawBody(Q, P, o);
   return P.anchors;
 }
@@ -807,8 +816,8 @@ function bit(x, y, r, o = {}) {
     if (o.lamp) {
       const b = B.beam, L2 = B.bl, c = B.lens, ex = Math.cos(b), ey = Math.sin(b);
       glow(c[0], c[1], r * .55, PAL.cyan, .8);
-      streak(c[0] + ex * L2 / 2, c[1] + ey * L2 / 2, L2, r * 2.6, PAL.cyan, .34, b);
-      streak(c[0] + ex * L2 * .46, c[1] + ey * L2 * .46, L2 * .92, r * .95, PAL.cyan, .60, b);
+      streak(c[0] + ex * L2 / 2, c[1] + ey * L2 / 2, L2, r * 2.4, PAL.cyan, .7, b);
+      streak(c[0] + ex * L2 * .46, c[1] + ey * L2 * .46, L2 * .92, r * .95, PAL.cyan, 1, b);
       streak(c[0] + ex * L2 * .40, c[1] + ey * L2 * .40, L2 * .80, r * .17, mixCol(PAL.cyan, PAL.cream, .65), .90, b);
     }
   }
