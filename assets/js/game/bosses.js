@@ -187,9 +187,9 @@ class IceGolem extends Boss {
     this.hazards.push(z);
   }
   updateHazards() {
-    for (let i = this.hazards.length - 1; i >= 0; i--) {
-      const z = this.hazards[i];
-      if (clock.t >= z.until) { z.el.remove(); this.hazards.splice(i, 1); continue; }
+    for (const z of this.hazards.slice()) {
+      if (!this.hazards.includes(z)) continue; // cleared mid-loop (player died -> world paused)
+      if (clock.t >= z.until) { z.el.remove(); this.hazards.splice(this.hazards.indexOf(z), 1); continue; }
       if (clock.t < z.armAt) continue;
       z.el.classList.remove('is-arming');
       if (engaged() && dist(z.x, z.y, player.x, player.y) < z.r && clock.t - z.tick > 800) {

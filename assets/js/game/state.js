@@ -127,7 +127,10 @@ function migrateLegacy(s) {
   const purchases = num('rpg_purchases');
   if (purchases != null) s.stats.purchases = purchases;
   const spells = readJSON('rpg_skills_used', null);
-  if (spells && typeof spells === 'object') { found = true; s.stats.spells = spells; }
+  if (spells && typeof spells === 'object') {
+    found = true;
+    for (const [k, v] of Object.entries(spells)) if (v) s.stats.spells[k === 'ultimate' ? 'meteor' : k] = true;
+  }
   const typing = num('rpg_typing_best');
   if (typing) s.best.typing = typing;
   const lb = readJSON('rpg_leaderboard', null);

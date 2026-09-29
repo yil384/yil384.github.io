@@ -81,8 +81,12 @@ export function openTyping() {
     }));
   }
 
-  input.addEventListener('input', () => {
+  const block = (e) => { e.preventDefault(); result.textContent = 'No pasting — type it out! ⌨️'; };
+  input.addEventListener('paste', block);
+  input.addEventListener('drop', block);
+  input.addEventListener('input', (e) => {
     if (done) return;
+    if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop') { input.value = ''; paint(''); return; }
     const v = input.value;
     if (!start && v.length) {
       start = performance.now();
@@ -98,6 +102,12 @@ export function openTyping() {
       input.disabled = true;
       input.classList.add('is-right');
       const cpm = Math.round((target.length / secs) * 60);
+      // ~20 keystrokes per second is beyond human; treat it as a macro and pay nothing.
+      if (target.length / secs > 20) {
+        result.textContent = `${secs.toFixed(1)}s? Suspiciously fast… no reward this time.`;
+        body.querySelector('[data-next]').focus();
+        return;
+      }
       const gold = secs < 4 ? 200 : secs < 6 ? 120 : secs < 9 ? 60 : 25;
       if (!S.best.typing || secs < S.best.typing) {
         S.best.typing = Math.round(secs * 10) / 10;
@@ -122,6 +132,7 @@ export function openMemory() {
   let start = 0;
   let timer = 0;
   let moves = 0;
+  let dealId = 0;
   const handle = openModal({
     id: 'memory',
     title: "Kirby's memory match",
@@ -149,6 +160,7 @@ export function openMemory() {
       const j = Math.floor(Math.random() * (k + 1));
       [deck[k], deck[j]] = [deck[j], deck[k]];
     }
+    dealId++;
     flipped = []; matched = 0; lock = false; start = 0; moves = 0;
     clearInterval(timer);
     body.querySelector('[data-t]').textContent = '0.0';
@@ -196,7 +208,9 @@ export function openMemory() {
       }
     } else {
       lock = true;
+      const deal = dealId;
       setTimeout(() => {
+        if (deal !== dealId) return;
         a.card.classList.remove('is-up');
         b.card.classList.remove('is-up');
         a.card.setAttribute('aria-label', 'Hidden card');

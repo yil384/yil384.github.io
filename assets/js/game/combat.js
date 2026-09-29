@@ -114,8 +114,10 @@ export function spawnProjectile(p) {
 }
 
 export function updateProjectiles(dt) {
-  for (let i = projectiles.length - 1; i >= 0; i--) {
-    const p = projectiles[i];
+  // Iterate a snapshot: a hit can kill the player, which pauses the world and clears
+  // hostile projectiles while we are still looping.
+  for (const p of projectiles.slice()) {
+    if (!projectiles.includes(p)) continue;
     if (p.target && p.homing && p.target.alive) {
       const want = Math.atan2(p.target.y - p.y, p.target.x - p.x);
       const cur = Math.atan2(p.vy, p.vx);
@@ -153,7 +155,8 @@ export function updateProjectiles(dt) {
     if (!done && (p.y < view.sy - 400 || p.y > view.sy + view.vh + 400)) done = true;
     if (done) {
       p.el.remove();
-      projectiles.splice(i, 1);
+      const i = projectiles.indexOf(p);
+      if (i >= 0) projectiles.splice(i, 1);
     }
   }
 }

@@ -164,13 +164,13 @@ export const buddyXpNeeded = (lv) => 40 + lv * 20;
 export const RIVALS = {
   mika: {
     name: 'Researcher Mika', roster: ['lapras', 'pikachu'],
-    reward: { gold: 260, xp: 70, capsules: 2 }, badge: 'logic', levelBump: -1,
+    reward: { gold: 260, xp: 70, capsules: 2 }, badge: 'logic', levelBump: -1, dmgScale: 0.75,
     blurb: 'An analytic rival built around control and sustain.',
     intro: 'Researcher Mika challenges you to a structured battle!',
   },
   tao: {
     name: 'Ranger Tao', roster: ['growlithe', 'dragonair', 'arcanine'],
-    reward: { gold: 420, xp: 110, potions: 2 }, badge: 'wild', requires: 'logic', levelBump: 0,
+    reward: { gold: 420, xp: 110, potions: 2 }, badge: 'wild', requires: 'logic', levelBump: 0, dmgScale: 0.9,
     blurb: 'Aggressive fire-and-dragon pressure. Beat Mika first.',
     intro: 'Ranger Tao blocks the route with an elite field squad!',
   },

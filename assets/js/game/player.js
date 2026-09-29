@@ -8,6 +8,7 @@ import { applySprite } from './sprites.js';
 import { clamp, h } from './util.js';
 import * as fx from './fx.js';
 import { sfx } from './audio.js';
+import { modalOpen } from './modal.js';
 
 const BASE_SPEED = 230;          // px / s
 const ENGAGE_MS = 12000;         // hostiles only fight a player who is actively playing
@@ -94,6 +95,8 @@ export function refreshLook() {
   const m = mountSpecies();
   player.mountEl.classList.toggle('is-on', !!m);
   if (m) applySprite(player.mountEl, m, 3);
+  lastRender = '';
+  render();
 }
 
 function shade(hex, amt) {
@@ -194,7 +197,8 @@ let lastRender = '';
 export function render() {
   if (!player.el) return;
   const flicker = clock.t < player.invulnUntil && Math.floor(clock.t / 90) % 2 === 0;
-  const key = `${player.x | 0},${player.y | 0},${player.facing},${player.walking},${flicker},${player.shield > 0},${powered()}`;
+  const mounted = player.mountEl.classList.contains('is-on');
+  const key = `${player.x | 0},${player.y | 0},${player.facing},${player.walking},${flicker},${player.shield > 0},${powered()},${mounted}`;
   if (key === lastRender) return;
   lastRender = key;
   player.el.style.transform = `translate3d(${player.x}px, ${player.y}px, 0)`;
@@ -203,7 +207,6 @@ export function render() {
   player.el.classList.toggle('is-flicker', flicker);
   player.el.classList.toggle('has-shield', player.shield > 0);
   player.el.classList.toggle('is-powered', powered());
-  const mounted = player.mountEl.classList.contains('is-on');
   player.el.classList.toggle('is-mounted', mounted);
   if (mounted) {
     player.mountEl.style.transform = `translate3d(${player.x}px, ${player.y}px, 0) scaleX(${player.facing < 0 ? -1 : 1})`;
@@ -213,7 +216,7 @@ export function render() {
 // ---------------------------------------------------------------- combat hooks
 /** Damage the player. Returns true if damage landed. */
 export function hurt(amount, source = '') {
-  if (player.dead || clock.t < player.invulnUntil) return false;
+  if (player.dead || clock.t < player.invulnUntil || modalOpen()) return false;
   if (player.shield > 0) {
     player.shield--;
     player.invulnUntil = clock.t + HIT_IFRAMES;

@@ -115,6 +115,8 @@ export function initHud(actions) {
 
   els.zone = h('div', { class: 'zone-banner' });
   hudRoot.replaceChildren(card, actionBar, tracker, corner, els.zone);
+  // Mouse clicks on HUD controls should not leave them focused (Space would re-trigger them).
+  hudRoot.addEventListener('mousedown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
 }
 
 // ---------------------------------------------------------------- per-frame update

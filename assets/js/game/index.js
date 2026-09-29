@@ -8,7 +8,7 @@ import { clock, advance } from './clock.js';
 import { on, emit } from './bus.js';
 import { initWorld, measure, readView, readScroll, onMeasure, scheduleMeasure } from './world.js';
 import * as fx from './fx.js';
-import { initModals, modalOpen, modalKey, closeAllModals } from './modal.js';
+import { initModals, modalOpen, modalKey, closeAllModals, isModalOpen } from './modal.js';
 import {
   player, initPlayer, updatePlayer, placeAtSpawn, placeInView, markAction, grace, revive, render as renderPlayer,
   reward as giveReward,
@@ -129,6 +129,7 @@ function start() {
   lastFrame = performance.now();
   raf = requestAnimationFrame(frame);
   if (!S.settings.tutorial) showCoach();
+  if (player.dead) queueMicrotask(showGameOver); // e.g. switched to Read mode on the game-over screen
   updateFooter();
 }
 
@@ -210,8 +211,12 @@ function wireInput() {
     }
     if (isEditable(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
-    // Let keyboard users activate focused buttons/links normally.
-    if ((k === ' ' || k === 'Enter') && e.target instanceof Element && e.target.closest('button, a, summary, [role="button"]')) return;
+    // Let keyboard users activate focused controls normally. A control that merely kept focus
+    // after a mouse click (not :focus-visible) must not swallow Space, so blur it and attack.
+    if ((k === ' ' || k === 'Enter') && e.target instanceof Element && e.target.closest('button, a, summary, [role="button"]')) {
+      if (k === 'Enter' || e.target.matches(':focus-visible')) return;
+      e.target.blur();
+    }
     if (ARROWS.has(k)) {
       e.preventDefault();
       keys.add(k);
@@ -274,7 +279,9 @@ function wireEvents() {
   on('player:dead', ({ source }) => {
     sfx('error');
     recordRun();
-    openGameOver({ stats: { cause: source }, onRespawn: respawn });
+    lastDeathCause = source;
+    // Defer until the current frame finishes updating (opening a modal pauses and clears the world).
+    queueMicrotask(showGameOver);
   });
 
   on('levelup', ({ level }) => banner(`Level ${level}!`, 'HP and MP fully restored.', '⭐'));
@@ -287,6 +294,12 @@ function wireEvents() {
   });
   on('boss:returned', ({ name, round }) => toast(`${name} Lv.${round} has returned!`, { icon: '⚠️' }));
   on('spell:nomp', () => toast('Not enough MP.', { icon: '🔷' }));
+}
+
+let lastDeathCause = '';
+function showGameOver() {
+  if (!running || !player.dead || isModalOpen('gameover')) return;
+  openGameOver({ stats: { cause: lastDeathCause }, onRespawn: respawn });
 }
 
 /** Field enemy kill rewards (bosses pay out in bosses.js). */

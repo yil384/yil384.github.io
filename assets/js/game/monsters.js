@@ -587,8 +587,8 @@ function enemyTurn() {
   const as = allyState(b.allyId);
   const m = pick(e.moves);
   const mult = typeMult(e.type, a.type);
-  const wildEase = b.mode === 'wild' ? 0.85 : 1;
-  const dmg = Math.round((m.power + randInt(0, 7)) * mult * levelFactor(b.enemyLv) * wildEase);
+  const ease = b.mode === 'wild' ? 0.85 : (b.rival.dmgScale ?? 1);
+  const dmg = Math.round((m.power + randInt(0, 7)) * mult * levelFactor(b.enemyLv) * ease);
   as.hp = Math.max(0, as.hp - dmg);
   if (m.heal) b.enemyHp = Math.min(b.enemyMax, b.enemyHp + m.heal);
   shakeSprite('ally');
@@ -626,8 +626,12 @@ function enemyFainted() {
   if (!b) return;
   grantBuddyXp(b.allyId, b.mode === 'rival' ? 45 : 35);
   if (b.idx < b.roster.length - 1) {
+    // A knockout rallies your buddy a little, so a small party can still take a full roster.
+    const as = allyState(b.allyId);
+    const rally = Math.round(as.max * 0.25);
+    as.hp = Math.min(as.max, as.hp + rally);
     loadEnemy(b.idx + 1);
-    log(`${b.rival.name} sent out ${SPECIES[b.enemyId].name}!`);
+    log(`${SPECIES[b.allyId].name} rallies (+${rally} HP)! ${b.rival.name} sent out ${SPECIES[b.enemyId].name}!`);
     b.busy = false;
     renderBattle();
     return;

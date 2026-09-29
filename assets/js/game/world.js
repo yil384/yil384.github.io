@@ -23,6 +23,10 @@ export function initWorld() {
   document.fonts?.ready?.then(remeasure);
   new ResizeObserver(remeasure).observe(document.getElementById('main'));
   document.addEventListener('toggle', remeasure, true);
+  // Some anchors live inside .reveal elements, which slide 18px into place on first view.
+  document.addEventListener('transitionend', (e) => {
+    if (e.propertyName === 'transform' && e.target instanceof Element && e.target.classList.contains('reveal')) remeasure();
+  }, true);
   readView();
 }
 

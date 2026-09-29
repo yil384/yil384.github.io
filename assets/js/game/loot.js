@@ -4,8 +4,8 @@ import { clock } from './clock.js';
 import { emit, on } from './bus.js';
 import { spawnsOf, onMeasure } from './world.js';
 import { ITEMS, RARITY_COLOR, RARITY_ORDER, itemPower } from './data.js';
-import { player, reward, refreshLook, markAction } from './player.js';
-import { openModal, closeModal } from './modal.js';
+import { player, reward, refreshLook } from './player.js';
+import { openModal, closeModal, isModalOpen } from './modal.js';
 import { toast, banner } from './notify.js';
 import { h, dist, pick } from './util.js';
 import * as fx from './fx.js';
@@ -44,6 +44,9 @@ export function updateLoot(dt) {
     const cx = c.sp.x + c.ox;
     const cy = c.sp.y + c.oy;
     const d = dist(player.x, player.y, cx, cy);
+    // Only a player who is actually walking picks things up. Scrolling drags the player along the
+    // viewport edge, and a reader who merely scrolls must never collect (or be engaged by) anything.
+    if (!player.walking) continue;
     if (d < 70) {
       // Magnet pull towards the player.
       const k = Math.min(1, dt * 9);
@@ -61,7 +64,7 @@ export function updateLoot(dt) {
     const d = drops[i];
     if (clock.t > d.expires) { d.el.remove(); drops.splice(i, 1); continue; }
     d.el.classList.toggle('is-expiring', d.expires - clock.t < 4000);
-    if (dist(player.x, player.y, d.x, d.y) < 26) pickUp(d);
+    if (player.walking && dist(player.x, player.y, d.x, d.y) < 26) pickUp(d);
   }
 }
 
@@ -77,7 +80,6 @@ function collect(c) {
   sfx('coin');
   fx.burst(c.sp.x + c.ox, c.sp.y + c.oy, '#f5c542', 10, 34);
   fx.text(c.sp.x, c.sp.y - 20, combo > 1 ? `COMBO ×${combo}  +${gold}` : `+${gold}`, 'gold');
-  markAction();
   save();
   emit('coin', { count: S.tokens.length });
   if (S.tokens.length === 8) {
@@ -159,10 +161,29 @@ export function itemCard(id, label) {
   );
 }
 
+// Offers are queued so two drops picked up together are both shown, and closing the
+// prompt without choosing salvages the item instead of losing it.
+const offers = [];
+
 function offerEquip(id) {
+  offers.push(id);
+  if (!isModalOpen('equip')) showNextOffer();
+}
+
+function showNextOffer() {
+  if (document.documentElement.dataset.mode !== 'play') {
+    // Left play mode with offers pending: salvage them rather than popping a modal in read mode.
+    if (offers.length) reward({ gold: 15 * offers.length });
+    offers.length = 0;
+    return;
+  }
+  const id = offers.shift();
+  if (!id) return;
   const it = ITEMS[id];
   const cur = S.equipment[it.slot];
+  let decided = false;
   const equip = () => {
+    decided = true;
     S.equipment[it.slot] = id;
     save();
     refreshLook();
@@ -171,16 +192,25 @@ function offerEquip(id) {
     emit('equip', id);
     closeModal('equip');
   };
+  const salvage = () => {
+    decided = true;
+    reward({ gold: 15 });
+    closeModal('equip');
+  };
   openModal({
     id: 'equip',
-    title: 'New gear!',
+    title: offers.length ? `New gear! (${offers.length} more)` : 'New gear!',
     className: 'equip-panel',
+    onClose: () => {
+      if (!decided) { reward({ gold: 15 }); toast(`Salvaged ${it.name} for 15 gold.`, { icon: '◆' }); }
+      if (offers.length) setTimeout(showNextOffer, 180);
+    },
     body: (b) => {
       b.append(
-        h('div', { class: 'compare' }, cur ? itemCard(cur, 'Equipped') : itemCard(null, 'Equipped'), h('span', { class: 'compare__arrow' }, '→'), itemCard(id, 'Found')),
+        h('div', { class: 'compare' }, itemCard(cur || null, 'Equipped'), h('span', { class: 'compare__arrow' }, '→'), itemCard(id, 'Found')),
         h('div', { class: 'modal__actions' },
           h('button', { type: 'button', class: 'btn btn--primary modal__primary', onclick: equip }, 'Equip'),
-          h('button', { type: 'button', class: 'btn', onclick: () => { reward({ gold: 15 }); closeModal('equip'); } }, 'Salvage (+15 gold)'),
+          h('button', { type: 'button', class: 'btn', onclick: salvage }, 'Salvage (+15 gold)'),
         ),
       );
     },
