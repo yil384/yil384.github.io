@@ -25,7 +25,7 @@
     EMOS.forEach((e, i) => pilot(slot(i, 5, 230), 1010, 900, { view: 'front', emo: e, t, key: 'pilot' + i }));
     paint(rectPts(-50, 520, W + 100, 100), { wash: PAL.night, ink: null });
     paint(rectPts(-50, 600, W + 100, H), { wash: PAL.indigo, ink: null });
-    EMOS.forEach((e, i) => pilot(slot(i, 5, 230), 1040, 430, { view: i % 2 ? 'q' : 'front', emo: e, hold: 'helmet', t, key: 'pilotm' + i }));
+    EMOS.forEach((e, i) => pilot(slot(i, 5, 230), 1040, 430, { view: i % 2 ? 'q' : 'front', emo: e, t, key: 'pilotm' + i }));
   }
   function s2(t) {   // scholar (no coat)
     bg(PAL.indigo, 900, PAL.night);
@@ -104,7 +104,15 @@
     const o = [{ rim: PAL.amber }, { rim: PAL.cream, view: 'q' }, { op: 110, view: 'q' }, { tone: [PAL.ink, .75] }, { flip: true, view: 'q', hold: 'helmet' }, { sq: .16, lean: .08 }, { armR: -1.2 + .4 * Math.sin(t * 9), emo: 'joy', coat: false }, { look: -1, hold: 'paper', emo: 'curious', view: 'q' }, { sil: PAL.indigo, view: 'side' }, { view: 'qb', hold: 'helmet', armL: -.9 }];
     o.forEach((oo, i) => pilot(150 + i * 190, 800, 430, { t, ...oo, key: 'g' + i }));
   }
+  function dev3(t) {   // DEV (removed later): decals and helmet props
+    bg(PAL.night);
+    paint(rectPts(100, 60, 1720, 420), { wash: PAL.ink, ink: null });
+    EMOS.forEach((e, i) => faceDecal(280 + i * 340, 270, 340, e, { op: 255 }));
+    EMOS.forEach((e, i) => faceDecal(280 + i * 340, 700, 340, e, { op: 110, col: PAL.cyan }));
+    [0, .5, -.4, 1.1].forEach((r, i) => helmetProp(300 + i * 300, 940, 200, r, { eta: -.3 + i * .25 }));
+  }
   function shot(t) {
+    if (t >= 22) return dev3(t);
     if (t >= 21) return dev2(t);
     if (t >= 20) return dev(t);
     if (t < 1) s0(t); else if (t < 2) s1(t); else if (t < 3) s2(t); else if (t < 4) s3(t); else if (t < 5) s4(t);

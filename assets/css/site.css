@@ -535,6 +535,7 @@ html[data-director="on"] .lede { padding: 12px 16px; margin-left: -16px; backgro
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  .js .tilewave { background-position: 0 0; } /* dividers rest in their final steel state */
 }
 
 /* ---------------- print ---------------- */

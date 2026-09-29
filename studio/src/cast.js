@@ -450,9 +450,10 @@ function drawHead(Q, P, o) {
 // a warm rim light on the lit side of the head and collar (o.rim = colour): drawn last, along the silhouette edge
 function drawRim(Q, P, col, side) {
   Q.part('rim');
-  const pick = E => (side * P.fl < 0 ? E.L : E.R);           // edges are unflipped; Q.line mirrors
-  if (P.hairEdges) { const e = pick(P.hairEdges).map(p => [p[0], p[1]]); Q.line(e.slice(0, Math.round(e.length * .62)), 1.5, col, 'ink', 0); }
-  if (P.collarEdges) Q.line(pick(P.collarEdges).map(p => [p[0], p[1]]), 1.4, col, 'ink', 0);
+  const pick = E => (side * P.fl < 0 ? E.L : E.R), inward = (side * P.fl < 0 ? 1 : -1) * 1.6 * Q.kk;   // edges are unflipped; Q.line mirrors
+  const line = (pts, sw) => Q.line(pts.map(p => [p[0] + inward, p[1]]), sw, col, 'neon', 0);
+  if (P.hairEdges) { const e = pick(P.hairEdges); line(e.slice(0, Math.round(e.length * .62)), .55); }
+  if (P.collarEdges) line(pick(P.collarEdges), .5);
 }
 
 // ---------- pilot: standing ----------
@@ -525,14 +526,21 @@ function drawHelmet(Q, P, H) {
   Q.inkP(E.pts, 1.15, .3);
 }
 
+// a held sheet, slightly bowed (two panels) so it never goes edge-on as the body turns
 function drawPaper(Q, P, C, a, pit, w, hgt) {
-  const { pr } = P, u = [Math.cos(a), 0, Math.sin(a)], v = [0, Math.cos(pit), Math.sin(pit)];
-  const corners = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([i, j]) => pr(C[0] + u[0] * w / 2 * i + v[0] * hgt / 2 * j, C[1] + u[1] * w / 2 * i + v[1] * hgt / 2 * j, C[2] + u[2] * w / 2 * i + v[2] * hgt / 2 * j));
-  const pts = corners.map(p => [p[0], p[1]]);
+  const { pr } = P, dl = .45, v = [0, Math.cos(pit), Math.sin(pit)];
   Q.part('paper');
-  Q.fillP(pts, PAL.cream); Q.inkP(pts, .8, 0);
-  const lerpP = (a2, b2, k) => [lerp(a2[0], b2[0], k), lerp(a2[1], b2[1], k)];
-  for (const k of [.25, .42, .59, .76]) Q.line([lerpP(pts[0], pts[3], k), lerpP(pts[1], pts[2], k)].map((p, i) => i ? lerpP(p, lerpP(pts[0], pts[3], k), .18) : lerpP(p, lerpP(pts[1], pts[2], k), .18)), .55, mixCol(PAL.cream, PAL.steel, .55), 'inkfine', 0);
+  const panel = ang => {
+    const u = [Math.cos(ang), 0, Math.sin(ang)];
+    const c = [[0, 1], [1, 1], [1, -1], [0, -1]].map(([i, j]) => pr(C[0] + u[0] * w / 2 * i + v[0] * hgt / 2 * j, C[1] + u[1] * w / 2 * i + v[1] * hgt / 2 * j, C[2] + u[2] * w / 2 * i + v[2] * hgt / 2 * j));
+    const pts = c.map(p => [p[0], p[1]]);
+    Q.fillP(pts, PAL.cream); Q.inkP(pts, .7, 0);
+    const mx = (p0, p1, k) => [lerp(p0[0], p1[0], k), lerp(p0[1], p1[1], k)];
+    for (const k of [.3, .5, .7]) { const l0 = mx(pts[0], pts[3], k), l1 = mx(pts[1], pts[2], k); Q.line([mx(l0, l1, .12), mx(l0, l1, .86)], .5, mixCol(PAL.cream, PAL.steel, .55), 'inkfine', 0); }
+  };
+  const a1 = a + dl, a2 = a - dl + PI;   // the second panel runs the other way from the fold
+  const z1 = pr(C[0] + Math.cos(a1) * w / 4, C[1], C[2] + Math.sin(a1) * w / 4)[2], z2 = pr(C[0] + Math.cos(a2) * w / 4, C[1], C[2] + Math.sin(a2) * w / 4)[2];
+  if (z1 < z2) { panel(a1); panel(a2); } else { panel(a2); panel(a1); }
 }
 
 function drawBody(Q, P, o) {
@@ -635,7 +643,9 @@ function drawBody(Q, P, o) {
         if (visRun(pts)) Q.line(pts.map(p => [p[0], p[1]]), .7, mixCol(HULLS, PAL.ink, .4), 'inkfine', .4);
       }
     }
-    if (!coat) {   // scholar's clasp
+    if (!coat) {   // scholar's neckline trim and clasp
+      const nr = rowsOf([[.79, .062, .046, .044], [.83, .052, .042, .040]], .79, .83, 3, r => { r.y += P.up + P.base; }), NE = edgePoly(pr, nr, true);
+      Q.fillP(NE.pts, PAL.cream); Q.shade(strip(NE.L, NE.R, sdU, .3, .1, 0), SHELL_S); Q.inkP(NE.pts, .8, .2);
       const cl = sPt(.735, 0);
       if (cl[2] > .01) { const e = ellP(cl[0], cl[1], .014 * h, .014 * h, 10); Q.fillP(e, PAL.amber); Q.inkP(e, .6, .2); }
     }
@@ -653,7 +663,7 @@ function drawBody(Q, P, o) {
   if (o.hold === 'paper' && o.armR == null) {
     add(armZ(P.R) + (seated ? 1 : 0), () => {
       const info = drawArm(Q, P, 1, P.R, sleeve);
-      drawPaper(Q, P, [P.R.W[0] + .004, P.R.W[1] + .05, P.R.W[2] + .03], seated ? -.85 : -.45, seated ? .35 : .2, .088, .120);
+      drawPaper(Q, P, [P.R.W[0] + .004, P.R.W[1] + .055, P.R.W[2] + .03], seated ? -.85 : -.45, seated ? .35 : .2, .10, .135);
       const th = ellR(info.hc[0], info.hc[1] - .006 * h, .014 * h, .010 * h, 0); Q.fillP(th, SKIN); Q.inkP(th, .6, .3);
     });
   } else add(armZ(P.R), armDraw(1, P.R));
@@ -697,7 +707,7 @@ const BIT_YAW = { front: 0, q: .75, side: 1.42 };
 
 function bitPose(x, y, r, o) {
   o = o || {};
-  const t = o.t || 0, k = r / 60, view = o.view || 'front', fl = o.flip ? -1 : 1, yaw = BIT_YAW[view] ?? 0, tilt = o.tilt || 0;
+  const t = o.t || 0, k = r / 60, view = o.view || 'front', fl = o.flip ? -1 : 1, yaw = BIT_YAW[view] ?? 0, tilt = o.tilt || 0, emo = o.emo || 'neutral';
   const cx = x + 2 * k * Math.sin(TAU * t * .6 + 1), cy = y + 6 * k * Math.sin(TAU * t * .9);
   const ct = Math.cos(tilt), st = Math.sin(tilt);
   const T = (lx, ly) => { const X = fl * lx; return [cx + X * ct - ly * st, cy + X * st + ly * ct]; };
@@ -705,12 +715,18 @@ function bitPose(x, y, r, o) {
   // the lamp clips onto the rim in the direction of its beam
   const lampA = [cx + Math.cos(beam) * r * .93, cy + Math.sin(beam) * r * .93];
   const lens = [lampA[0] + Math.cos(beam) * r * .42, lampA[1] + Math.sin(beam) * r * .42];
-  return { t, k, view, fl, yaw, tilt, cx, cy, T, beam, bl, lampA, lens, r, out: { x: cx, y: cy, lamp: [lens[0], lens[1]] } };
+  // antenna: base, a bend, and a tip that springs on the beat when excited
+  const bp = frac(bpOf(t)), sp = emo === 'excited' ? Math.exp(-bp * 4) * Math.sin(bp * 26) : Math.sin(TAU * t * .5) * .2;
+  const bx = r * Math.sin(yaw) * .5 * Math.cos(1.2);
+  const tipx = bx + r * (yaw * .06 + (emo === 'alert' ? 0 : .10) + sp * .30) * (emo === 'excited' ? 1.4 : 1);
+  const tipy = -r * (emo === 'alert' ? 1.80 : 1.62) - (emo === 'excited' ? Math.abs(sp) * r * .08 : 0);
+  const stalk = [T(bx, -r * .88), T(bx + r * (.08 + sp * .10), -r * 1.26), T(tipx, tipy)];
+  return { t, k, view, fl, yaw, tilt, emo, cx, cy, T, beam, bl, lampA, lens, r, stalk, tip: stalk[2], out: { x: cx, y: cy, lamp: [lens[0], lens[1]], tip: [stalk[2][0], stalk[2][1]] } };
 }
 function bitAnchors(x, y, r, o) { return bitPose(x, y, r, o).out; }
 
 function bit(x, y, r, o = {}) {
-  const B = bitPose(x, y, r, o), { T, k, yaw } = B, emo = o.emo || 'neutral', t = o.t || 0;
+  const B = bitPose(x, y, r, o), { T, yaw, emo, t } = B;
   const Q = mkQ({ ...o, flip: false }, r * 7, o.key || 'bit', B.cx, B.cy);
   const ell = (lx, ly, rx, ry, rot = 0, n = 16) => { const c = Math.cos(rot), s = Math.sin(rot), out = []; for (let i = 0; i < n; i++) { const a = i / n * TAU, X = Math.cos(a) * rx, Y = Math.sin(a) * ry; out.push(T(lx + X * c - Y * s, ly + X * s + Y * c)); } return out; };
   // a point on the sphere: longitude lam from the face centre, latitude phi; c = how frontal it is
@@ -766,11 +782,7 @@ function bit(x, y, r, o = {}) {
   arms.filter(a => a.a.c >= 0).forEach(drawArm);
   // antenna: a gold stalk with a bulb that pulses on the beat; it springs when excited
   Q.part('antenna');
-  const sp = emo === 'excited' ? Math.exp(-bp * 4) * Math.sin(bp * 26) : Math.sin(TAU * t * .5) * .2;
-  const ab = sph(0, 1.2), bx = ab.x * .5, tipx = bx + r * (yaw * .06 + (emo === 'alert' ? 0 : .10) + sp * .30) * (emo === 'excited' ? 1.4 : 1);
-  const tipy = -r * (emo === 'alert' ? 1.80 : 1.62) - (emo === 'excited' ? Math.abs(sp) * r * .08 : 0);
-  const st = [T(bx, -r * .88), T(bx + r * (.08 + sp * .10), -r * 1.26), T(tipx, tipy)];
-  const stalk = tubePoly(st, [r * .10, r * .085, r * .07], true, 4);
+  const st = B.stalk, stalk = tubePoly(st, [r * .10, r * .085, r * .07], true, 4);
   Q.fillP(stalk, GOLD); Q.inkP(stalk, .8, .3);
   const tr = r * .145 * (1 + .30 * pl), tip = st[2], bulb = ellPts(tip[0], tip[1], tr, tr, 14, 0, 0);
   Q.fillP(bulb, GOLD); Q.fillP(ellPts(tip[0], tip[1], tr * .5, tr * .5, 10, 0, 0), PAL.cream); Q.inkP(bulb, .8, .3);
@@ -819,11 +831,6 @@ function islander(name, x, y, h, o = {}) {
   const handCol = { nell: OWL, mo: RACC, ash: SKIN }[name];
   const shy = -.50, shx = .145;
   // the waving arm is screen-right; the other hangs
-  const arm = (s, raise, sw) => {
-    const a1 = s > 0 ? lerp(.16, 2.10, ease(raise)) + raise * .30 * sw : .12, a2 = a1 + (s > 0 ? .32 * raise + .10 : .35);
-    const S = [s * shx, shy], E = [S[0] + s * Math.sin(a1) * .17, S[1] + Math.cos(a1) * .17 * (s > 0 ? -1 : 1) * (s > 0 ? 1 : -1) * -1], W = [E[0] + s * Math.sin(a2) * .15, E[1] - Math.cos(a2) * .15 * -1];
-    return { S, E, W };
-  };
   const sw = Math.sin(TAU * 2.2 * (t + ph));
   const armDraw = (s, raise) => {
     const a1 = s > 0 ? lerp(.14, 2.05, ease(raise)) + raise * .30 * sw : .10, a2 = s > 0 ? a1 + .30 * raise + .12 : .30;
@@ -834,7 +841,7 @@ function islander(name, x, y, h, o = {}) {
     const hnd = ellP(hc[0], hc[1], .04 * h, .04 * h, 10); Q.fillP(hnd, handCol); Q.inkP(hnd, .7, .3);
     return { W, hc };
   };
-  const face = (cx, cy, s) => ({ cx, cy, s });
+  let wavehand = null;
   if (name === 'nell') {
     Q.part('nell');
     // feet, coat, book, arms, head
@@ -926,7 +933,7 @@ function islander(name, x, y, h, o = {}) {
     Q.inkP(op, .8, .2);
     if (!Q.sil) glow(lp[0] + .03 * h, lp[1] + .045 * h, .16 * h, PAL.gold, .55);
   }
-  return { head: [x, y - .70 * h], hand: null };
+  return { head: [x, y - .70 * h], hand: wavehand };
 }
 function strip2(pts, c, side, k) {           // the shadow-side part of a rounded shape (points right of c[0] + w*(1-k))
   const xs = pts.map(p => p[0]), x0 = Math.min(...xs), x1 = Math.max(...xs), cut = x1 - (x1 - x0) * k;

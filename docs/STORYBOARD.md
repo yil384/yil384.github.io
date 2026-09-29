@@ -1,5 +1,14 @@
 # STORYBOARD.md — the four videos (studio format, ClaudeAnimationBase manner)
 
+> **As built (read this first).** The shot files `studio/src/videos/{sortie,cradle,catapult,homebase}.js` are authoritative; where they differ
+> from the text below it is because the storyboard's numbers did not survive contact with the real geometry (K-01 faces **+z**, the door is at
+> z = +70, so any camera at negative z sees its back and the visor is invisible from there). Deviations: **V1-B** is filmed from the front-side
+> (camera [7.5, 1.4, 14]), **V1-C** places the Pilot on the 3D floor (billboard at depth 7.4) so his feet and scale follow the camera, **V1-F**
+> orbits behind → profile with a widening fov, **V1-G** is a profile (camera [-80, 8, 40]) and **V1-H** looks at the head from the front
+> (camera [0, 16.5, 9]); **V2** is framed on the front side with the near gantry pillars removed and Unit-7 on the left cradle arm;
+> **V4** uses an island built at scale 4 (the 18 u mech needs it) and moves the sealed door to the island's east edge. Encoding: MP4 only
+> (H.264 crf 29 `-tune animation`); VP9 came out larger for flat colour and was dropped.
+
 Companion to `DESIGN.md`. Four clips, **60 s total** (26 + 10 + 12 + 12), 1280×720 at 24 fps (world 1920×1080,
 `PROJECT.scale = 2/3`), **bpm 120** (beat = 0.5 s; every shot boundary and every hit is on a beat). Everything below
 uses only the API in `studio/ANIMATION_GUIDE.md`; nothing needs a new engine feature. Shots are numbered `V1-A …` so
