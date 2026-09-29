@@ -35,7 +35,7 @@ export function openTyping() {
   let done = false;
   const handle = openModal({
     id: 'typing',
-    title: "Pikachu's coding sprint",
+    title: 'Calibration sprint',
     className: 'game-panel',
     onClose: () => clearInterval(timer),
     body: (b) => {
@@ -48,9 +48,7 @@ export function openTyping() {
           h('span', null, 'Best ', h('b', { 'data-best': '' }, S.best.typing ? `${S.best.typing.toFixed(1)}s` : '—')),
         ),
         h('p', { class: 'game__result', 'aria-live': 'polite' }),
-        h('div', { class: 'modal__actions' },
-          h('button', { type: 'button', class: 'btn', 'data-next': '' }, 'New line'),
-        ),
+        h('div', { class: 'modal__actions' }, h('button', { type: 'button', class: 'btn', 'data-next': '' }, 'New line')),
       );
     },
   });
@@ -73,15 +71,13 @@ export function openTyping() {
     paint('');
     input.focus();
   }
-
   function paint(v) {
     tgt.replaceChildren(...[...target].map((ch, i) => {
       const cls = i < v.length ? (v[i] === ch ? 'ok' : 'bad') : i === v.length ? 'cur' : '';
       return h('span', { class: cls }, ch);
     }));
   }
-
-  const block = (e) => { e.preventDefault(); result.textContent = 'No pasting — type it out! ⌨️'; };
+  const block = (e) => { e.preventDefault(); result.textContent = 'No pasting. Type it out.'; };
   input.addEventListener('paste', block);
   input.addEventListener('drop', block);
   input.addEventListener('input', (e) => {
@@ -104,7 +100,7 @@ export function openTyping() {
       const cpm = Math.round((target.length / secs) * 60);
       // ~20 keystrokes per second is beyond human; treat it as a macro and pay nothing.
       if (target.length / secs > 20) {
-        result.textContent = `${secs.toFixed(1)}s? Suspiciously fast… no reward this time.`;
+        result.textContent = `${secs.toFixed(1)}s? Suspiciously fast. No reward this time.`;
         body.querySelector('[data-next]').focus();
         return;
       }
@@ -114,7 +110,7 @@ export function openTyping() {
         body.querySelector('[data-best]').textContent = `${S.best.typing.toFixed(1)}s`;
       }
       sfx('achievement');
-      result.textContent = finish('typing', `${secs.toFixed(1)}s · ${cpm} chars/min!`, gold, 20);
+      result.textContent = finish('typing', `${secs.toFixed(1)}s · ${cpm} chars/min.`, gold, 20);
       body.querySelector('[data-next]').focus();
     }
   });
@@ -123,7 +119,7 @@ export function openTyping() {
 }
 
 // ================================================================= memory match
-const CARDS = [['🐍', 'Python'], ['⚙️', 'C++'], ['🦀', 'Rust'], ['🐹', 'Go'], ['🟦', 'TypeScript'], ['⚡', 'Triton']];
+const CARDS = [['python', 'Python'], ['cplusplus', 'C++'], ['rust', 'Rust'], ['go', 'Go'], ['typescript', 'TypeScript'], ['linux', 'Linux']];
 
 export function openMemory() {
   let flipped = [];
@@ -135,11 +131,11 @@ export function openMemory() {
   let dealId = 0;
   const handle = openModal({
     id: 'memory',
-    title: "Kirby's memory match",
+    title: 'Memory match',
     className: 'game-panel',
     onClose: () => clearInterval(timer),
     body: (b) => b.append(
-      h('p', { class: 'game__hint' }, 'Match the language pairs.'),
+      h('p', { class: 'game__hint' }, 'Match the pairs.'),
       h('div', { class: 'memory' }),
       h('div', { class: 'game__stats' },
         h('span', null, 'Time ', h('b', { 'data-t': '' }, '0.0'), 's'),
@@ -169,13 +165,12 @@ export function openMemory() {
     grid.replaceChildren(...deck.map((c) => {
       const card = h('button', { type: 'button', class: 'memory__card', 'aria-label': 'Hidden card' },
         h('span', { class: 'memory__back' }, '?'),
-        h('span', { class: 'memory__face' }, h('span', null, c.face), h('small', null, c.label)),
+        h('span', { class: 'memory__face' }, h('img', { src: `assets/icons/brand/${c.face}.svg`, alt: '', width: 28, height: 28 }), h('small', null, c.label)),
       );
       card.addEventListener('click', () => flip(card, c));
       return card;
     }));
   }
-
   function flip(card, c) {
     if (lock || card.classList.contains('is-up')) return;
     if (!start) {
@@ -204,7 +199,7 @@ export function openMemory() {
         }
         const gold = secs < 25 ? 160 : secs < 45 ? 100 : 60;
         sfx('achievement');
-        result.textContent = finish('memory', `Cleared in ${secs.toFixed(1)}s and ${moves} moves!`, gold, 20);
+        result.textContent = finish('memory', `Cleared in ${secs.toFixed(1)}s and ${moves} moves.`, gold, 20);
       }
     } else {
       lock = true;
@@ -231,7 +226,7 @@ export function openSnake() {
   let snake, dir, nextDir, food, score, timer = 0, running = false, speed;
   const handle = openModal({
     id: 'snake',
-    title: "Link's snake trial",
+    title: 'Garden snake',
     className: 'game-panel',
     onClose: () => clearInterval(timer),
     onKey: (e) => {
@@ -266,7 +261,6 @@ export function openSnake() {
     do { food = [Math.floor(Math.random() * N), Math.floor(Math.random() * N)]; }
     while (snake.some((s) => s[0] === food[0] && s[1] === food[1]));
   }
-
   function begin() {
     snake = [[10, 10], [9, 10], [8, 10]];
     dir = [1, 0]; nextDir = dir; score = 0; speed = 140;
@@ -278,7 +272,6 @@ export function openSnake() {
     timer = setInterval(tick, speed);
     draw();
   }
-
   function tick() {
     if (!isModalOpen('snake')) { clearInterval(timer); return; }
     dir = nextDir;
@@ -291,7 +284,7 @@ export function openSnake() {
         S.best.snake = score;
         body.querySelector('[data-best]').textContent = String(score);
       }
-      result.textContent = finish('snake', `Game over — ${score} points.`, score * 2, Math.min(40, score));
+      result.textContent = finish('snake', `Game over: ${score} points.`, score * 2, Math.min(40, score));
       draw(true);
       return;
     }
@@ -307,16 +300,12 @@ export function openSnake() {
     }
     draw();
   }
-
   function draw(dead = false) {
     g.fillStyle = '#070b16';
     g.fillRect(0, 0, cv.width, cv.height);
     g.fillStyle = 'rgba(148,163,184,0.06)';
     for (let x = 0; x < N; x++) for (let y = 0; y < N; y++) if ((x + y) % 2) g.fillRect(x * CELL, y * CELL, CELL, CELL);
-    if (food) {
-      g.fillStyle = '#f5c542';
-      g.fillRect(food[0] * CELL + 3, food[1] * CELL + 3, CELL - 6, CELL - 6);
-    }
+    if (food) { g.fillStyle = '#f2b84b'; g.fillRect(food[0] * CELL + 3, food[1] * CELL + 3, CELL - 6, CELL - 6); }
     (snake || []).forEach((s, i) => {
       g.fillStyle = dead ? '#f87171' : i === 0 ? '#86efac' : '#22c55e';
       g.fillRect(s[0] * CELL + 1, s[1] * CELL + 1, CELL - 2, CELL - 2);
@@ -337,17 +326,12 @@ export function openBreakout() {
   document.addEventListener('keyup', onUp);
   const handle = openModal({
     id: 'breakout',
-    title: "Squirtle's breakout",
+    title: 'Pond breakout',
     className: 'game-panel',
     onClose: () => { cancelAnimationFrame(raf); document.removeEventListener('keyup', onUp); },
     onKey: (e) => {
       const d = dirOf(e.key);
-      if (d) {
-        e.preventDefault();
-        keys.add(d);
-        if (!running) begin();
-        return true;
-      }
+      if (d) { e.preventDefault(); keys.add(d); if (!running) begin(); return true; }
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!running) begin(); return true; }
       return false;
     },
@@ -373,19 +357,13 @@ export function openBreakout() {
     const r = cv.getBoundingClientRect();
     paddle.x = Math.max(0, Math.min(W - paddle.w, ((e.clientX - r.left) / r.width) * W - paddle.w / 2));
   });
-
-  function resetBall() {
-    ball = { x: W / 2, y: H - 40, vx: (Math.random() < 0.5 ? -1 : 1) * 150, vy: -190, r: 4 };
-  }
-
+  function resetBall() { ball = { x: W / 2, y: H - 40, vx: (Math.random() < 0.5 ? -1 : 1) * 150, vy: -190, r: 4 }; }
   function begin() {
     paddle = { x: W / 2 - 30, w: 60, h: 8 };
     resetBall();
-    const colors = ['#f87171', '#fb923c', '#f5c542', '#4ade80'];
+    const colors = ['#f87171', '#fb923c', '#f2b84b', '#4ade80'];
     bricks = [];
-    for (let row = 0; row < 4; row++) for (let col = 0; col < 8; col++) {
-      bricks.push({ x: col * 39 + 6, y: row * 16 + 22, w: 34, h: 11, alive: true, c: colors[row] });
-    }
+    for (let row = 0; row < 4; row++) for (let col = 0; col < 8; col++) bricks.push({ x: col * 39 + 6, y: row * 16 + 22, w: 34, h: 11, alive: true, c: colors[row] });
     broken = 0; lives = 3; running = true;
     body.querySelector('[data-s]').textContent = '0';
     body.querySelector('[data-l]').textContent = '3';
@@ -401,7 +379,6 @@ export function openBreakout() {
     };
     raf = requestAnimationFrame(loop);
   }
-
   function end(won) {
     running = false;
     cancelAnimationFrame(raf);
@@ -410,9 +387,8 @@ export function openBreakout() {
       body.querySelector('[data-best]').textContent = String(broken);
     }
     sfx(won ? 'victory' : 'error');
-    result.textContent = finish('breakout', won ? `Cleared all ${broken} bricks!` : `Out of lives — ${broken} bricks.`, broken * 6 + (won ? 150 : 0), Math.min(50, broken * 2));
+    result.textContent = finish('breakout', won ? `Cleared all ${broken} bricks.` : `Out of lives: ${broken} bricks.`, broken * 6 + (won ? 150 : 0), Math.min(50, broken * 2));
   }
-
   function step(dt) {
     if (keys.has('L')) paddle.x = Math.max(0, paddle.x - 420 * dt);
     if (keys.has('R')) paddle.x = Math.min(W - paddle.w, paddle.x + 420 * dt);
@@ -447,7 +423,6 @@ export function openBreakout() {
     }
     if (bricks.every((b) => !b.alive)) end(true);
   }
-
   function draw() {
     g.fillStyle = '#070b16';
     g.fillRect(0, 0, W, H);
@@ -458,16 +433,8 @@ export function openBreakout() {
       g.fillStyle = 'rgba(255,255,255,0.25)';
       g.fillRect(b.x, b.y, b.w, 2);
     }
-    if (paddle) {
-      g.fillStyle = '#60a5fa';
-      g.fillRect(paddle.x, H - 14, paddle.w, paddle.h);
-    }
-    if (ball) {
-      g.fillStyle = '#fff';
-      g.beginPath();
-      g.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
-      g.fill();
-    }
+    if (paddle) { g.fillStyle = '#60a5fa'; g.fillRect(paddle.x, H - 14, paddle.w, paddle.h); }
+    if (ball) { g.fillStyle = '#fff'; g.beginPath(); g.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2); g.fill(); }
   }
   body.querySelector('[data-go]').addEventListener('click', begin);
   g.fillStyle = '#070b16';

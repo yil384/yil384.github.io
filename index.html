@@ -22,10 +22,11 @@
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/game.css">
 
   <script type="importmap">
   {
@@ -67,11 +68,14 @@
 
     <nav class="nav" aria-label="Site">
       <a class="nav__name" href="#top">Yichen Lin</a>
+      <input type="checkbox" id="nav-toggle" class="nav__toggle" aria-label="Menu">
+      <label for="nav-toggle" class="nav__burger" aria-hidden="true"><img src="assets/icons/ui/menu.svg" alt="" width="20" height="20"></label>
       <div class="nav__links">
         <a href="#about">About</a>
         <a href="#publications">Publications</a>
         <a href="#experience">Experience</a>
         <a href="#projects">Projects</a>
+        <a href="#contact">Contact</a>
         <button type="button" class="nav__play" id="play-btn" hidden>
           <img src="assets/icons/ui/gamepad-2.svg" alt="" width="16" height="16"> Explore the island
         </button>
@@ -89,13 +93,14 @@
         <li><a href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener"><img src="assets/icons/brand/linkedin.svg" alt="" width="18" height="18">LinkedIn</a></li>
       </ul>
     </div>
-    <p class="hero__hint" id="hero-hint" hidden><kbd>P</kbd> or the button above walks onto the island.</p>
+    <p class="hero__hint" id="hero-hint" hidden>The island above is playable: a small voxel world with the same three.js scene. Desktop with a keyboard.</p>
   </header>
 
   <main class="page">
 
-    <section class="sec" id="about">
+    <section class="sec sec--about" id="about">
       <h2>About</h2>
+      <img class="about__portrait" src="assets/img/portrait.webp" alt="Yichen Lin" width="140" height="140" loading="lazy">
       <div class="sec__body prose">
         <p>I'm a Ph.D. student at UC San Diego, working with Prof. Yufei Ding. I did my undergraduate degree in Computer Science and Technology at Tsinghua University.</p>
         <p>My research sits between systems and machine learning: compilers, GPU code generation, and the tooling that lets LLM agents do real engineering work. The most recent project is TritonGym, a benchmark for agentic workflows that write Triton GPU kernels.</p>
@@ -108,15 +113,15 @@
       <h2>Publications</h2>
       <ol class="pubs sec__body">
         <li class="pub">
-          <div class="pub__venue-mark"><img src="assets/logos/icml-mark-white.svg" alt="ICML" width="34" height="34"></div>
+          <p class="pub__year">2026</p>
           <div>
             <p class="pub__title">TritonGym: A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation</p>
-            <p class="pub__authors">Yue Guan*, <b>Yichen Lin</b>*, et al.</p>
-            <p class="pub__meta">Under review at ICML 2026 <span class="pub__note">· * equal contribution</span></p>
+            <p class="pub__authors">Yue Guan*, <b>Yichen Lin</b>*, et al. <span class="pub__note">* equal contribution</span></p>
+            <p class="pub__meta"><span class="pub__status">Under review</span> ICML 2026</p>
           </div>
         </li>
         <li class="pub">
-          <div class="pub__venue-mark"><img src="assets/icons/brand/ieee.svg" alt="IEEE" width="52" height="17"></div>
+          <p class="pub__year">2023</p>
           <div>
             <p class="pub__title">(Re)²H₂O: Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning</p>
             <p class="pub__authors">Haoyi Niu*, Kun Ren*, <b>Yichen Lin</b>, et al.</p>
@@ -237,7 +242,7 @@
           <li><img src="assets/icons/brand/go.svg" alt="" width="20" height="20">Go</li>
           <li><img src="assets/icons/brand/typescript.svg" alt="" width="20" height="20">TypeScript</li>
           <li><img src="assets/icons/brand/javascript.svg" alt="" width="20" height="20">JavaScript</li>
-          <li><img src="assets/icons/brand/verilog.svg" alt="" width="20" height="20">Verilog</li>
+          <li><img src="assets/icons/ui/cpu.svg" alt="" width="20" height="20">Verilog</li>
         </ul>
         <ul class="tools" aria-label="Tools">
           <li><img src="assets/icons/brand/linux.svg" alt="" width="20" height="20">Linux</li>

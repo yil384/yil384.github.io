@@ -1,26 +1,28 @@
 // Monster trainer system: party & buddy progression, mounts, the hub panels, and
 // turn-based encounters in the grass (plus rival duels).
+// Ported to the island: grass patches are 3D actors placed per zone, portraits are 2D pixel renders.
 import { S, save } from './state.js';
 import { clock } from './clock.js';
 import { emit } from './bus.js';
-import { spawnsOf, onMeasure, readView } from './world.js';
 import {
   SPECIES, TYPE_COLOR, WILD_TABLES, EVOLUTIONS, EVOLVE_LEVEL, BUDDY_MAX_LEVEL, buddyXpNeeded,
   RIVALS, BADGES, typeMult,
 } from './data.js';
-import { player, reward, fullRestore, refreshLook, placeInView } from './player.js';
+import { player, reward, fullRestore, refreshLook } from './player.js';
 import { openModal, closeModal } from './modal.js';
-import { applySprite } from './sprites.js';
+import { spriteImg } from './pixelart.js';
+import { makeActor } from './actors.js';
 import { toast, banner } from './notify.js';
-import { h, esc, pick, randInt, clamp, $ } from './util.js';
+import { h, esc, pick, randInt, clamp } from './util.js';
 import { sfx } from './audio.js';
+import { ZONES } from './world.js';
 
 const T = () => S.trainer;
 
 // ---------------------------------------------------------------- party helpers
 export function activeId() {
   const t = T();
-  if (!t.party.length) t.party = ['eevee'];
+  if (!t.party.length) t.party = ['bit'];
   if (!t.party.includes(t.active)) t.active = t.party[0];
   return t.active;
 }
@@ -42,9 +44,9 @@ export function grantBuddyXp(id, n) {
   if (lv >= BUDDY_MAX_LEVEL) t.xp[id] = 0;
   t.levels[id] = lv;
   if (up) {
-    toast(`${SPECIES[id].name} grew to Lv.${lv}!`, { icon: '⬆️', tone: 'good' });
+    toast(`${SPECIES[id].name} grew to Lv.${lv}!`, { icon: 'upgrade', tone: 'good' });
     emit('buddy:levelup', { id, level: lv });
-    if (canEvolve(id)) toast(`${SPECIES[id].name} can evolve! Visit the Evolution Lab in the Adventure hub.`, { icon: '✨', tone: 'gold' });
+    if (canEvolve(id)) toast(`${SPECIES[id].name} can evolve! Ask Unit-7 at the field station.`, { icon: 'dna2', tone: 'gold' });
   }
   save();
   renderHub();
@@ -60,7 +62,7 @@ export function setActive(id, quiet = false) {
   if (!t.party.includes(id)) return;
   t.active = id;
   save();
-  if (!quiet) toast(`Go, ${SPECIES[id].name}!`, { icon: '🐾' });
+  if (!quiet) toast(`Go, ${SPECIES[id].name}!`, { icon: 'paw-print' });
   emit('buddy:changed', id);
   renderHub();
 }
@@ -68,7 +70,7 @@ export function setActive(id, quiet = false) {
 export function cycleActive() {
   const t = T();
   if (t.party.length < 2) {
-    toast('Catch more monsters in the grass to swap buddies.', { icon: '🌿' });
+    toast('Catch more creatures in the tall grass to swap companions.', { icon: 'sprout' });
     return;
   }
   const i = t.party.indexOf(activeId());
@@ -85,7 +87,7 @@ export function capture(id, { quiet = false } = {}) {
   if (!t.party.includes(id)) t.party.push(id);
   if (fresh) {
     S.stats.captures++;
-    if (SPECIES[id].mount && !quiet) toast(`Mount unlocked: ${SPECIES[id].mount.name}!`, { icon: '🐎', tone: 'gold' });
+    if (SPECIES[id].mount && !quiet) toast(`Mount unlocked: ${SPECIES[id].mount.name}!`, { icon: 'horse-head', tone: 'gold' });
   }
   save();
   emit('capture', { id, fresh });
@@ -96,7 +98,7 @@ export function setMount(id) {
   T().mount = id || null;
   save();
   refreshLook();
-  toast(id ? `Riding ${SPECIES[id].mount.name}.` : 'Back on foot.', { icon: id ? '🐎' : '🚶' });
+  toast(id ? `Riding ${SPECIES[id].mount.name}.` : 'Back on foot.', { icon: id ? 'horse-head' : 'footprint' });
   emit('mount:changed', id);
   renderHub();
 }
@@ -105,7 +107,7 @@ export function evolveActive() {
   const id = activeId();
   if (!canEvolve(id)) {
     const to = EVOLUTIONS[id];
-    toast(to ? `${SPECIES[id].name} evolves at Lv.${EVOLVE_LEVEL} (now Lv.${buddyLevel(id)}).` : `${SPECIES[id].name} has no evolution.`, { icon: '🧬' });
+    toast(to ? `${SPECIES[id].name} evolves at Lv.${EVOLVE_LEVEL} (now Lv.${buddyLevel(id)}).` : `${SPECIES[id].name} has no evolution.`, { icon: 'dna2' });
     return;
   }
   const to = EVOLUTIONS[id];
@@ -120,7 +122,7 @@ export function evolveActive() {
   S.stats.captures++;
   save();
   sfx('levelup');
-  banner(`${SPECIES[id].name} evolved!`, `Say hello to ${SPECIES[to].name}.`, '✨');
+  banner(`${SPECIES[id].name} evolved!`, `Say hello to ${SPECIES[to].name}.`, 'dna2');
   refreshLook();
   emit('buddy:changed', to);
   emit('capture', { id: to, fresh: true });
@@ -131,7 +133,7 @@ export function restock() {
   const now = Date.now();
   const t = T();
   if (now < t.restockAt) {
-    toast(`Supplies arrive in ${Math.ceil((t.restockAt - now) / 1000)}s.`, { icon: '⏳' });
+    toast(`Supplies arrive in ${Math.ceil((t.restockAt - now) / 1000)}s.`, { icon: 'hourglass' });
     return;
   }
   t.bag.capsules += 2;
@@ -139,47 +141,39 @@ export function restock() {
   t.restockAt = now + 90000;
   save();
   sfx('purchase');
-  toast('Bag restocked: +2 capsules, +1 potion.', { icon: '🎒', tone: 'good' });
+  toast('Bag restocked: +2 capsules, +1 potion.', { icon: 'backpack', tone: 'good' });
   renderHub();
 }
 
 export function restoreAtStation() {
   fullRestore();
   sfx('heal');
-  toast('Rested at the field station. HP and MP restored.', { icon: '🏕️', tone: 'good' });
+  toast('Rested at the field station. HP and MP restored.', { icon: 'camping-tent', tone: 'good' });
 }
 
 // ---------------------------------------------------------------- fast travel
 export function travelSpots() {
   const t = T();
   return [
-    { id: 'profile', label: 'Profile Hall', open: true },
-    { id: 'adventure', label: 'Adventure Hub', open: t.badges.includes('logic'), need: 'Logic Badge' },
-    { id: 'dragon-lair', label: 'Dragon Lair', open: t.badges.includes('wild'), need: 'Wild Badge' },
-    { id: 'secret-chamber', label: 'Secret Chamber', open: S.secret.unsealed, need: 'three runes' },
+    { id: 'plaza', label: 'Library plaza', open: true },
+    { id: 'camp', label: 'Field station', open: true },
+    { id: 'ice', label: 'Ice cavern', open: t.badges.includes('library'), need: 'the Library Badge' },
+    { id: 'peak', label: 'Dragon peak', open: t.badges.includes('forge'), need: 'the Forge Badge' },
+    { id: 'chamber', label: 'Secret chamber', open: S.secret.unsealed, need: 'all three runes' },
   ];
 }
-
+let teleport = null;
+export const onTravel = (fn) => { teleport = fn; };
 export function travelTo(id) {
-  const el = document.getElementById(id);
-  if (!el || el.hidden) return;
-  el.scrollIntoView({ behavior: 'instant', block: 'start' });
-  readView();
-  placeInView();
-  toast(`Fast travelled to ${el.dataset.zone || id}.`, { icon: '🌀' });
+  const zn = ZONES[id];
+  if (!zn) return;
+  teleport?.(zn.x, zn.z + (id === 'peak' ? 6 : 3));
+  toast(`Travelled to the ${zn.label.toLowerCase()}.`, { icon: 'magic-portal' });
 }
 
-// ---------------------------------------------------------------- hub rendering
-function spriteNode(id, scale = 2, cls = '') {
-  const n = h('span', { class: `mini-sprite ${cls}` });
-  applySprite(n, id, scale);
-  return n;
-}
-
-function typeChip(type) {
-  return h('span', { class: 'type-chip', style: { '--tc': TYPE_COLOR[type] || '#94a3b8' } }, type);
-}
-
+// ---------------------------------------------------------------- party panel
+function spriteNode(id, scale = 3) { return spriteImg(SPECIES[id]?.sprite || id, scale, 'mini-sprite'); }
+function typeChip(type) { return h('span', { class: 'type-chip', style: { '--tc': TYPE_COLOR[type] || '#94a3b8' } }, type); }
 export function partyList() {
   const t = T();
   const wrap = h('div', { class: 'party__list' });
@@ -189,158 +183,86 @@ export function partyList() {
     const need = buddyXpNeeded(lv);
     const active = id === activeId();
     wrap.append(h('div', { class: `party__slot${active ? ' is-active' : ''}` },
-      spriteNode(id, 2),
+      spriteNode(id, 3),
       h('div', { class: 'party__info' },
         h('div', { class: 'party__name' }, sp.name, h('span', { class: 'party__lv' }, `Lv.${lv}`)),
         h('div', { class: 'party__meta' }, typeChip(sp.type), h('span', { class: 'muted' }, sp.field.sig.name)),
         h('div', { class: 'mini-bar' }, h('span', { style: { transform: `scaleX(${lv >= BUDDY_MAX_LEVEL ? 1 : buddyXp(id) / need})` } })),
       ),
-      h('button', {
-        type: 'button', class: `btn btn--small${active ? ' is-on' : ''}`, disabled: active,
-        onclick: () => setActive(id),
-      }, active ? 'Active' : 'Set'),
+      h('button', { type: 'button', class: `btn btn--small${active ? ' is-on' : ''}`, disabled: active, onclick: () => setActive(id) }, active ? 'Active' : 'Set'),
     ));
   }
   return wrap;
 }
-
-export function renderHub() {
+export function dexList() {
   const t = T();
-  const party = $('#party-list');
-  if (party) party.replaceChildren(partyList());
-
-  const dex = $('#dex-grid');
-  if (dex) {
-    const ids = Object.keys(SPECIES);
-    const seen = ids.filter((id) => t.seen[id]).length;
-    const caught = ids.filter((id) => t.captured[id]).length;
-    $('#dex-count').textContent = `${caught} caught · ${seen}/${ids.length} seen`;
-    dex.replaceChildren(...ids.map((id) => {
-      const sp = SPECIES[id];
-      const s = t.seen[id];
-      const c = t.captured[id];
-      return h('div', { class: `dex__card${c ? ' is-caught' : s ? ' is-seen' : ''}` },
-        s ? spriteNode(id, 2) : h('span', { class: 'dex__unknown' }, '?'),
-        h('div', { class: 'dex__name' }, s ? sp.name : '???'),
-        s ? typeChip(sp.type) : h('span', { class: 'muted' }, 'Unknown'),
-        h('p', { class: 'dex__desc' }, s ? sp.desc : 'Not discovered yet.'),
-        h('div', { class: 'dex__status' }, c ? `Caught · Lv.${buddyLevel(id)}` : s ? 'Seen' : '—'),
-      );
-    }));
-  }
-
-  const bag = $('#bag-list');
-  if (bag) {
-    bag.innerHTML = `
-      <div class="bag__row"><span>🧿 Capture capsules</span><b>${t.bag.capsules}</b></div>
-      <div class="bag__row"><span>🧪 Buddy potions</span><b>${t.bag.potions}</b></div>`;
-  }
-
-  const mounts = $('#mount-list');
-  if (mounts) {
-    const avail = Object.keys(t.captured).filter((id) => t.captured[id] && SPECIES[id]?.mount);
-    mounts.replaceChildren(
-      ...avail.map((id) => h('button', {
-        type: 'button', class: `pill${t.mount === id ? ' is-on' : ''}`, onclick: () => setMount(t.mount === id ? null : id),
-        title: `+${SPECIES[id].mount.bonus.toFixed(1)} speed`,
-      }, `${SPECIES[id].mount.name}`)),
-      h('button', { type: 'button', class: `pill${!t.mount ? ' is-on' : ''}`, onclick: () => setMount(null) }, 'On foot'),
+  return h('div', { class: 'dex' }, ...Object.keys(SPECIES).map((id) => {
+    const sp = SPECIES[id];
+    const seen = t.seen[id], caught = t.captured[id];
+    return h('div', { class: `dex__card${caught ? ' is-caught' : seen ? ' is-seen' : ''}` },
+      seen ? spriteNode(id, 3) : h('span', { class: 'dex__unknown' }, '?'),
+      h('div', { class: 'dex__name' }, seen ? sp.name : '???'),
+      seen ? typeChip(sp.type) : h('span', { class: 'muted' }, 'Unknown'),
+      h('p', { class: 'dex__desc' }, seen ? sp.desc : 'Not met yet.'),
+      h('div', { class: 'dex__status' }, caught ? `Caught · Lv.${buddyLevel(id)}` : seen ? 'Seen' : '—'),
     );
-    if (!avail.length) mounts.prepend(h('span', { class: 'muted small' }, 'Catch Pikachu, Growlithe, Lapras or Dragonair to ride them. '));
-  }
-
-  const travel = $('#travel-list');
-  if (travel) {
-    travel.replaceChildren(...travelSpots().map((s) => h('button', {
-      type: 'button', class: `pill${s.open ? '' : ' is-locked'}`, disabled: !s.open,
-      title: s.open ? `Travel to ${s.label}` : `Requires ${s.need}`,
-      onclick: () => travelTo(s.id),
-    }, s.open ? s.label : `🔒 ${s.label}`)));
-  }
-
-  const duels = $('#duel-list');
-  if (duels) {
-    duels.replaceChildren(...Object.entries(RIVALS).map(([key, r]) => {
-      const won = !!t.wins[key];
-      const locked = r.requires && !t.badges.includes(r.requires);
-      return h('div', { class: `duel${won ? ' is-won' : ''}` },
-        h('div', { class: 'duel__roster' }, ...r.roster.map((id) => spriteNode(id, 2))),
-        h('div', { class: 'duel__info' },
-          h('div', { class: 'duel__name' }, r.name, won ? h('span', { class: 'duel__won' }, '✓ cleared') : null),
-          h('p', { class: 'muted small' }, r.blurb),
-        ),
-        h('button', {
-          type: 'button', class: 'btn btn--small', disabled: locked,
-          title: locked ? `Requires ${BADGES[r.requires]}` : '',
-          onclick: () => startRival(key),
-        }, locked ? '🔒 Locked' : won ? 'Rematch' : 'Duel'),
-      );
-    }));
-  }
-
-  const badges = $('#badge-list');
-  if (badges) {
-    badges.replaceChildren(...Object.entries(BADGES).map(([k, label]) =>
-      h('span', { class: `badge-chip${t.badges.includes(k) ? ' is-on' : ''}` }, `${t.badges.includes(k) ? '🏅' : '◌'} ${label}`)));
-  }
-  emit('hub:render');
+  }));
 }
+export function mountList() {
+  const t = T();
+  const avail = Object.keys(t.captured).filter((id) => t.captured[id] && SPECIES[id]?.mount);
+  const wrap = h('div', { class: 'mounts' },
+    ...avail.map((id) => h('button', { type: 'button', class: `pill${t.mount === id ? ' is-on' : ''}`, onclick: () => setMount(t.mount === id ? null : id), title: `+${SPECIES[id].mount.bonus.toFixed(1)} speed` }, SPECIES[id].mount.name)),
+    h('button', { type: 'button', class: `pill${!t.mount ? ' is-on' : ''}`, onclick: () => setMount(null) }, 'On foot'),
+  );
+  if (!avail.length) wrap.prepend(h('span', { class: 'muted small' }, 'Catch Sparkit, Emberling, Tidefin or Wyrmlet to ride them. '));
+  return wrap;
+}
+export function travelList() {
+  return h('div', { class: 'travel' }, ...travelSpots().map((s) => h('button', {
+    type: 'button', class: `pill${s.open ? '' : ' is-locked'}`, disabled: !s.open, title: s.open ? `Travel to ${s.label}` : `Requires ${s.need}`,
+    onclick: () => { closeModal(); travelTo(s.id); },
+  }, s.open ? s.label : `Locked · ${s.label}`)));
+}
+export function renderHub() { emit('hub:render'); }
 
 // ---------------------------------------------------------------- grass & encounters
 const grass = [];
 let encounterCooldown = 0;
-let lastStep = { x: 0, y: 0 };
+let lastStep = { x: 0, z: 0 };
 let battle = null;
+const GRASS_PATCHES = { meadow: [[3, 5], [-5, -1], [6, -2], [-1, 6]], camp: [[3, 3], [-4, -3]], shadow: [[-3, 5], [4, 4]], peak: [[-6, 3], [7, 2]] };
 
-export function initMonsters() {
+export function initMonsters(world, scene) {
   activeId();
-  const layer = document.getElementById('world');
-  for (const sp of spawnsOf('grass')) {
-    const el = h('div', { class: 'grass' }, h('span', { class: 'grass__label' }, sp.data.label || 'Tall grass'));
-    layer.append(el);
-    grass.push({ sp, el, w: 150, h: 64 });
-  }
-  const sync = () => {
-    for (const g of grass) {
-      g.el.hidden = !g.sp.active;
-      g.el.style.transform = `translate3d(${g.sp.x}px, ${g.sp.y}px, 0)`;
+  for (const [zone, spots] of Object.entries(GRASS_PATCHES)) {
+    for (const [ox, oz] of spots) {
+      const zn = ZONES[zone];
+      const x = zn.x + ox, z = zn.z + oz;
+      if (!world.walkable(x, z)) continue;
+      for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+        if (!world.walkable(x + dx, z + dz) || world.isBlocked(x + dx, z + dz) || world.typeAt(x + dx, z + dz) === world.TYPE.PATH) continue;
+        const tuft = makeActor('grass', { scale: 0.11, maxHalf: 3 });
+        tuft.position.set(x + dx, world.surfaceY(x + dx, z + dz) - 0.1, z + dz);
+        tuft.rotation.y = Math.random() * 6.28;
+        for (const f of tuft.userData.frames) f.castShadow = false;
+        scene.add(tuft);
+      }
+      grass.push({ x, z, zone, r: 1.9 });
     }
-  };
-  onMeasure(sync);
-  document.querySelector('#hub')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-action]');
-    if (!b) return;
-    const a = b.dataset.action;
-    if (a === 'restore') restoreAtStation();
-    else if (a === 'restock') restock();
-    else if (a === 'evolve') evolveActive();
-  });
-  renderHub();
-}
-
-function grassAt(x, y) {
-  for (const g of grass) {
-    if (!g.sp.active) continue;
-    if (Math.abs(x - g.sp.x) < g.w / 2 && Math.abs(y - g.sp.y) < g.h / 2) return g;
   }
-  return null;
 }
-
+function grassAt(x, z) { for (const g of grass) if (Math.hypot(x - g.x, z - g.z) < g.r) return g; return null; }
 export function updateGrass() {
   if (battle || player.dead) return;
-  const g = grassAt(player.x, player.y);
-  for (const x of grass) x.el.classList.toggle('is-rustling', x === g && player.walking);
-  if (!g || !player.walking || clock.t < encounterCooldown) {
-    lastStep = { x: player.x, y: player.y };
-    return;
-  }
-  if (Math.hypot(player.x - lastStep.x, player.y - lastStep.y) < 22) return;
-  lastStep = { x: player.x, y: player.y };
+  const g = grassAt(player.x, player.z);
+  if (!g || !player.walking || clock.t < encounterCooldown) { lastStep = { x: player.x, z: player.z }; return; }
+  if (Math.hypot(player.x - lastStep.x, player.z - lastStep.z) < 0.9) return;
+  lastStep = { x: player.x, z: player.z };
   const m = S.trainer.mount ? SPECIES[S.trainer.mount]?.mount?.bonus || 0 : 0;
-  if (Math.random() < Math.max(0.05, 0.11 - m * 0.012)) startWild(g.sp.data.biome);
+  if (Math.random() < Math.max(0.06, 0.13 - m * 0.012)) startWild(g.zone);
 }
 
-// Both sides scale the same way with level, so a trained buddy actually feels stronger.
 function levelFactor(lv) { return 1 + (lv - 1) * 0.08; }
 const hpAt = (id, lv) => Math.round(SPECIES[id].maxHp * levelFactor(lv));
 
@@ -397,15 +319,15 @@ function loadEnemy(i) {
 
 export function startWild(biome) {
   if (battle) return;
-  const id = pick(WILD_TABLES[biome] || WILD_TABLES['research-garden']);
-  startBattle({ mode: 'wild', biome, roster: [id], intro: `A wild ${SPECIES[id].name} jumped out of the ${biome.replace(/-/g, ' ')}!` });
+  const id = pick(WILD_TABLES[biome] || WILD_TABLES.meadow);
+  startBattle({ mode: 'wild', biome, roster: [id], intro: `A wild ${SPECIES[id].name} jumped out of the grass!` });
 }
 
 export function startRival(key) {
   const r = RIVALS[key];
   if (!r || battle) return;
   if (r.requires && !S.trainer.badges.includes(r.requires)) {
-    toast(`Earn the ${BADGES[r.requires]} first.`, { icon: '🔒' });
+    toast(`Earn the ${BADGES[r.requires]} first.`, { icon: 'lock' });
     return;
   }
   startBattle({ mode: 'rival', rival: { levelBump: 0, ...r }, key, roster: r.roster.slice(), intro: r.intro });
@@ -469,20 +391,20 @@ function renderBattle() {
   const a = SPECIES[aId];
   const as = allyState(aId);
   const alv = buddyLevel(aId);
-  q('mode').textContent = b.mode === 'rival' ? `RIVAL DUEL · ${b.idx + 1}/${b.roster.length}` : (b.biome || 'tall grass').replace(/-/g, ' ').toUpperCase();
+  q('mode').textContent = b.mode === 'rival' ? `RIVAL DUEL · ${b.idx + 1}/${b.roster.length}` : (ZONES[b.biome]?.label || 'Tall grass').toUpperCase();
   q('roster').innerHTML = b.roster.map((_, i) => `<i class="${i < b.idx ? 'is-down' : i === b.idx ? 'is-on' : ''}"></i>`).join('');
   q('ename').textContent = e.name;
   q('elv').textContent = `Lv.${b.enemyLv}`;
   q('etype').replaceChildren(typeChip(e.type));
   q('ehp').style.transform = `scaleX(${Math.max(0, b.enemyHp / b.enemyMax)})`;
   q('ehptext').textContent = `${Math.max(0, b.enemyHp)} / ${b.enemyMax}`;
-  applySprite(q('esprite'), b.enemyId, 5);
+  q('esprite').replaceChildren(spriteImg(SPECIES[b.enemyId].sprite, 6));
   q('aname').textContent = a.name;
   q('alv').textContent = `Lv.${alv}`;
   q('atype').replaceChildren(typeChip(a.type));
   q('ahp').style.transform = `scaleX(${Math.max(0, as.hp / as.max)})`;
   q('ahptext').textContent = `${Math.max(0, as.hp)} / ${as.max}`;
-  applySprite(q('asprite'), aId, 5);
+  q('asprite').replaceChildren(spriteImg(SPECIES[aId].sprite, 6));
 
   const body = battle.modal.body;
   a.moves.forEach((m, i) => {

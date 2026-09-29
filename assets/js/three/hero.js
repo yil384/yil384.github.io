@@ -288,6 +288,8 @@ export async function mountHero(canvas, { heroEl, force = false } = {}) {
   return {
     canvas: () => live,
     stats: () => loop.stats(),
+    pause: () => loop.setEnabled(false),
+    resume: () => loop.setEnabled(true),
     dispose() {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onScroll);

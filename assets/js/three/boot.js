@@ -82,6 +82,7 @@ export async function createRenderer(canvas, { maxDpr = 1.75, antialias = true, 
 export function runLoop(renderer, tick, { target = null } = {}) {
   let visible = true;
   let onScreen = true;
+  let enabled = true;
   let last = performance.now();
   const frames = [];
   const step = () => {
@@ -93,7 +94,7 @@ export function runLoop(renderer, tick, { target = null } = {}) {
     tick(dt, now / 1000);
   };
   const sync = () => {
-    const run = visible && onScreen && !reducedMotion.matches;
+    const run = enabled && visible && onScreen && !reducedMotion.matches;
     renderer.setAnimationLoop(run ? step : null);
     if (run) last = performance.now();
   };
@@ -103,6 +104,7 @@ export function runLoop(renderer, tick, { target = null } = {}) {
   if (reducedMotion.matches) tick(0, 0); // one static frame
   sync();
   return {
+    setEnabled(on) { enabled = !!on; sync(); },
     stats() {
       const f = frames.slice(5).sort((a, b) => a - b);
       if (!f.length) return null;

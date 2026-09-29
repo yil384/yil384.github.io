@@ -1,20 +1,20 @@
-// Modal stack. Any open modal pauses the world (see index.js), which is what keeps
-// bosses and field enemies from attacking during dialogs, shops, panels and mini-games.
-import { h } from './util.js';
+// Modal stack. Any open modal pauses the world (see index.js), which is what keeps bosses and
+// field enemies from attacking during dialogs, shops, battles, panels and mini-games.
+import { h, icon } from './util.js';
 import { emit } from './bus.js';
 
 const stack = [];
 let root = null;
 
-export function initModals() {
-  root = document.getElementById('modal-root');
+export function initModals(el) {
+  root = el;
 }
 
 /**
- * openModal({ id, title, variant, className, body, onClose, onKey, dismissible, actions })
- *  - body: Node | string (HTML) | (panelEl) => void
+ * openModal({ id, title, variant, className, body, onClose, onKey, dismissible, label })
+ *  - body: Node | string (HTML) | (bodyEl, panelEl) => void
  *  - onKey(e): return true when the key was handled
- * Returns a handle { el, panel, body, close(), update(html) }.
+ * Returns { id, el, panel, body, close(), isOpen() }.
  */
 export function openModal(opts) {
   const {
@@ -41,11 +41,10 @@ export function openModal(opts) {
   });
 
   if (title || dismissible) {
-    const head = h('div', { class: 'modal__head' },
+    panel.append(h('div', { class: 'modal__head' },
       title ? h('h2', { class: 'modal__title' }, title) : h('span'),
-      dismissible ? h('button', { type: 'button', class: 'modal__x', 'aria-label': 'Close', onclick: () => closeModal(id) }, '×') : null,
-    );
-    panel.append(head);
+      dismissible ? h('button', { type: 'button', class: 'modal__x', 'aria-label': 'Close', onclick: () => closeModal(id) }, icon('x', { size: 16 })) : null,
+    ));
   }
   const bodyEl = h('div', { class: 'modal__body' });
   panel.append(bodyEl);
@@ -54,17 +53,15 @@ export function openModal(opts) {
   else if (typeof body === 'function') body(bodyEl, panel);
 
   wrap.append(panel);
-  if (dismissible) {
-    wrap.addEventListener('mousedown', (e) => { if (e.target === wrap) closeModal(id); });
-  }
+  if (dismissible) wrap.addEventListener('mousedown', (e) => { if (e.target === wrap) closeModal(id); });
   root.append(wrap);
-  requestAnimationFrame(() => wrap.classList.add('is-open'));
+  void wrap.offsetWidth; // commit the closed state so the open transition plays
+  wrap.classList.add('is-open');
 
   const entry = { id, wrap, panel, body: bodyEl, onClose, onKey, dismissible, previousFocus };
   stack.push(entry);
   if (stack.length === 1) emit('pause', true);
 
-  // Focus the first control for keyboard users (but never steal focus from an input we just created).
   setTimeout(() => {
     if (!wrap.isConnected) return;
     const target = panel.querySelector('[autofocus], input, .modal__primary, button:not(.modal__x)') || panel.querySelector('button');
@@ -90,8 +87,8 @@ export function closeModal(id) {
   entry.wrap.classList.add('is-closing');
   setTimeout(() => entry.wrap.remove(), 160);
   try { entry.onClose?.(); } catch (err) { console.error(err); }
-  // Only hand focus back when the closed modal was on top; otherwise a modal opened
-  // from this one (e.g. dialog -> mini-game) would lose focus.
+  // Only hand focus back when the closed modal was on top; a modal opened from this one
+  // (dialog -> mini-game) keeps its focus.
   if (wasTop && entry.previousFocus && document.contains(entry.previousFocus)) {
     entry.previousFocus.focus?.({ preventScroll: true });
   }

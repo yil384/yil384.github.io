@@ -47,6 +47,8 @@ b { font-weight: 600; }
     var(--bg);
 }
 .hero.is-3d .hero__poster { opacity: 0; transition: opacity 0.8s; }
+/* Keeps the name legible where the island sits behind it on narrow, tall viewports. */
+.hero::after { content: ''; position: absolute; inset: auto 0 0 0; height: 55%; z-index: 1; pointer-events: none; background: linear-gradient(to top, rgba(10, 13, 20, 0.85), rgba(10, 13, 20, 0)); }
 
 .nav {
   position: relative; z-index: 2;
@@ -63,8 +65,10 @@ b { font-weight: 600; }
   background: transparent; border: 1px solid var(--line-2); color: var(--ink);
   transition: border-color 0.2s, background-color 0.2s;
 }
+.nav__play[hidden] { display: none; }
 .nav__play img { filter: invert(1); opacity: 0.9; }
 .nav__play:hover { border-color: var(--accent); background: rgba(242, 184, 75, 0.08); }
+.nav__toggle, .nav__burger { display: none; }
 
 .hero__text {
   position: relative; z-index: 2; align-self: end;
@@ -95,18 +99,19 @@ kbd {
 .sec__body { max-width: 640px; }
 .prose p + p { margin-top: 12px; }
 .prose .aside { margin-top: 18px; color: var(--ink-2); font-size: 16px; }
+.sec--about { display: grid; grid-template-columns: 1fr auto; column-gap: 32px; }
+.sec--about h2 { grid-column: 1; }
+.about__portrait { grid-column: 2; grid-row: 1 / span 2; width: 140px; height: 140px; border-radius: 12px; object-fit: cover; filter: saturate(0.85); }
 
 /* publications */
-.pubs { counter-reset: pub; }
 .pub { display: grid; grid-template-columns: 56px 1fr; gap: 16px; padding: 14px 0; }
 .pub + .pub { border-top: 1px solid var(--line); }
-.pub__venue-mark { display: grid; place-items: start center; padding-top: 4px; }
-.pub__venue-mark img { opacity: 0.9; }
-.pub__venue-mark img[alt="IEEE"] { filter: invert(1); }
+.pub__year { padding-top: 3px; color: var(--ink-3); font: 500 14px var(--mono); }
 .pub__title { font-weight: 600; line-height: 1.4; }
 .pub__authors { margin-top: 4px; color: var(--ink-2); }
-.pub__meta { margin-top: 2px; color: var(--ink-3); font-size: 15px; }
-.pub__note { color: var(--ink-3); }
+.pub__meta { margin-top: 4px; color: var(--ink-3); font-size: 15px; }
+.pub__note { color: var(--ink-3); font-size: 14px; }
+.pub__status { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--ink-2); font-size: 13px; }
 
 /* rows: experience, education, projects */
 .rows { display: grid; }
@@ -117,7 +122,7 @@ kbd {
 /* Wordmarks are shown as white silhouettes so every organisation reads the same on the dark page. */
 .row__logo--mono img { filter: brightness(0) invert(1); opacity: 0.88; }
 .row__logo--icon { gap: 8px; font-weight: 500; }
-.row__logo--icon img { width: 26px; height: 26px; border-radius: 6px; }
+.row__logo--icon img { width: 26px; height: 26px; border-radius: 6px; filter: grayscale(1) brightness(1.15); opacity: 0.88; }
 .row__title { font-weight: 600; }
 .row__role { display: block; font-weight: 400; color: var(--ink-2); }
 .row__desc { margin-top: 4px; color: var(--ink-2); font-size: 15.5px; }
@@ -141,8 +146,13 @@ kbd {
 
 /* ---------------- responsive ---------------- */
 @media (max-width: 720px) {
-  .nav__links a { display: none; }
+  .nav__burger { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--line-2); cursor: pointer; }
+  .nav__burger img { filter: invert(1); opacity: 0.9; }
+  .nav__links { display: none; position: absolute; right: var(--gutter); top: 70px; flex-direction: column; align-items: flex-start; gap: 14px; padding: 16px 18px; border-radius: 12px; background: var(--bg-2); border: 1px solid var(--line-2); z-index: 5; }
+  .nav__toggle:checked ~ .nav__links { display: flex; }
   .hero__text { padding-bottom: 8vh; }
+  .sec--about { grid-template-columns: 1fr; }
+  .about__portrait { grid-column: 1; grid-row: auto; width: 96px; height: 96px; margin-bottom: 16px; }
   .hero__role { font-size: 17px; }
   .row { grid-template-columns: 1fr; gap: 6px; }
   .row__when { padding-top: 0; }

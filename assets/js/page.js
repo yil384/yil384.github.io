@@ -5,9 +5,6 @@ const canvas = document.getElementById('hero-canvas');
 const playBtn = document.getElementById('play-btn');
 const hint = document.getElementById('hero-hint');
 
-// Flip once assets/js/game3d/ ships.
-const GAME_READY = false;
-
 let heroCtl = null;
 let game = null;
 
@@ -21,7 +18,7 @@ async function mount() {
   }
   if (heroCtl) {
     hero.classList.add('is-3d');
-    if (GAME_READY && matchMedia('(min-width: 900px) and (pointer: fine)').matches) {
+    if (matchMedia('(min-width: 900px) and (pointer: fine)').matches) {
       playBtn.hidden = false;
       hint.hidden = false;
     }
@@ -45,9 +42,8 @@ async function play() {
 }
 
 playBtn?.addEventListener('click', play);
-document.addEventListener('keydown', (e) => {
-  if (e.key.toLowerCase() === 'p' && !e.metaKey && !e.ctrlKey && !e.altKey && !playBtn.hidden && !/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) play();
-});
+// ?play=1 opens the island straight away (used by the QA scripts).
+if (new URLSearchParams(location.search).get('play') === '1') window.addEventListener('load', () => setTimeout(play, 300));
 
 if ('requestIdleCallback' in window) requestIdleCallback(mount, { timeout: 1200 });
 else setTimeout(mount, 200);
