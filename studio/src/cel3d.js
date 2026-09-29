@@ -65,7 +65,8 @@ function latheMesh(profile, n = 10, col = PAL.slate, o = {}) {
   }
   if (o.capBottom !== false && profile[0][0] > 0) F.push({ i: Array.from({ length: n }, (_, k) => (n - 1 - k) * m) });
   if (o.capTop !== false && profile[m - 1][0] > 0) F.push({ i: Array.from({ length: n }, (_, k) => k * m + m - 1) });
-  return makeMesh(V, F.map(f => ({ ...f, ...o.face })), col);
+  // faces above were wound clockwise seen from outside (negative volume): flip them so normals point out
+  return makeMesh(V, F.map(f => ({ ...f, i: f.i.slice().reverse(), ...o.face })), col);
 }
 const cylMesh = (r, h, n = 10, col = PAL.slate, o = {}) => latheMesh([[r, -h / 2], [r, h / 2]], n, col, o);
 const coneMesh = (r, h, n = 10, col = PAL.slate, o = {}) => latheMesh([[r, -h / 2], [0, h / 2]], n, col, o);

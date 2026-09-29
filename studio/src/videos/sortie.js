@@ -15,7 +15,7 @@
   const dimParts = (parts, k, amt = .8) => parts.map(p => ({ ...p, mesh: recolor(p.mesh, c => mixCol(c, PAL.ink, amt * (1 - k))) }));
   const silhouette = parts => parts.map(p => ({ ...p, mesh: recolor({ verts: p.mesh.verts, faces: p.mesh.faces.map(f => ({ ...f, glow: 0 })) }, () => PAL.ink), noShade: true, ink: null }));
   const havePilot = typeof pilot === 'function', haveBit = typeof bit === 'function';
-  const beatT = n => n * .5;
+  const PI = Math.PI;
 
   // ---- the set ----
   const LAMPS = []; for (let k = 0; k < 6; k++) for (const sx of [-1, 1]) LAMPS.push({ k, pos: [sx * 12, 9, -30 + 6 * k], floor: [sx * 10, 0, -30 + 6 * k] });
@@ -26,7 +26,7 @@
       const tk = t0 + .25 * L.k, on = allOn || t >= tk, pop = allOn ? 1 : backOut(seg(t, tk, tk + .2));
       if (on) {
         const fp = cam.project(L.floor), fs = cam.scaleAt(L.floor);
-        if (Number.isFinite(fp[0]) && fs > 0) flat(ellPts(fp[0], fp[1], 5 * fs * pop, 5 * fs * pop * .26, 22), mixCol(PAL.amber, PAL.ember, .55), 58);
+        if (Number.isFinite(fp[0]) && fs > 0) flat(ellPts(fp[0], fp[1], 5 * fs * pop, 5 * fs * pop * .26, 22), mixCol(PAL.amber, PAL.ember, .8), 42);
       }
       billboard(cam, L.pos, (sx, sy, s) => {
         const w = Math.max(6, .8 * s), h = Math.max(5, .6 * s);
@@ -80,28 +80,41 @@
     const s = stroll(t, 6.5, 7.8, -300, 760, 22), tt = onTwos(t);
     const lookUp = seg(t, 7.8, 8.05), turnK = ease(seg(t, 8.0, 8.25));
     const emo = t < 8.8 ? 'calm' : 'resolve';
-    const view = t < 7.8 ? s.view : (turnK < .5 ? 'q' : 'qb');
-    return { x: s.x, y: FLOOR_Y + s.dy * 6, view, flip: s.flip, walk: onTwos(s.walk * 2) / 2, emo, sq: .06 * ring(t, [7.8], 6, 16), armL: -.9 * easeOut(seg(t, 9.2, 9.5)), look: t < 7.8 ? 0 : -.6 * lookUp * (1 - turnK), lean: -.03 * lookUp };
+    const view = t < 7.8 ? s.view : 'q', yaw = t < 7.8 ? undefined : lerp(.70, PI - .70, turnK);
+    return { x: s.x, y: FLOOR_Y + s.dy * 6, view, yaw, flip: s.flip, walk: onTwos(s.walk * 2) / 2, emo, sq: .06 * ring(t, [7.8], 6, 16), armL: -.9 * easeOut(seg(t, 9.2, 9.5)), look: t < 7.8 ? 0 : -.6 * lookUp * (1 - turnK), lean: -.03 * lookUp };
   }
+  const CAM_C = { pos: [-6, 1.6, -14], look: [0, 2.6, 0], fov: 38 }, DEPTH_C = 7.4;
+  // the pilot stands on the 3D floor: a point DEPTH_C in front of the camera, slid sideways by his screen-x
+  function pilotWorld(cam, px) { const fwd = vnorm([cam.f[0], 0, cam.f[2]]), sc = cam.F / DEPTH_C; return vadd(vadd(cam.pos, vmul(fwd, DEPTH_C)), vadd(vmul(cam.r, (px - 960) / sc), [0, -cam.pos[1], 0])); }
+  function pilotOpts(P, t) { return { view: P.view, yaw: P.yaw, flip: P.flip, walk: P.walk, emo: P.emo, sq: P.sq, armL: P.armL, look: P.look, lean: P.lean, hold: 'helmet', coat: true, t }; }
   function shotC(t, lt) {
-    const cam = cam3({ pos: [-6, 1.6, -14], look: [0, 4, 0], fov: 38 });
+    const cam = cam3({ ...CAM_C });
+    camBegin(960 + 18 * Math.sin(lt * .8), 540, 1);
     full(PAL.night);
     flat(ellPts(960, 640, 1500, 420, 32), PAL.indigo, 70);
     gridFloor(cam, 0, 3, 30, PAL.steel, .5);
-    const mech = k01(K01_POSES.rest, { visor: PAL.night });
-    cel3dPaint(cam, [...mech.parts, ...setParts()], { edges: 'all', light: [.5, .7, -.3], fog: false });
+    const mech = k01(K01_POSES.rest, { visor: PAL.night, tone: (n, c) => mixCol(c, PAL.ink, .6) });
+    cel3dPaint(cam, [...mech.parts, ...dimParts(hangarWalls(), 0, .35)], { edges: 'all', light: [.5, .7, -.3], fog: false });
     drawLamps(cam, t, true);
-    camBegin(960 + 18 * Math.sin(lt * .8), 540, 1);
-    const P = pilotAt(t);
-    boilSeed('pilot');
-    if (havePilot) pilot(P.x, P.y, PILOT_H, { ...P, hold: 'helmet', coat: true, t });
-    else { flat(rrPts(P.x - 60, P.y - PILOT_H, 120, PILOT_H, 40), PAL.hull); flat(ellPts(P.x, P.y - PILOT_H - 40, 46, 56, 20), PAL.skin); }
+    const P = pilotAt(t), wp = pilotWorld(cam, P.x);
+    glow(...cam.project(vadd(wp, [0, 1.2, 1.5])).slice(0, 2), 520, PAL.amber, .32);            // warm spill behind him
+    billboard(cam, wp, (px, py, s) => {
+      boilSeed('pilot');
+      if (havePilot) pilot(px, py, 1.75 * s, pilotOpts(P, t));
+      else { const h = 1.75 * s; flat(rrPts(px - h * .16, py - h, h * .32, h, h * .1), PAL.hull); flat(ellPts(px, py - h - h * .1, h * .12, h * .14, 16), PAL.skin); }
+    });
     // Bit orbits the Pilot once (6.5-8.0), then settles at his shoulder
-    const bk = seg(t, 6.5, 8.0), ang = -2.2 + TAU * ease(bk) , bx = lerp(-200, P.x - 90, easeOut(seg(t, 6.5, 7.4))) + Math.cos(ang) * 150 * (1 - ease(seg(t, 7.4, 8.0))), by = P.y - PILOT_H * .78 + Math.sin(ang) * 60 * (1 - ease(seg(t, 7.4, 8.0)));
-    if (haveBit) bit(bx, by, 46, { view: 'q', emo: t > 8.8 ? 'alert' : 'neutral', t }); else placeholderBit(bx, by, 46, t);
+    const ang = -2.2 + TAU * ease(seg(t, 6.5, 8.0)), rem = 1 - ease(seg(t, 7.4, 8.0)), enter = easeOut(seg(t, 6.5, 7.4));
+    const bp = vadd(vadd(wp, vmul(cam.r, lerp(-3.5, -.95, enter) + Math.cos(ang) * 1.2 * rem)), [0, 1.35 + Math.sin(ang) * .35 * rem + .08 * Math.sin(t * 6), 0]);
+    billboard(cam, bp, (px, py, s) => { const r = .3 * s; if (haveBit) bit(px, py, r, { view: 'q', emo: t > 8.8 ? 'alert' : 'neutral', t }); else placeholderBit(px, py, r, t); });
     camEnd();
   }
-  const HV = [700, 660];    // helmet visor screen point handed from C to D (tuned against pilot() once cast.js lands)
+  // the helmet visor's screen point at the end of C (via pilotAnchors, pure), handed to D as its iris centre
+  function helmetPoint() {
+    const cam = cam3({ ...CAM_C }), P = pilotAt(9.5), wp = pilotWorld(cam, P.x), sp = cam.project(wp);
+    if (typeof pilotAnchors === 'function') { const a = pilotAnchors(sp[0], sp[1], 1.75 * cam.scaleAt(wp), pilotOpts(P, 9.5)); if (a.visor) return a.visor; }
+    return [sp[0] - 30, sp[1] - 1.75 * cam.scaleAt(wp) * .45];
+  }
 
   // ---- V1-D  9.5-13.0  Compile ----
   function tileBar(t, cx, cy) {
@@ -139,7 +152,7 @@
     if (t > 12.5) glow(960, 540, 120 * pl + 60, PAL.gold, .9);
     if (t > 12.5) { boilSeed('eyes'); if (typeof faceDecal === 'function') faceDecal(960, 400, 300, 'resolve', { op: 110 }); else { for (const dx of [-90, 90]) flat(rectPts(960 + dx - 50, 400, 100, 16), PAL.cream, 110); } }
     // iris opening from the helmet visor
-    if (t < 9.95) iris(HV[0], HV[1], lerp(0, 1500, easeIn(seg(t, 9.5, 9.95))));
+    if (t < 9.95) { const hv = helmetPoint(); iris(hv[0], hv[1], lerp(0, 1500, easeIn(seg(t, 9.5, 9.95)))); }
   }
 
   // ---- V1-E  13.0-16.5  Launch ----
@@ -271,6 +284,6 @@
   }
 
   const shots = [[0, shotA], [3.0, shotB], [6.5, shotC], [9.5, shotD], [13.0, shotE], [16.5, shotF], [20.0, shotG], [24.0, shotH]];
-  window.SORTIE = { pilotAt, HV, PILOT_H, FLOOR_Y };
+  window.SORTIE = { pilotAt, helmetPoint };
   movie('sortie', { duration: 26, bpm: 120, scale: 2 / 3 }, shots);
 })();

@@ -8,7 +8,7 @@ const SKIN = '#F1C9A5', HULL = '#4E7DD1', HULLS = '#2C3E77', TINT = '#3A2E6B';
 const SKIN_S = mixCol(SKIN, TINT, .30), SKIN_D = mixCol(SKIN, TINT, .55);
 const HAIR = PAL.ink, HAIR_HI = mixCol(PAL.ink, HULL, .34);
 const BOOT = mixCol(PAL.ink, HULLS, .45), BOOT_S = mixCol(PAL.ink, HULLS, .2);
-const LIP = mixCol(PAL.ink, PAL.rose, .40), LIP2 = mixCol(SKIN, PAL.rose, .55);
+const LIP = mixCol(PAL.ink, PAL.rose, .28), LIP2 = mixCol(SKIN, PAL.rose, .70);
 const IRIS = mixCol(PAL.ink, HULLS, .35);
 const HULL_M = mixCol(HULL, HULLS, .5);
 const SHELL = PAL.cream, SHELL_S = mixCol(PAL.cream, TINT, .32);
@@ -132,14 +132,14 @@ const SKULL = [
   [0.95, .270, .270, .420, 0], [1.00, .120, .120, .220, 0],
 ];
 const HAIRT = [
-  [0.20, .295, .335, .400, 0], [0.30, .340, .375, .450, 0], [0.40, .372, .385, .500, 0], [0.50, .402, .400, .530, 0], [0.60, .420, .420, .545, 0],
-  [0.70, .432, .420, .560, 0], [0.80, .432, .410, .565, 0], [0.90, .410, .385, .540, 0], [0.97, .350, .330, .490, 0],
+  [0.20, .285, .335, .400, 0], [0.30, .325, .375, .450, 0], [0.40, .352, .385, .500, 0], [0.50, .398, .400, .530, 0], [0.60, .408, .415, .545, 0],
+  [0.70, .414, .410, .560, 0], [0.80, .414, .400, .565, 0], [0.90, .392, .380, .540, 0], [0.97, .340, .325, .490, 0],
   [1.03, .240, .240, .400, 0], [1.07, .120, .130, .260, 0], [1.09, .030, .030, .080, 0],
 ];
 const skullAt = v => sampleTab(SKULL, clamp(v, 0, 1));
 // torso rings (fractions of h): y, rx, df, db
 const COATT = [
-  [.238, .125, .076, .072], [.300, .118, .072, .068], [.380, .110, .066, .060], [.470, .100, .060, .054], [.540, .092, .055, .049],
+  [.238, .143, .080, .076], [.300, .130, .074, .070], [.380, .114, .066, .060], [.470, .102, .060, .054], [.540, .093, .055, .049],
   [.600, .088, .053, .047], [.640, .092, .056, .048], [.690, .102, .060, .052], [.740, .110, .060, .052], [.775, .112, .056, .050],
   [.795, .104, .050, .046], [.815, .080, .046, .042], [.840, .050, .038, .036],
 ];
@@ -244,7 +244,7 @@ function pilotPose(x, y, h, o) {
   else P.R = seated ? chain(1, 'rest') : chain(1, 'hang', armSwing(1));
   // helmet: centre, radius, visor yaw offset
   if (hold === 'helmet') {
-    const H = P.L.H || [-.135, base + .585, .048], R = .078, eta = -.55 + (P.L.H ? 0 : 0);
+    const H = P.L.H || [-.135, base + .585, .048], R = .080, eta = -.28;
     P.helmet = { c: H, R, eta };
     const vp = pr(H[0] + R * .98 * Math.sin(eta), H[1] + R * .06, H[2] + R * .98 * Math.cos(eta));
     P.visorRaw = vp; P.visorVis = vp[2] > .01;
@@ -272,21 +272,25 @@ function faceFeatures(Q, fm, Hpx, emo, o) {
   const inkC = o.ink || PAL.ink, irisC = o.iris || IRIS, lipC = o.lip || LIP, lip2C = o.lip2 || LIP2, skinD = o.skinD || SKIN_D;
   const hi = o.hi ?? Hpx > 88;
   const stroke = (pts, ws, col, minW = 1.3) => {
-    const P = pts.map(([X, v]) => fm(X, v));
-    for (const p of P) if (p[2] < .012) return false;
-    Q.fillP(tubePoly(P.map(p => [p[0], p[1]]), ws.map(w => Math.max(minW * Q.kk, w * Hpx)), true, 4), col);
+    const P = pts.map(([X, v]) => fm(X, v)), W2 = ws.map(w => Math.max(minW * Q.kk, w * Hpx));
+    let a = 0, best = [0, 0];                                   // longest run of visible points
+    for (let i = 0; i <= P.length; i++) {
+      if (i === P.length || P[i][2] < .004) { if (i - a > best[1] - best[0]) best = [a, i]; a = i + 1; }
+    }
+    if (best[1] - best[0] < 2) return false;
+    Q.fillP(tubePoly(P.slice(best[0], best[1]).map(p => [p[0], p[1]]), W2.slice(best[0], best[1]), true, 4), col);
     return true;
   };
   const poly = (pts, col) => { const P = pts.map(([X, v]) => fm(X, v)); for (const p of P) if (p[2] < .012) return false; Q.fillP(P.map(p => [p[0], p[1]]), col); return P; };
   // brows: thick and straight, they carry the emotion
   for (const s of [-1, 1]) {
     const d = BROWD[emo][s < 0 ? 0 : 1], th = BROWT[emo];
-    stroke([[s * .070, .588 + d[0]], [s * .195, .603 + d[1]], [s * .330, .590 + d[2]]], [.040 * th, .054 * th, .036 * th], inkC, 1.8);
+    stroke([[s * .070, .588 + d[0]], [s * .195, .603 + d[1]], [s * .330, .590 + d[2]]], [.044 * th, .058 * th, .040 * th], inkC, 2.2);
   }
   // eyes: an upper-lid stroke and an iris stroke each
   const op = EYEO[emo], lx = (o.look || 0) * .028, ly = (o.lookY || 0) * .018, lt = LIDT[emo];
   for (const s of [-1, 1]) {
-    const X0 = s * .195, v0 = .478, ew = .088;
+    const X0 = s * .195, v0 = .478, ew = .094;
     if (op > .05) {
       const hT = .034 * op + .002, lidV = u => v0 + hT * Math.pow(Math.max(0, 1 - u * u), .75) - .010 * Math.max(0, u) - (u > 1 ? .006 : 0);
       if (hi) {   // sclera + lower lid at close-up scale
@@ -296,11 +300,11 @@ function faceFeatures(Q, fm, Hpx, emo, o) {
         poly(top.concat(bot), PAL.cream);
       }
       const ir = clamp(op * 1.05 + .10, .35, 1.12), cx = X0 + lx, cv = v0 - .004 + ly, ip = [];
-      for (let k = 0; k < 12; k++) { const a = k / 12 * TAU; ip.push([cx + Math.cos(a) * .036, cv + Math.sin(a) * .046 * ir]); }
+      for (let k = 0; k < 12; k++) { const a = k / 12 * TAU; ip.push([cx + Math.cos(a) * .039, cv + Math.sin(a) * .048 * ir]); }
       poly(ip, irisC);
       if (hi && op > .5) poly([[cx - .004 + .006, cv + .014 * ir], [cx + .012, cv + .020 * ir], [cx + .014, cv + .008 * ir], [cx + .002, cv + .006 * ir]], PAL.cream);
       const path = [-1, -.5, 0, .5, 1, 1.18].map(u => [X0 + s * u * ew, lidV(u)]);
-      stroke(path, [.020, .028, .030, .027, .021, .011].map(w => w * lt), inkC, 1.5);
+      stroke(path, [.022, .031, .033, .030, .023, .012].map(w => w * lt), inkC, 1.7);
       // lower lid: a thin line under the iris; the squint keeps it dark
       const lowLine = [-.7, -.2, .3, .85].map(u => [X0 + s * u * ew, v0 - .024 * Math.max(op, .5) + .006 * (1 - u * u)]);
       stroke(lowLine, [.006, .008, .008, .005], emo === 'resolve' ? inkC : mixCol(skinD, inkC, .35), 1.0);
@@ -315,10 +319,10 @@ function faceFeatures(Q, fm, Hpx, emo, o) {
   // mouth
   const vm = .178;
   if (emo === 'calm') {
-    stroke([[-.078, vm], [-.03, vm + .003], [.03, vm + .003], [.078, vm]], [.010, .014, .014, .010], lipC, 1.2);
-    stroke([[-.045, vm - .026], [0, vm - .030], [.045, vm - .026]], [.006, .010, .006], lip2C, 1.0);
+    stroke([[-.078, vm], [-.03, vm + .003], [.03, vm + .003], [.078, vm]], [.011, .016, .016, .011], lipC, 1.7);
+    stroke([[-.045, vm - .026], [0, vm - .030], [.045, vm - .026]], [.007, .011, .007], lip2C, 1.4);
   } else if (emo === 'resolve') {
-    stroke([[-.092, vm - .003], [-.03, vm], [.03, vm], [.092, vm - .003]], [.012, .018, .018, .012], lipC, 1.4);
+    stroke([[-.092, vm - .003], [-.03, vm], [.03, vm], [.092, vm - .003]], [.013, .020, .020, .013], lipC, 1.9);
     stroke([[-.035, vm - .026], [.035, vm - .026]], [.006, .006], lip2C, 1.0);
   } else if (emo === 'strain') {
     const T = [[-.078, vm - .046], [-.078, vm + .012], [.078, vm + .012], [.078, vm - .046]], P = T.map(([X, v]) => fm(X, v));
@@ -329,11 +333,11 @@ function faceFeatures(Q, fm, Hpx, emo, o) {
       stroke([[-.074, vm - .017], [.074, vm - .017]], [.007, .007], lipC, 1.0);
     }
   } else if (emo === 'joy') {
-    stroke([[-.082, vm + .015], [-.04, vm - .007], [0, vm - .014], [.04, vm - .007], [.082, vm + .015]], [.008, .013, .014, .013, .008], lipC, 1.2);
+    stroke([[-.082, vm + .015], [-.04, vm - .007], [0, vm - .014], [.04, vm - .007], [.082, vm + .015]], [.009, .015, .016, .015, .009], lipC, 1.7);
     stroke([[-.090, vm + .011], [-.100, vm + .024]], [.006, .005], lipC, 1.0);
     stroke([[.090, vm + .011], [.100, vm + .024]], [.006, .005], lipC, 1.0);
   } else {
-    stroke([[-.05, vm - .002], [0, vm], [.06, vm + .010]], [.010, .013, .010], lipC, 1.2);
+    stroke([[-.05, vm - .002], [0, vm], [.06, vm + .010]], [.011, .015, .011], lipC, 1.7);
     stroke([[-.02, vm - .027], [.03, vm - .024]], [.006, .006], lip2C, 1.0);
   }
 }
@@ -363,17 +367,18 @@ function drawHead(Q, P, o) {
     const idx = fe.map((p, i) => i).filter(i => vis(fe[i]) && vis(fs[i]));
     if (idx.length > 2) Q.shade(idx.map(i => [fe[i][0], fe[i][1]]).concat(idx.slice().reverse().map(i => [fs[i][0], fs[i][1]])), SKIN_S);
   }
+  // blush (joy)
+  if (P.emo === 'joy' && !Q.sil) for (const sd of [-1, 1]) { const c = fm(sd * .235, .30), cc = ellP(c[0], c[1], .075 * Hpx * clamp(c[2] * 8, .2, 1), .042 * Hpx, 10); if (c[2] > .03) Q.shade(cc, mixCol(SKIN, PAL.rose, .38)); }
   // 4. face
-  const face = fm(0, .478);
-  if (face[2] > .05) faceFeatures(Q, fm, Hpx, P.emo, { look: P.look, lookY: P.lookY });
+  faceFeatures(Q, fm, Hpx, P.emo, { look: P.look, lookY: P.lookY });
   // nose in three-quarter views: a bridge and underside line
   const sY = Math.abs(Math.sin(yawT));
   if (sY > .25 && sY < .93 && !Q.sil) {
     const n3 = [[0, .52, .41], [0, .44, .46], [0, .35, .53], [0, .31, .48], [0, .275, .44]].map(([X, v, Z]) => hp(X, v, Z));
-    if (n3.every(p => p[2] > .0)) Q.line(n3.map(p => [p[0], p[1]]), .75, mixCol(SKIN_D, PAL.ink, .45), 'inkfine', .4);
+    if (n3.every(p => p[2] > .0)) Q.line(n3.slice(1).map(p => [p[0], p[1]]), .6, mixCol(SKIN_D, PAL.ink, .2), 'inkfine', .4);
   }
   // 5. hair over the skin: crown + fringe + the side patch on the trailing side, sideburn on the leading side
-  const cap = edgePoly(hp, rowsOf(HAIRT, VHL, 1.09, 12), false);
+  const cap = edgePoly(hp, rowsOf(HAIRT, VHL, 1.09, 12), true);
   Q.fillP(cap.pts, HAIR);
   const fi = fe.map((p, i) => i).filter(i => vis(fe[i]));
   if (fi.length > 2) {
@@ -393,7 +398,8 @@ function drawHead(Q, P, o) {
     // a hidden boundary means: face side visible -> no hair on this row (zero width); back of head visible -> hair to the far limb
     bnd.push(vis(b) ? b : (frontSeen ? e : far)); edg.push(e);
   }
-  const lp = bnd.map(p => [p[0], p[1]]).concat(edg.slice().reverse().map(p => [p[0], p[1]]));
+  let nb = bnd.length; while (nb > 3 && Math.abs(bnd[nb - 1][0] - edg[nb - 1][0]) < 1.5) nb--;
+  const lp = bnd.slice(0, nb).map(p => [p[0], p[1]]).concat(edg.slice(0, nb).reverse().map(p => [p[0], p[1]]));
   if (Math.max(...bnd.map((b, i) => Math.abs(b[0] - edg[i][0]))) > 1.5) { Q.fillP(lp, HAIR); Q.inkP(lp, .9, .15); }
   // leading-side sideburn (visible only near the front view)
   const lead = [], leadE = [];
@@ -412,11 +418,16 @@ function drawHead(Q, P, o) {
   for (const s of [-1, 1]) {
     const dot = -s * Math.sin(yawT);
     if (dot < -.3) continue;
-    const c = hp(s * (sEar + .012), .445, -.03), hw = (.032 + .05 * Math.max(0, dot)) * Hpx, hh = .10 * Hpx;
+    const c = hp(s * (sEar + .004), .445, -.03), hw = (.040 + .05 * Math.max(0, dot)) * Hpx, hh = .10 * Hpx;
     if (c[2] < -.03 && dot < .2) continue;
     const ep = ellP(c[0], c[1], hw, hh, 12);
     Q.fillP(ep, SKIN); if (dot > .35) Q.shade(ellP(c[0] + s * hw * .1, c[1] + hh * .1, hw * .55, hh * .6, 10), SKIN_S);
     Q.inkP(ep, .8, .3);
+  }
+  // 6b. a few strands on the fringe side
+  if (!Q.sil) for (const [X0, dX, v0, v1] of [[-.20, -.02, .93, .78], [-.02, 0, .95, .79], [.14, .02, .94, .78], [.26, .03, .90, .77]]) {
+    const pts = [0, .5, 1].map(k => { const v = lerp(v0, v1, k), X = X0 + dX * k, s2 = sampleTab(HAIRT, v), q = clamp(X / s2[1], -.98, .98); return hp(X * 1.02, v, s2[2] * Math.sqrt(1 - q * q) * 1.01); });
+    if (pts.every(p => p[2] > .03)) Q.shade(tubePoly(pts.map(p => [p[0], p[1]]), [.002 * h, .0065 * h, .0015 * h], true, 3), mixCol(HAIR, HAIR_HI, .6));
   }
   // 7. hair highlight, from the fixed light (upper-left of the screen)
   if (!Q.sil) {
@@ -454,10 +465,19 @@ function drawArm(Q, P, side, ch, style) {
   const poly = tubePoly([[S[0], S[1]], [E[0], E[1]], [W[0], W[1]]], ws, true, 5);
   Q.fillP(poly, col); Q.inkP(poly, 1.0, .3);
   const dx = W[0] - E[0], dy = W[1] - E[1], dl = Math.hypot(dx, dy) || 1, ux = dx / dl, uy = dy / dl;
+  if (style.stripe) {   // a cream stripe round the upper arm
+    const sx = E[0] - S[0], sy = E[1] - S[1], sl = Math.hypot(sx, sy) || 1, vx = sx / sl, vy = sy / sl, m = [lerp(S[0], E[0], .42), lerp(S[1], E[1], .42)], hw = lerp(ws[0], ws[1], .42) * .47, t = .008 * h;
+    const band = [[m[0] - vy * hw - vx * t, m[1] + vx * hw - vy * t], [m[0] + vy * hw - vx * t, m[1] - vx * hw - vy * t], [m[0] + vy * hw + vx * t, m[1] - vx * hw + vy * t], [m[0] - vy * hw + vx * t, m[1] + vx * hw + vy * t]];
+    Q.fillP(band, dark ? SHELL_S : PAL.cream);
+  }
   const cuff = tubePoly([[W[0] - ux * .026 * h, W[1] - uy * .026 * h], [W[0], W[1]]], [ws[2] * 1.05, ws[2] * 1.05], false);
   Q.fillP(cuff, PAL.cream); Q.inkP(cuff, .7, .1);
-  const hc = [W[0] + ux * .024 * h, W[1] + uy * .024 * h], hp2 = ellR(hc[0], hc[1], .030 * h, .022 * h, Math.atan2(uy, ux));
-  Q.fillP(hp2, SKIN); Q.inkP(hp2, .8, .3);
+  const hc = [W[0] + ux * .024 * h, W[1] + uy * .024 * h], ang = Math.atan2(uy, ux);
+  const hand = ellR(hc[0], hc[1], .030 * h, .021 * h, ang);
+  const tsg = Math.sign(P.x - hc[0]) || 1, tp = [-uy * tsg, ux * tsg];   // thumb toward the body
+  const th = ellR(hc[0] + tp[0] * .019 * h - ux * .006 * h, hc[1] + tp[1] * .019 * h - uy * .006 * h, .015 * h, .0085 * h, ang - .35 * tsg * (uy > 0 ? 1 : -1));
+  Q.fillP(th, SKIN); Q.inkP(th, .6, .3);
+  Q.fillP(hand, SKIN); Q.shade(ellR(hc[0] - tp[0] * .006 * h + ux * .004 * h, hc[1] - tp[1] * .006 * h + uy * .004 * h, .022 * h, .010 * h, ang), SKIN_S); Q.inkP(hand, .8, .3);
   return { S, E, W, hc, u: [ux, uy] };
 }
 
@@ -472,12 +492,13 @@ function drawHelmet(Q, P, H) {
   // neck seal band
   const band = rowsOf(HELMT, -.92, -.62, 3, r => { place(r); r.rx += .003; r.df += .003; r.db += .003; });
   const B = edgePoly(pr, band, true); Q.fillP(B.pts, HULLS); Q.inkP(B.pts, .7, .2);
+  const cr = rowsOf(HELMT, .58, .74, 3, r => { place(r); r.rx += .002; r.df += .002; r.db += .002; }), CR = edgePoly(pr, cr, true); Q.fillP(CR.pts, HULL); Q.inkP(CR.pts, .7, .2);
   // visor: a patch on the surface around the visor direction eta
   const surf = (lam, yN) => { const s = sampleTab(HELMT, yN); return pr(c[0] + R * s[1] * 1.02 * Math.sin(lam), c[1] + yN * R, c[2] + R * s[2] * 1.02 * Math.cos(lam)); };
   const N = 10, top = [], bot = [];
   for (let k = 0; k <= N; k++) {
     const u = k / N, lam = eta + lerp(-.95, .95, u), bulge = Math.sin(u * PI);
-    top.push([lam, .34 + .10 * bulge]); bot.push([lam, -.30 + .06 * bulge]);
+    top.push([lam, .40 + .10 * bulge]); bot.push([lam, -.38 + .06 * bulge]);
   }
   const vp = top.map(([l, y]) => surf(l, y)), vb = bot.map(([l, y]) => surf(l, y));
   const idx = vp.map((p, i) => i).filter(i => vp[i][2] > .004 && vb[i][2] > .004);
@@ -592,6 +613,12 @@ function drawBody(Q, P, o) {
     Q.fillP(Bt.pts, HULLS); Q.inkP(Bt.pts, .8, .2);
     const bk = sPt(.603, 0);
     if (coat && bk[2] > .012) { const w = .026 * h * Math.max(.3, Math.cos(P.yaw)), q = rrPts(bk[0] - w / 2, bk[1] - .014 * h, w, .028 * h, Math.min(w, .028 * h) * .3); Q.fillP(q, PAL.cream); Q.inkP(q, .6, 0); }
+    if (coat) {   // yoke seam and a chest pocket flap
+      const yk = [-.085, -.045, 0, .045, .085].map(X => sPt(.752 - .012 * (1 - Math.abs(X) / .085) * -1 - .0, X));
+      if (visRun(yk)) Q.line(yk.map(p => [p[0], p[1]]), .8, mixCol(HULLS, PAL.ink, .35), 'inkfine', .4);
+      const pk = [[.030, .715], [.078, .715], [.078, .667], [.054, .655], [.030, .667]].map(([X, y]) => sPt(y, X));
+      if (visRun(pk, .02)) { const pp = pk.map(p => [p[0], p[1]]); Q.fillP(pp, HULL_M); Q.inkP(pp, .55, 0, mixCol(HULLS, PAL.ink, .3), 'inkfine'); Q.line([pp[0], pp[1]], .7, PAL.cream, 'inkfine', 0); }
+    }
     if (coat && !seated) {   // folds
       for (const X of [-.062, .020, .078]) {
         const pts = [.565, .49, .41, .34, .275].map(y => sPt(y, X * (1 + (.565 - y) * 1.5)));
@@ -605,7 +632,7 @@ function drawBody(Q, P, o) {
     Q.inkP(C.pts, 1.2, .25);
   });
   // ---- arms, helmet, paper ----
-  const sleeve = coat ? { ws: [.060, .054, .047] } : { ws: [.064, .072, .094], robe: true };
+  const sleeve = coat ? { ws: [.064, .058, .046], stripe: true } : { ws: [.066, .074, .096], robe: true };
   const armZ = ch => pr(...ch.E)[2];
   const armDraw = (side, ch) => () => drawArm(Q, P, side, ch, sleeve);
   if (P.helmet) {
@@ -671,24 +698,24 @@ function bitPose(x, y, r, o) {
 function bitAnchors(x, y, r, o) { return bitPose(x, y, r, o).out; }
 
 function bit(x, y, r, o = {}) {
-  const B = bitPose(x, y, r, o), { T, k, yaw, fl } = B, emo = o.emo || 'neutral';
+  const B = bitPose(x, y, r, o), { T, k, yaw } = B, emo = o.emo || 'neutral', t = o.t || 0;
   const Q = mkQ({ ...o, flip: false }, r * 7, o.key || 'bit', B.cx, B.cy);
   const ell = (lx, ly, rx, ry, rot = 0, n = 16) => { const c = Math.cos(rot), s = Math.sin(rot), out = []; for (let i = 0; i < n; i++) { const a = i / n * TAU, X = Math.cos(a) * rx, Y = Math.sin(a) * ry; out.push(T(lx + X * c - Y * s, ly + X * s + Y * c)); } return out; };
+  // a point on the sphere: longitude lam from the face centre, latitude phi; c = how frontal it is
   const sph = (lam, phi) => { const a = lam + yaw, cph = Math.cos(phi); return { x: r * cph * Math.sin(a), y: -r * Math.sin(phi), vis: Math.cos(a) * cph, c: Math.cos(a) }; };
-  const bt = (t01) => o.t || 0;
-  const bp = frac(bpOf(o.t || 0)), pl = pulse(o.t || 0, 5);
+  const bp = frac(bpOf(t)), pl = pulse(t, 5);
   Q.part('body');
-  // feet (behind)
-  for (const s of [-1, 1]) { const f = sph(s * .38, -1.1); if (f.vis > -.3) { const e = ell(f.x, f.y + r * .1, r * .17, r * .12); Q.fillP(e, BIT_S); Q.inkP(e, .8, .3); } }
-  // tail nub, seen from the side and back
-  { const tl = sph(PI, -.15); if (tl.c < .2) { const e = ell(tl.x * 1.06, tl.y, r * .17, r * .15); Q.fillP(e, BIT_S); Q.inkP(e, .8, .3); } }
-  // arms: those on the far side go behind the body
-  const armPose = emo === 'excited' ? .95 : emo === 'alert' ? -.15 : .25;
-  const arms = [-1, 1].map(s => { const a = sph(s * 1.42, -.28); return { s, a }; });
+  // feet (behind the body) and the tail nub (side / back views)
+  for (const s of [-1, 1]) { const f = sph(s * .4, -1.12); const e = ell(f.x, f.y + r * .08, r * .19, r * .13); Q.fillP(e, BIT_S); Q.inkP(e, .8, .3); }
+  { const tl = sph(PI, -.12); if (tl.c < .25) { const e = ell(tl.x * 1.05, tl.y, r * .2, r * .17); Q.fillP(e, BIT_S); Q.inkP(e, .8, .3); } }
+  // stubby arms; the ones on the far side of the turn go behind the body
+  const up = emo === 'excited' ? 1 : emo === 'alert' ? -.25 : .15;
+  const arms = [-1, 1].map(s => ({ s, a: sph(s * 1.45, -.30) }));
   const drawArm = ({ s, a }) => {
-    const rot = (s > 0 ? 1 : -1) * (1.15 - armPose) + (a.x >= 0 ? 0 : 0);
-    const cxA = a.x * 1.06, cyA = a.y - armPose * r * .34, e = ell(cxA + s * r * .10 * Math.max(.35, Math.abs(a.c)), cyA, r * .34, r * .18, rot * -1 * (a.x >= 0 ? 1 : 1) + (armPose > .5 ? 0 : 0));
-    Q.fillP(e, BIT); Q.shade(ell(cxA + s * r * .12 * Math.max(.35, Math.abs(a.c)), cyA + r * .05, r * .28, r * .09, rot * -1), BIT_S); Q.inkP(e, .9, .3);
+    const fac = Math.max(.4, Math.abs(a.c)), bx = a.x * 1.02 + s * r * .06 * fac, by = a.y - up * r * .30;
+    const rot = s * (1.0 - up * .9);           // hangs outward-down; rises with `up`
+    const e = ell(bx + s * r * .16 * fac, by + r * .08, r * .30, r * .19, rot);
+    Q.fillP(e, BIT); Q.shade(ell(bx + s * r * .18 * fac, by + r * .14, r * .25, r * .10, rot), BIT_S); Q.inkP(e, .9, .3);
   };
   arms.filter(a => a.a.c < 0).forEach(drawArm);
   // body
@@ -697,68 +724,68 @@ function bit(x, y, r, o = {}) {
   const crescent = (a0, a1, inset, col) => {
     const outer = [], inner = [];
     for (let i = 0; i <= 10; i++) { const a = lerp(a0, a1, i / 10); outer.push(T(Math.cos(a) * r, Math.sin(a) * r * .95)); }
-    for (let i = 10; i >= 0; i--) { const a = lerp(a0, a1, i / 10), s = 1 - inset * Math.sin(i / 10 * PI) * 1.0; inner.push(T(Math.cos(a) * r * s - inset * r * .45, Math.sin(a) * r * .95 * s - inset * r * .45)); }
+    for (let i = 10; i >= 0; i--) { const a = lerp(a0, a1, i / 10), s = 1 - inset * Math.sin(i / 10 * PI); inner.push(T(Math.cos(a) * r * s - inset * r * .45, Math.sin(a) * r * .95 * s - inset * r * .45)); }
     Q.shade(outer.concat(inner), col);
   };
   crescent(-.35, 1.75, .30, BIT_S);
   crescent(3.55, 4.35, .10, BIT_HI);
   Q.inkP(body, 1.25, .2);
-  // face on the sphere
-  const eyeL = sph(-.46, -.06), eyeR = sph(.46, -.06);
-  const ew = emo === 'excited' ? 1.22 : 1, eh = emo === 'excited' ? 1.28 : emo === 'alert' ? .14 : 1;
+  // face: big ink eyes with catchlights, on the sphere
+  const eyeL = sph(-.52, -.04), eyeR = sph(.52, -.04);
+  const ew = emo === 'excited' ? 1.18 : 1, eh = emo === 'excited' ? 1.24 : 1;
   for (const [E, s] of [[eyeL, -1], [eyeR, 1]]) {
     if (E.vis < .12) continue;
-    const w = r * .175 * Math.max(.22, E.c) * ew, hh = r * .225 * eh;
+    const cw = Math.max(.24, E.c), w = r * .215 * cw * ew, hh = r * .285 * eh;
     if (emo === 'alert') {
-      const pts = tubePoly([T(E.x - w * 1.05, E.y - r * .03 * s * -1 - r * .035 * (s)), T(E.x + w * 1.05, E.y + r * .03 * s * -1 + r * .035 * (s))], [r * .10, r * .10], true, 3);
-      Q.fillP(pts, PAL.ink);
+      const slant = r * .05 * s;                         // narrowed, pulled toward the middle
+      Q.fillP(tubePoly([T(E.x - w * 1.1, E.y - slant), T(E.x + w * 1.1, E.y + slant)], [r * .13, r * .13], true, 3), PAL.ink);
     } else {
-      Q.fillP(ell(E.x, E.y, w, hh, 0, 18), PAL.ink);
-      const cw = Math.max(.35, E.c);
-      Q.fillP(ell(E.x - w * .28, E.y - hh * .30, r * .062 * cw * ew, r * .062 * ew, 0, 10), PAL.cream);
-      Q.fillP(ell(E.x + w * .30, E.y + hh * .34, r * .030 * cw, r * .030, 0, 8), PAL.cream);
+      Q.fillP(ell(E.x, E.y, w, hh, 0, 20), PAL.ink);
+      Q.fillP(ell(E.x - w * .30, E.y - hh * .30, r * .080 * cw * ew, r * .080 * ew, 0, 10), PAL.cream);
+      Q.fillP(ell(E.x + w * .32, E.y + hh * .36, r * .038 * cw, r * .038, 0, 8), PAL.cream);
     }
   }
-  // mouth
-  { const m = sph(0, -.42); if (m.vis > .2 && emo !== 'alert') {
+  { const m = sph(0, -.46); if (m.vis > .2 && emo !== 'alert') {
     const w = r * .12 * Math.max(.3, m.c);
-    if (emo === 'excited') { const e = ell(m.x, m.y, w * .9, r * .075, 0, 12); Q.fillP(e, mixCol(PAL.ink, PAL.rose, .3)); Q.shade(ell(m.x, m.y + r * .03, w * .6, r * .03), PAL.rose); }
+    if (emo === 'excited') { Q.fillP(ell(m.x, m.y, w * .9, r * .08, 0, 12), mixCol(PAL.ink, PAL.rose, .3)); Q.shade(ell(m.x, m.y + r * .035, w * .6, r * .03), PAL.rose); }
     else Q.line([T(m.x - w, m.y - r * .01), T(m.x - w * .4, m.y + r * .03), T(m.x + w * .4, m.y + r * .03), T(m.x + w, m.y - r * .01)], .8, mixCol(PAL.ink, BIT_S, .3), 'inkfine', .4);
   } }
-  // cheeks
-  for (const s of [-1, 1]) { const c = sph(s * .8, -.26); if (c.vis > .3 && !Q.sil) Q.shade(ell(c.x, c.y, r * .085 * Math.max(.3, c.c), r * .05), mixCol(BIT, PAL.rose, .5)); }
+  for (const s of [-1, 1]) { const c = sph(s * .92, -.24); if (c.vis > .3) Q.shade(ell(c.x, c.y, r * .095 * Math.max(.3, c.c), r * .055), mixCol(BIT, PAL.rose, .5)); }
   arms.filter(a => a.a.c >= 0).forEach(drawArm);
-  // antenna: a gold stalk with a bulb that pulses on the beat
-  const sp = emo === 'excited' ? Math.exp(-bp * 4) * Math.sin(bp * 26) : Math.sin(TAU * (o.t || 0) * .5) * .2, lean = emo === 'alert' ? 0 : .10;
-  const ab = sph(.0, 1.2), bx = ab.x * .5, tipx = bx + r * (yaw * .06 + lean + sp * .30) * (emo === 'excited' ? 1.4 : 1), tipy = -r * (emo === 'alert' ? 1.72 : 1.55) + (emo === 'excited' ? -Math.abs(sp) * r * .06 : 0);
-  const st = [T(bx, -r * .90), T(bx + r * (.08 + sp * .10), -r * 1.22), T(tipx, tipy)];
+  // antenna: a gold stalk with a bulb that pulses on the beat; it springs when excited
   Q.part('antenna');
-  const stalk = tubePoly(st, [r * .075, r * .06, r * .05], true, 4);
+  const sp = emo === 'excited' ? Math.exp(-bp * 4) * Math.sin(bp * 26) : Math.sin(TAU * t * .5) * .2;
+  const ab = sph(0, 1.2), bx = ab.x * .5, tipx = bx + r * (yaw * .06 + (emo === 'alert' ? 0 : .10) + sp * .30) * (emo === 'excited' ? 1.4 : 1);
+  const tipy = -r * (emo === 'alert' ? 1.80 : 1.62) - (emo === 'excited' ? Math.abs(sp) * r * .08 : 0);
+  const st = [T(bx, -r * .88), T(bx + r * (.08 + sp * .10), -r * 1.26), T(tipx, tipy)];
+  const stalk = tubePoly(st, [r * .10, r * .085, r * .07], true, 4);
   Q.fillP(stalk, GOLD); Q.inkP(stalk, .8, .3);
-  const tr = r * .115 * (1 + .30 * pl), tip = st[2];
-  const bulb = ellPts(tip[0], tip[1], tr, tr, 14, 0, 0);
+  const tr = r * .145 * (1 + .30 * pl), tip = st[2], bulb = ellPts(tip[0], tip[1], tr, tr, 14, 0, 0);
   Q.fillP(bulb, GOLD); Q.fillP(ellPts(tip[0], tip[1], tr * .5, tr * .5, 10, 0, 0), PAL.cream); Q.inkP(bulb, .8, .3);
-  // lamp
+  // clip-on scan lamp (a held prop, not a redesign)
   if (o.lamp) {
     Q.part('lamp');
-    const b = B.beam, dx = Math.cos(b), dy = Math.sin(b), nx = -dy, ny = dx;
-    const A = B.lampA, L = r * .44, Wd = r * .20;
-    const strap = tubePoly([[B.cx + Math.cos(b - .55) * r * .96, B.cy + Math.sin(b - .55) * r * .96], [B.cx + Math.cos(b) * r * .98, B.cy + Math.sin(b) * r * .98], [B.cx + Math.cos(b + .55) * r * .96, B.cy + Math.sin(b + .55) * r * .96]], [r * .10, r * .10, r * .10], false, 4);
+    const b = B.beam, dx = Math.cos(b), dy = Math.sin(b), nx = -dy, ny = dx, A = B.lampA, L = r * .46, Wd = r * .21, lens = B.lens;
+    const ptsAt = (a) => [B.cx + Math.cos(a) * r * .97, B.cy + Math.sin(a) * r * .97];
+    const strap = tubePoly([ptsAt(b - .6), ptsAt(b), ptsAt(b + .6)], [r * .11, r * .11, r * .11], false, 4);
     Q.fillP(strap, PAL.steel); Q.inkP(strap, .7, .3);
-    const body2 = [[A[0] - nx * Wd, A[1] - ny * Wd], [A[0] + dx * L - nx * Wd * 1.15, A[1] + dy * L - ny * Wd * 1.15], [A[0] + dx * L + nx * Wd * 1.15, A[1] + dy * L + ny * Wd * 1.15], [A[0] + nx * Wd, A[1] + ny * Wd]];
-    Q.fillP(body2, PAL.slate); Q.shade([body2[0], body2[1], [lerp(body2[1][0], body2[2][0], .5), lerp(body2[1][1], body2[2][1], .5)], [lerp(body2[0][0], body2[3][0], .5), lerp(body2[0][1], body2[3][1], .5)]], PAL.steel); Q.inkP(body2, .9, 0);
-    const lens = B.lens, ring = ellR(lens[0], lens[1], Wd * .38, Wd * 1.2, b + PI / 2 - PI / 2 + PI / 2 - PI / 2);
-    Q.fillP(ring, PAL.cream); Q.inkP(ring, .7, .3);
-    Q.fillP(ellR(lens[0] + dx * 1, lens[1] + dy * 1, Wd * .22, Wd * .85, b - PI / 2 + PI / 2 - PI / 2 + PI / 2 - PI / 2 + PI / 2 - PI / 2), PAL.cyan);
+    const q = [[A[0] - nx * Wd, A[1] - ny * Wd], [A[0] + dx * L - nx * Wd * 1.2, A[1] + dy * L - ny * Wd * 1.2], [A[0] + dx * L + nx * Wd * 1.2, A[1] + dy * L + ny * Wd * 1.2], [A[0] + nx * Wd, A[1] + ny * Wd]];
+    Q.fillP(q, PAL.slate);
+    Q.shade([q[0], q[1], [(q[1][0] + q[2][0]) / 2, (q[1][1] + q[2][1]) / 2], [(q[0][0] + q[3][0]) / 2, (q[0][1] + q[3][1]) / 2]], PAL.steel);
+    Q.inkP(q, .9, 0);
+    const rim = ellR(lens[0], lens[1], Wd * .34, Wd * 1.25, Math.atan2(dy, dx));
+    Q.fillP(rim, PAL.cream); Q.inkP(rim, .7, .3);
+    Q.fillP(ellR(lens[0] + dx, lens[1] + dy, Wd * .18, Wd * .95, Math.atan2(dy, dx)), PAL.cyan);
   }
-  // light: antenna glow, lamp beam
+  // light: antenna glow, lamp beam (additive)
   if (!Q.sil) {
-    glow(tip[0], tip[1], r * (.95 + 1.15 * pl), GOLD, .5 + .4 * pl);
+    glow(tip[0], tip[1], r * (.50 + .75 * pl), GOLD, .35 + .35 * pl);
     if (o.lamp) {
-      const b = B.beam, L2 = B.bl, c = B.lens;
-      glow(c[0], c[1], r * .5, PAL.cyan, .75);
-      streak(c[0] + Math.cos(b) * L2 / 2, c[1] + Math.sin(b) * L2 / 2, L2, r * .62, PAL.cyan, .55, b);
-      streak(c[0] + Math.cos(b) * L2 * .42, c[1] + Math.sin(b) * L2 * .42, L2 * .84, r * .18, mixCol(PAL.cyan, PAL.cream, .6), .8, b);
+      const b = B.beam, L2 = B.bl, c = B.lens, ex = Math.cos(b), ey = Math.sin(b);
+      glow(c[0], c[1], r * .55, PAL.cyan, .8);
+      streak(c[0] + ex * L2 / 2, c[1] + ey * L2 / 2, L2, r * 2.6, PAL.cyan, .34, b);
+      streak(c[0] + ex * L2 * .46, c[1] + ey * L2 * .46, L2 * .92, r * .95, PAL.cyan, .60, b);
+      streak(c[0] + ex * L2 * .40, c[1] + ey * L2 * .40, L2 * .80, r * .17, mixCol(PAL.cyan, PAL.cream, .65), .90, b);
     }
   }
   return B.out;
@@ -873,12 +900,17 @@ function islander(name, x, y, h, o = {}) {
     const hood = ellP(hc[0], hc[1], .225 * h, .225 * h, 24); Q.fillP(hood, HOOD); Q.shade(strip2(hood, hc, 1, .3), HOOD_D);
     const cowl = PP([[-.20, -.55], [.20, -.55], [.15, -.50], [-.15, -.50]]); Q.fillP(cowl, HOOD_D);
     Q.inkP(hood, 1.1, .2);
-    const op = ellP(hc[0], hc[1] + .02 * h, .135 * h, .15 * h, 18); Q.fillP(op, mixCol(PAL.night, PAL.ink, .5));
-    const fc = ellP(hc[0], hc[1] + .035 * h, .095 * h, .105 * h, 16); Q.fillP(fc, SKIN); Q.shade(strip2(fc, [hc[0], hc[1] + .035 * h], 1, .3), SKIN_S);
-    for (const s of [-1, 1]) { Q.fillP(ellP(hc[0] + s * .04 * h, hc[1] + .0 * h, .012 * h, .014 * h, 8), PAL.ink); }
-    Q.fillP(PP([[-.02, -.63], [.02, -.63], [0, -.615]]), SKIN_S);
-    const beard = PP([[-.09, -.65], [.09, -.65], [.075, -.58], [0, -.55], [-.075, -.58]]); Q.fillP(beard, PAL.mist); Q.inkP(beard, .6, .3);
-    Q.line(PP([[-.05, -.61], [.05, -.61]]), .6, PAL.slate, 'inkfine', .3);
+    const op = ellP(hc[0], hc[1] + .02 * h, .142 * h, .16 * h, 18); Q.fillP(op, mixCol(PAL.night, PAL.ink, .5));
+    const fc = ellP(hc[0], hc[1] + .02 * h, .105 * h, .115 * h, 16); Q.fillP(fc, SKIN); Q.shade(strip2(fc, [hc[0], hc[1] + .02 * h], 1, .3), SKIN_S);
+    // brows and eyes (a little old-man frown), then the white beard
+    for (const s of [-1, 1]) {
+      Q.fillP(tubePoly([P(s * .085, -.705), P(s * .035, -.695)], [.012 * h, .012 * h], true, 3), PAL.bone);
+      Q.fillP(ellP(hc[0] + s * .045 * h, hc[1] - .005 * h, .012 * h, .015 * h, 8), PAL.ink);
+    }
+    Q.fillP(PP([[-.018, -.665], [.018, -.665], [0, -.635]]), SKIN_S);
+    const beard = PP([[-.10, -.635], [-.06, -.655], [0, -.645], [.06, -.655], [.10, -.635], [.085, -.57], [.03, -.52], [0, -.505], [-.03, -.52], [-.085, -.57]]);
+    Q.fillP(beard, PAL.bone); Q.shade(PP([[.10, -.635], [.085, -.57], [.03, -.52], [0, -.505], [.03, -.58]]), mixCol(PAL.bone, TINT, .3)); Q.inkP(beard, .7, .3);
+    Q.line(PP([[-.05, -.60], [0, -.585], [.05, -.60]]), .6, PAL.slate, 'inkfine', .3);
     Q.inkP(op, .8, .2);
     if (!Q.sil) glow(lp[0] + .03 * h, lp[1] + .045 * h, .16 * h, PAL.gold, .55);
   }

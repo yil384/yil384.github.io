@@ -88,14 +88,19 @@
   }
   function s11(t) {
     bg(PAL.night);
-    EMOS.forEach((e, i) => pilot(200 + i * 380, 2000, 1600, { view: t < 11.5 ? 'front' : 'q', emo: e, t, key: 'pilot' + i }));
+    EMOS.forEach((e, i) => pilot(200 + i * 380, 2000, 1600, { view: t < 11 ? 'front' : 'q', emo: e, t, key: 'pilot' + i }));
   }
   function s12(t) {  // seated turntable
     bg(PAL.night, 900, PAL.indigo);
     [0, .6, 1.5708, 2.5].forEach((yw, i) => pilot(260 + i * 480, 780, 700, { view: 'seated', yaw: yw, hold: i % 2 ? 'paper' : null, t, key: 'p' + i }));
   }
 
+  function dev(t) {   // DEV (removed later): big full bodies
+    bg(PAL.night, 1040);
+    ['front', 'q', 'side', 'back'].forEach((v, i) => pilot(260 + i * 470, 1040, 1000, { view: v, hold: i < 3 ? 'helmet' : null, t, key: 'd' + i }));
+  }
   function shot(t) {
+    if (t >= 20) return dev(t);
     if (t < 1) s0(t); else if (t < 2) s1(t); else if (t < 3) s2(t); else if (t < 4) s3(t); else if (t < 5) s4(t);
     else if (t < 6) s5(t); else if (t < 7) s6(t); else if (t < 8) s7(t); else if (t < 9) s8(t); else if (t < 10) s9(t);
     else if (t < 10.5) s10(t); else if (t < 11.5) s11(t); else s12(t);

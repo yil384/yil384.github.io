@@ -130,13 +130,16 @@ const K01 = (() => {
       else if (p.name.startsWith('nozzle')) mesh = { verts: mesh.verts, faces: mesh.faces.map(f => ({ ...f, col: mixCol(C.dark, C.gold, thrust), glow: thrust > .05 ? 1 : 0 })) };
       else mesh = recolor(mesh, c => tone(p.name, c));
       const curved = /^(thruster|nozzle|neck|ear)/.test(p.name);
-      return { mesh, at: chainAt(p.chain), key: (opts.key || 'mech') + '.' + p.name, ink: opts.ink === undefined ? PAL.ink : opts.ink, sw: opts.sw ?? 1.1, crease: curved ? -2 : .72 };
+      return { mesh, at: chainAt(p.chain), chain: p.chain, key: (opts.key || 'mech') + '.' + p.name, ink: opts.ink === undefined ? PAL.ink : opts.ink, sw: opts.sw ?? 1.1, crease: curved ? -2 : .72 };
     });
     return { parts, faces: countFaces(parts), anchor: name => { const [chain, pt] = A[name]; return chainAt(chain)(pt); } };
   }
-  return { build, anchors: Object.keys(A) };
+  const pivots = { pelvis: HIP, torso: WAIST, head: NECK };
+  for (const [side, s] of [['L', 1], ['R', -1]]) Object.assign(pivots, { ['hip' + side]: [s * LEG_X, 10.4, 0], ['knee' + side]: [s * LEG_X, 6.7, 0], ['ankle' + side]: [s * LEG_X, 1.4, -.2], ['shoulder' + side]: [s * ARM_X, 14.2, 0], ['elbow' + side]: [s * ARM_X, 10.9, 0] });
+  return { build, anchors: Object.keys(A), pivots, anchorDefs: A };
 })();
 const k01 = (pose, opts) => K01.build(pose, opts);
+const K01_PIVOTS = K01.pivots;
 
 const K01_POSES = {
   rest: {},

@@ -22,8 +22,10 @@
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
-  <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Above the fold: the name (Bebas Neue), body (Inter 400) and HUD labels (JetBrains Mono 500). Anton is only the faint station numeral. -->
+  <link rel="preload" href="assets/fonts/bebas-neue-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/jetbrains-mono-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/game.css">
@@ -57,216 +59,388 @@
     ]
   }
   </script>
+
+  <!-- Runs before first paint: marks JS, and on the first visit of a session hides the hero copy until the opening film has stamped the name.
+       data-boot is cleared by page.js; if page.js never runs, the CSS reveals everything after 4 s. -->
+  <script>
+    (function () {
+      var d = document.documentElement;
+      d.classList.add('js');
+      try {
+        var q = location.search, rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var sd = navigator.connection && navigator.connection.saveData;
+        if (!rm && !sd && !/[?&]tier=0(&|$)/.test(q) && !sessionStorage.sortie && !location.hash) {
+          d.setAttribute('data-title', 'wait'); d.setAttribute('data-bars', 'on'); d.setAttribute('data-boot', 'pending');
+        }
+      } catch (e) {}
+    })();
+  </script>
   <script type="module" src="assets/js/page.js"></script>
 </head>
 <body>
   <a class="skip" href="#about">Skip to content</a>
 
-  <header class="hero" id="top">
-    <canvas class="hero__canvas" id="hero-canvas" aria-hidden="true"></canvas>
-    <div class="hero__poster" aria-hidden="true"></div>
+  <!-- HUD glyph sheet: 1 px stroke, colour from the surrounding text. -->
+  <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M8 5.5v13l11-6.5z"/></symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="6.5" y="5.5" width="4" height="13"/><rect x="13.5" y="5.5" width="4" height="13"/></symbol>
+      <symbol id="i-skip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M6 5.5v13l9-6.5zM18 5.5v13"/></symbol>
+      <symbol id="i-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M7 17 17 7M9 7h8v8"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3.5" y="5.5" width="17" height="13"/><path d="m3.5 6.5 8.5 7 8.5-7"/></symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="7" y="3.5" width="10" height="17"/><path d="M11 17.5h2"/></symbol>
+      <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="m6 9 6 6 6-6"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M4 7.5h16M4 12h16M4 16.5h16"/></symbol>
+      <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+      <symbol id="i-tile" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="4.5" y="4.5" width="6" height="6" fill="currentColor"/><rect x="13.5" y="4.5" width="6" height="6"/><rect x="4.5" y="13.5" width="6" height="6"/><rect x="13.5" y="13.5" width="6" height="6" fill="currentColor"/></symbol>
+    </defs>
+  </svg>
 
-    <nav class="nav" aria-label="Site">
+  <!-- Fixed full-viewport WebGL canvas for the scroll director. Stays hidden and empty until a director mounts (assets/js/director/director.js). -->
+  <canvas id="stage" aria-hidden="true" hidden></canvas>
+
+  <header class="nav" id="nav">
+    <nav class="nav__in wrap" aria-label="Site">
       <a class="nav__name" href="#top">Yichen Lin</a>
-      <input type="checkbox" id="nav-toggle" class="nav__toggle" aria-label="Menu">
-      <label for="nav-toggle" class="nav__burger" aria-hidden="true"><img src="assets/icons/ui/menu.svg" alt="" width="20" height="20"></label>
-      <div class="nav__links">
+      <button type="button" class="nav__burger" id="nav-burger" aria-expanded="false" aria-controls="nav-links" aria-label="Menu">
+        <svg class="i i--menu" aria-hidden="true"><use href="#i-menu"/></svg>
+        <svg class="i i--x" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+      <div class="nav__links" id="nav-links">
         <a href="#about">About</a>
         <a href="#publications">Publications</a>
         <a href="#experience">Experience</a>
         <a href="#projects">Projects</a>
         <a href="#contact">Contact</a>
-        <button type="button" class="nav__play" id="play-btn" hidden>
-          <img src="assets/icons/ui/gamepad-2.svg" alt="" width="16" height="16"> Explore the island
+        <button type="button" class="nav__play br" id="play-btn" data-play hidden>
+          <svg class="i" aria-hidden="true"><use href="#i-tile"/></svg> Explore the island
         </button>
       </div>
     </nav>
-
-    <div class="hero__text">
-      <h1 class="hero__name">Yichen Lin</h1>
-      <p class="hero__role">Ph.D. student in Computer Science &amp; Engineering at UC San Diego, advised by <a href="https://cseweb.ucsd.edu/~yufeiding/" rel="noopener" target="_blank">Prof. Yufei Ding</a>.</p>
-      <p class="hero__topics">Systems · compilers · GPU code generation · tooling for LLM agents</p>
-      <ul class="hero__links" aria-label="Contact and profiles">
-        <li><a href="mailto:yil384@ucsd.edu"><img src="assets/icons/ui/mail.svg" alt="" width="18" height="18">yil384@ucsd.edu</a></li>
-        <li><a href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener"><img src="assets/icons/brand/googlescholar.svg" alt="" width="18" height="18">Google Scholar</a></li>
-        <li><a href="https://github.com/yil384" target="_blank" rel="noopener"><img src="assets/icons/brand/github.svg" alt="" width="18" height="18">GitHub</a></li>
-        <li><a href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener"><img src="assets/icons/brand/linkedin.svg" alt="" width="18" height="18">LinkedIn</a></li>
-      </ul>
-    </div>
-    <p class="hero__hint" id="hero-hint" hidden>The island above is playable: a small voxel world with the same three.js scene. Desktop with a keyboard.</p>
   </header>
 
-  <main class="page">
+  <!-- Station indicator (top left) and honest telemetry (top right). page.js writes both. -->
+  <div class="hud" aria-hidden="true">
+    <p class="hud__station br" id="hud-station">00 / COLD OPEN</p>
+    <p class="hud__tel br" id="hud-tel">POSTER · —</p>
+  </div>
 
-    <section class="sec sec--about" id="about">
-      <h2>About</h2>
-      <img class="about__portrait" src="assets/img/portrait.webp" alt="Yichen Lin" width="140" height="140" loading="lazy">
-      <div class="sec__body prose">
-        <p>I'm a Ph.D. student at UC San Diego, working with Prof. Yufei Ding. I did my undergraduate degree in Computer Science and Technology at Tsinghua University.</p>
-        <p>My research sits between systems and machine learning: compilers, GPU code generation, and the tooling that lets LLM agents do real engineering work. The most recent project is TritonGym, a benchmark for agentic workflows that write Triton GPU kernels.</p>
-        <p>I like building things end to end, from a kernel's network stack to a grading platform to the small voxel world on this page.</p>
-        <p class="aside">My roommate and labmate is <a href="https://scholar.google.com/citations?user=FVCg0C4AAAAJ&amp;hl=en" target="_blank" rel="noopener">Zhuo Chen</a> (Tsinghua Yao Class), who is also the best cook in the building.</p>
+  <main id="main">
+
+    <!-- S0 · COLD OPEN -->
+    <section class="st hero" id="top" data-scene="hangar" data-s="0" data-label="00 / COLD OPEN" aria-label="Introduction">
+      <div class="hero__stage">
+        <div class="hero__poster" aria-hidden="true"></div>
+        <video class="hero__video" id="sortie" poster="assets/video/sortie.jpg" width="1280" height="720" muted playsinline preload="metadata" aria-label="Opening film, 26 seconds, no dialogue" aria-describedby="sortie-desc">
+          <source src="assets/video/sortie.mp4" type="video/mp4">
+        </video>
+        <div class="hero__scrim" data-reveal aria-hidden="true"></div>
+      </div>
+      <p class="sr" id="sortie-desc">Opening film, 26 seconds, no dialogue. In a hangar at night, work lamps switch on one by one and light a tall blue machine standing in its cradle. A pilot in a blue flight coat walks in, looks up and decides. A row of tiles fills, the doors part, and the machine launches down a catapult over the sea; a small island appears below. The film ends on the name Yichen Lin against a golden dawn.</p>
+
+      <div class="hero__bars" aria-hidden="true"><i></i><i></i></div>
+
+      <div class="hero__inner wrap">
+        <div class="hero__text">
+          <h1 class="hero__name" id="hero-name">
+            <span class="hero__ink" data-reveal>Yichen Lin</span>
+            <span class="hero__ghost hero__ghost--e" aria-hidden="true">Yichen Lin</span>
+            <span class="hero__ghost hero__ghost--c" aria-hidden="true">Yichen Lin</span>
+            <span class="hero__slice" aria-hidden="true">Yichen Lin</span>
+          </h1>
+          <p class="hero__sub br" data-reveal><span>Ph.D. student · CSE · UC San Diego</span></p>
+          <p class="hero__role" data-reveal>Ph.D. student in Computer Science &amp; Engineering at UC San Diego, advised by <a href="https://cseweb.ucsd.edu/~yufeiding/" rel="noopener" target="_blank">Prof. Yufei Ding</a>.</p>
+          <p class="hero__topics" data-reveal>Systems · compilers · GPU code generation · tooling for LLM agents</p>
+          <ul class="hero__links" aria-label="Contact and profiles">
+            <li style="--i:0"><a class="chip br" href="mailto:yil384@ucsd.edu">yil384@ucsd.edu</a></li>
+            <li style="--i:1"><a class="chip br" href="https://github.com/yil384" target="_blank" rel="noopener">GitHub</a></li>
+            <li style="--i:2"><a class="chip br" href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener">LinkedIn</a></li>
+            <li style="--i:3"><a class="chip br" href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener">Google Scholar</a></li>
+          </ul>
+        </div>
+        <div class="hero__foot">
+          <span class="hero__scroll" aria-hidden="true">Scroll <svg class="i"><use href="#i-down"/></svg></span>
+        </div>
+      </div>
+
+      <div class="hero__ctl">
+        <button type="button" class="pill br" id="opening-skip" hidden><svg class="i" aria-hidden="true"><use href="#i-skip"/></svg> Skip</button>
+        <button type="button" class="pill br" id="opening-replay" data-replay hidden><svg class="i" aria-hidden="true"><use href="#i-play"/></svg> Opening · 26 s</button>
       </div>
     </section>
 
-    <section class="sec" id="publications">
-      <h2>Publications</h2>
-      <ol class="pubs sec__body">
-        <li class="pub">
-          <p class="pub__year">2026</p>
-          <div>
+    <!-- S1 · 01 / HANGAR -->
+    <section class="st st--about" id="about" data-scene="hangar" data-s="1" data-label="01 / HANGAR" aria-labelledby="about-h">
+      <div class="st__bg" aria-hidden="true"></div>
+      <div class="tilewave" aria-hidden="true"></div>
+      <div class="wrap">
+        <header class="st__head">
+          <span class="st__num" aria-hidden="true">01</span>
+          <p class="tag" aria-hidden="true">01 / HANGAR</p>
+          <h2 class="st__title" id="about-h">About</h2>
+        </header>
+        <div class="about">
+          <div class="about__text plate br prose">
+            <p>I'm a Ph.D. student at UC San Diego, working with Prof. Yufei Ding. I did my undergraduate degree in Computer Science and Technology at Tsinghua University.</p>
+            <p>My research sits between systems and machine learning: compilers, GPU code generation, and the tooling that lets LLM agents do real engineering work. The most recent project is TritonGym, a benchmark for agentic workflows that write Triton GPU kernels.</p>
+            <p>I like building things end to end, from a kernel's network stack to a grading platform to the small voxel world on this page.</p>
+            <p class="aside">My roommate and labmate is <a href="https://scholar.google.com/citations?user=FVCg0C4AAAAJ&amp;hl=en" target="_blank" rel="noopener">Zhuo Chen</a> (Tsinghua Yao Class), who is also the best cook in the building.</p>
+          </div>
+
+          <figure class="vpanel about__video" data-video>
+            <div class="vpanel__frame br">
+              <video id="v-cradle" poster="assets/video/cradle.jpg" width="1280" height="720" muted playsinline loop preload="none" aria-label="Cradle: ten-second looping film" aria-describedby="v-cradle-desc">
+                <source src="assets/video/cradle.mp4" type="video/mp4">
+              </video>
+              <button type="button" class="vbtn" aria-label="Play the Cradle film"><svg class="i i--play" aria-hidden="true"><use href="#i-play"/></svg><svg class="i i--pause" aria-hidden="true"><use href="#i-pause"/></svg><span class="vbtn__t vbtn__t--play" aria-hidden="true">Play</span><span class="vbtn__t vbtn__t--pause" aria-hidden="true">Pause</span></button>
+            </div>
+            <figcaption class="vpanel__cap"><span class="tag">Cradle</span><span class="tag">Loop · 10 s</span></figcaption>
+            <p class="sr" id="v-cradle-desc">Ten-second loop. The blue machine K-01 rests in its gantry under amber work lamps. A small floating companion, Bit, sweeps a scan light over its hull, a robot, Unit-7, holds a diagnostic cable, and a pilot sits reading on the cradle arm.</p>
+          </figure>
+
+          <aside class="crew br" aria-label="Portrait">
+            <img class="crew__img" src="assets/img/portrait.webp" alt="Yichen Lin" width="140" height="140" loading="lazy">
+            <div class="crew__meta">
+              <p class="tag tag--cream">Yichen Lin</p>
+              <ul class="crew__logos">
+                <li><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23" loading="lazy"></li>
+                <li><img src="assets/logos/tsinghua-white.png" alt="Tsinghua University" width="120" height="30" loading="lazy"></li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- S2 · 02 / RESEARCH -->
+    <section class="st st--research" id="publications" data-scene="catapult" data-s="2" data-label="02 / RESEARCH" aria-labelledby="pubs-h">
+      <div class="st__bg" aria-hidden="true"></div>
+      <div class="tilewave" aria-hidden="true"></div>
+      <div class="wrap">
+        <div class="research__top">
+          <header class="st__head">
+            <span class="st__num" aria-hidden="true">02</span>
+            <p class="tag" aria-hidden="true">02 / RESEARCH</p>
+            <h2 class="st__title" id="pubs-h">Publications</h2>
+            <p class="lede">Systems, compilers, GPU code generation, tooling for LLM agents. Most recent: TritonGym, a benchmark for agentic workflows that write Triton GPU kernels.</p>
+          </header>
+          <figure class="vpanel" data-video>
+            <div class="vpanel__frame br">
+              <video id="v-catapult" poster="assets/video/catapult.jpg" width="1280" height="720" muted playsinline loop preload="none" aria-label="Catapult: twelve-second looping film" aria-describedby="v-catapult-desc">
+                <source src="assets/video/catapult.mp4" type="video/mp4">
+              </video>
+              <button type="button" class="vbtn" aria-label="Play the Catapult film"><svg class="i i--play" aria-hidden="true"><use href="#i-play"/></svg><svg class="i i--pause" aria-hidden="true"><use href="#i-pause"/></svg><span class="vbtn__t vbtn__t--play" aria-hidden="true">Play</span><span class="vbtn__t vbtn__t--pause" aria-hidden="true">Pause</span></button>
+            </div>
+            <figcaption class="vpanel__cap"><span class="tag">Catapult</span><span class="tag">Loop · 12 s</span></figcaption>
+            <p class="sr" id="v-catapult-desc">Twelve-second loop seen from above. The blue machine stands on a grid of tiles while waves of light cross the floor, turning tiles from steel blue to gold. It crouches and launches upward in a burst of speed lines, then the floor cools until a single tile pulses.</p>
+          </figure>
+        </div>
+
+        <ol class="pubs">
+          <li class="pub card br">
+            <p class="pub__year">2026</p>
             <p class="pub__title">TritonGym: A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation</p>
             <p class="pub__authors">Yue Guan*, <b>Yichen Lin</b>*, et al. <span class="pub__note">* equal contribution</span></p>
-            <p class="pub__meta"><span class="pub__status">Under review</span> ICML 2026</p>
-          </div>
-        </li>
-        <li class="pub">
-          <p class="pub__year">2023</p>
-          <div>
+            <p class="pub__meta"><span class="pub__status">Under review</span> <span class="pub__venue">ICML 2026</span></p>
+          </li>
+          <li class="pub card br">
+            <p class="pub__year">2023</p>
             <p class="pub__title">(Re)²H₂O: Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning</p>
             <p class="pub__authors">Haoyi Niu*, Kun Ren*, <b>Yichen Lin</b>, et al.</p>
-            <p class="pub__meta">IEEE Intelligent Vehicles Symposium (IV), 2023</p>
-          </div>
-        </li>
-      </ol>
-    </section>
-
-    <section class="sec" id="experience">
-      <h2>Experience</h2>
-      <ul class="rows sec__body">
-        <li class="row">
-          <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23"></div>
-          <div class="row__main">
-            <p class="row__title">Picasso Lab, UC San Diego CSE <span class="row__role">Research intern</span></p>
-            <p class="row__desc">Built a CXL system simulator for large-model communication; set up lab websites and a RAG pipeline for reading papers.</p>
-          </div>
-          <p class="row__when">Mar 2024 – Feb 2025</p>
-        </li>
-        <li class="row">
-          <div class="row__logo row__logo--mono"><img src="assets/logos/metabit.png" alt="Metabit (乾象投资)" width="120" height="29"></div>
-          <div class="row__main">
-            <p class="row__title">Metabit <span class="row__role">Quantitative developer intern</span></p>
-            <p class="row__desc">Sped up data parsing and added streaming reads to the internal AI platform.</p>
-          </div>
-          <p class="row__when">Sep – Nov 2024</p>
-        </li>
-        <li class="row">
-          <div class="row__logo row__logo--mono"><img src="assets/logos/tencent.svg" alt="Tencent" width="120" height="30"></div>
-          <div class="row__main">
-            <p class="row__title">Tencent, TiMi Studio <span class="row__role">Game developer intern</span></p>
-            <p class="row__desc">Client work on the Monster Hunter mobile game, including voice-controlled teammates.</p>
-          </div>
-          <p class="row__when">Jun – Jul 2024</p>
-        </li>
-        <li class="row">
-          <div class="row__logo row__logo--mono"><img src="assets/logos/disney-hotstar.svg" alt="Disney+ Hotstar" width="120" height="28"></div>
-          <div class="row__main">
-            <p class="row__title">Disney+ Hotstar <span class="row__role">Algorithm developer intern</span></p>
-            <p class="row__desc">Optimised the search page and fine-tuned the recommendation model for TPUs.</p>
-          </div>
-          <p class="row__when">Mar – Jun 2024</p>
-        </li>
-        <li class="row">
-          <div class="row__logo row__logo--icon"><img src="assets/logos/lark.png" alt="Lark" width="30" height="30"><span>Lark</span></div>
-          <div class="row__main">
-            <p class="row__title">ByteDance, Lark <span class="row__role">Backend developer intern</span></p>
-            <p class="row__desc">Built the AskAI assistant for sales-data analysis on Redis and RocketMQ.</p>
-          </div>
-          <p class="row__when">Jun – Nov 2023</p>
-        </li>
-      </ul>
-    </section>
-
-    <section class="sec" id="education">
-      <h2>Education</h2>
-      <ul class="rows sec__body">
-        <li class="row">
-          <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23"></div>
-          <div class="row__main">
-            <p class="row__title">UC San Diego <span class="row__role">Ph.D., Computer Science and Engineering</span></p>
-            <p class="row__desc">Advisor: Prof. Yufei Ding</p>
-          </div>
-          <p class="row__when">2025 – present</p>
-        </li>
-        <li class="row">
-          <div class="row__logo row__logo--mono"><img src="assets/logos/tsinghua-white.png" alt="Tsinghua University" width="120" height="30"></div>
-          <div class="row__main">
-            <p class="row__title">Tsinghua University <span class="row__role">B.S., Computer Science and Technology</span></p>
-          </div>
-          <p class="row__when">2021 – 2025</p>
-        </li>
-      </ul>
-    </section>
-
-    <section class="sec" id="projects">
-      <h2>Projects</h2>
-      <ul class="rows sec__body">
-        <li class="row row--project">
-          <div class="row__main">
-            <p class="row__title"><a href="https://github.com/yil384/Starry-Next" target="_blank" rel="noopener">Starry-Next<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
-            <p class="row__desc">Networking stack for a monolithic-kernel operating system. Graduation project.</p>
-          </div>
-          <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
-        </li>
-        <li class="row row--project">
-          <div class="row__main">
-            <p class="row__title"><a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" rel="noopener">IM System<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
-            <p class="row__desc">Real-time chat over WebSocket with a Django backend and a web front end.</p>
-          </div>
-          <p class="row__tags"><img src="assets/icons/brand/django.svg" alt="Django" width="16" height="16" title="Django"><img src="assets/icons/brand/websocket.svg" alt="WebSocket" width="16" height="16" title="WebSocket"><img src="assets/icons/brand/typescript.svg" alt="TypeScript" width="16" height="16" title="TypeScript"></p>
-        </li>
-        <li class="row row--project">
-          <div class="row__main">
-            <p class="row__title"><a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" rel="noopener">CST-OJ<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
-            <p class="row__desc">An online judge for data-structure coursework: sandboxed grading and a submission queue.</p>
-          </div>
-          <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
-        </li>
-        <li class="row row--project">
-          <div class="row__main">
-            <p class="row__title">TritonGym</p>
-            <p class="row__desc">Benchmark and evaluation harness for LLM agents that write Triton GPU kernels. See the paper above.</p>
-          </div>
-          <p class="row__tags"><img src="assets/icons/brand/python.svg" alt="Python" width="16" height="16" title="Python"></p>
-        </li>
-      </ul>
-    </section>
-
-    <section class="sec" id="skills">
-      <h2>Tools</h2>
-      <div class="sec__body">
-        <ul class="tools" aria-label="Languages">
-          <li><img src="assets/icons/brand/python.svg" alt="" width="20" height="20">Python</li>
-          <li><img src="assets/icons/brand/cplusplus.svg" alt="" width="20" height="20">C++</li>
-          <li><img src="assets/icons/brand/rust.svg" alt="" width="20" height="20">Rust</li>
-          <li><img src="assets/icons/brand/go.svg" alt="" width="20" height="20">Go</li>
-          <li><img src="assets/icons/brand/typescript.svg" alt="" width="20" height="20">TypeScript</li>
-          <li><img src="assets/icons/brand/javascript.svg" alt="" width="20" height="20">JavaScript</li>
-          <li><img src="assets/icons/ui/cpu.svg" alt="" width="20" height="20">Verilog</li>
-        </ul>
-        <ul class="tools" aria-label="Tools">
-          <li><img src="assets/icons/brand/linux.svg" alt="" width="20" height="20">Linux</li>
-          <li><img src="assets/icons/brand/vim.svg" alt="" width="20" height="20">Vim</li>
-          <li><img src="assets/icons/brand/latex.svg" alt="" width="20" height="20">LaTeX</li>
-          <li><img src="assets/icons/brand/websocket.svg" alt="" width="20" height="20">WebSocket</li>
-          <li><img src="assets/icons/brand/django.svg" alt="" width="20" height="20">Django</li>
-          <li><img src="assets/icons/brand/mongodb.svg" alt="" width="20" height="20">MongoDB</li>
-        </ul>
+            <p class="pub__meta"><span class="pub__venue">IEEE Intelligent Vehicles Symposium (IV), 2023</span></p>
+          </li>
+        </ol>
       </div>
     </section>
 
-    <section class="sec" id="contact">
-      <h2>Contact</h2>
-      <div class="sec__body prose">
-        <p><a href="mailto:yil384@ucsd.edu">yil384@ucsd.edu</a> · <a href="tel:+18583197361">(858) 319-7361</a></p>
-        <p>Computer Science and Engineering, UC San Diego, La Jolla, CA.</p>
+    <!-- S3 · 03 / OPERATIONS (+ 03b / TRAINING) -->
+    <section class="st st--ops" id="experience" data-scene="ops" data-s="3" data-label="03 / OPERATIONS" aria-labelledby="exp-h">
+      <div class="st__bg" aria-hidden="true"></div>
+      <div class="tilewave" aria-hidden="true"></div>
+      <div class="wrap">
+        <header class="st__head">
+          <span class="st__num" aria-hidden="true">03</span>
+          <p class="tag" aria-hidden="true">03 / OPERATIONS</p>
+          <h2 class="st__title" id="exp-h">Experience</h2>
+        </header>
+        <ul class="rows">
+          <li class="row card br">
+            <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23" loading="lazy"></div>
+            <div class="row__main">
+              <p class="row__title">Picasso Lab, UC San Diego CSE <span class="row__role">Research intern</span></p>
+              <p class="row__desc">Built a CXL system simulator for large-model communication; set up lab websites and a RAG pipeline for reading papers.</p>
+            </div>
+            <p class="row__when">Mar 2024 – Feb 2025</p>
+          </li>
+          <li class="row card br">
+            <div class="row__logo row__logo--mono"><img src="assets/logos/metabit.png" alt="Metabit (乾象投资)" width="120" height="29" loading="lazy"></div>
+            <div class="row__main">
+              <p class="row__title">Metabit <span class="row__role">Quantitative developer intern</span></p>
+              <p class="row__desc">Sped up data parsing and added streaming reads to the internal AI platform.</p>
+            </div>
+            <p class="row__when">Sep – Nov 2024</p>
+          </li>
+          <li class="row card br">
+            <div class="row__logo row__logo--mono"><img src="assets/logos/tencent.svg" alt="Tencent" width="120" height="30" loading="lazy"></div>
+            <div class="row__main">
+              <p class="row__title">Tencent, TiMi Studio <span class="row__role">Game developer intern</span></p>
+              <p class="row__desc">Client work on the Monster Hunter mobile game, including voice-controlled teammates.</p>
+            </div>
+            <p class="row__when">Jun – Jul 2024</p>
+          </li>
+          <li class="row card br">
+            <div class="row__logo row__logo--mono"><img src="assets/logos/disney-hotstar.svg" alt="Disney+ Hotstar" width="120" height="28" loading="lazy"></div>
+            <div class="row__main">
+              <p class="row__title">Disney+ Hotstar <span class="row__role">Algorithm developer intern</span></p>
+              <p class="row__desc">Optimised the search page and fine-tuned the recommendation model for TPUs.</p>
+            </div>
+            <p class="row__when">Mar – Jun 2024</p>
+          </li>
+          <li class="row card br">
+            <div class="row__logo row__logo--icon"><img src="assets/logos/lark.png" alt="Lark" width="30" height="30" loading="lazy"><span>Lark</span></div>
+            <div class="row__main">
+              <p class="row__title">ByteDance, Lark <span class="row__role">Backend developer intern</span></p>
+              <p class="row__desc">Built the AskAI assistant for sales-data analysis on Redis and RocketMQ.</p>
+            </div>
+            <p class="row__when">Jun – Nov 2023</p>
+          </li>
+        </ul>
+
+        <div class="st__sub" id="education">
+          <p class="tag" aria-hidden="true">03b / TRAINING</p>
+          <h3 class="sub__title">Education</h3>
+          <ul class="rows">
+            <li class="row card br">
+              <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23" loading="lazy"></div>
+              <div class="row__main">
+                <p class="row__title">UC San Diego <span class="row__role">Ph.D., Computer Science and Engineering</span></p>
+                <p class="row__desc">Advisor: Prof. Yufei Ding</p>
+              </div>
+              <p class="row__when">2025 – present</p>
+            </li>
+            <li class="row card br">
+              <div class="row__logo row__logo--mono"><img src="assets/logos/tsinghua-white.png" alt="Tsinghua University" width="120" height="30" loading="lazy"></div>
+              <div class="row__main">
+                <p class="row__title">Tsinghua University <span class="row__role">B.S., Computer Science and Technology</span></p>
+              </div>
+              <p class="row__when">2021 – 2025</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- S4 · 04 / EQUIPMENT -->
+    <section class="st st--armory" id="projects" data-scene="armory" data-s="4" data-label="04 / EQUIPMENT" aria-labelledby="proj-h">
+      <div class="st__bg" aria-hidden="true"></div>
+      <div class="tilewave" aria-hidden="true"></div>
+      <div class="wrap">
+        <header class="st__head">
+          <span class="st__num" aria-hidden="true">04</span>
+          <p class="tag" aria-hidden="true">04 / EQUIPMENT</p>
+          <h2 class="st__title" id="proj-h">Projects</h2>
+        </header>
+        <ul class="bays">
+          <li class="bay card br">
+            <p class="bay__title"><a href="https://github.com/yil384/Starry-Next" target="_blank" rel="noopener">Starry-Next<svg class="i" aria-hidden="true"><use href="#i-out"/></svg></a></p>
+            <p class="bay__desc">Networking stack for a monolithic-kernel operating system. Graduation project.</p>
+            <ul class="chips" aria-label="Technologies"><li>Rust</li></ul>
+          </li>
+          <li class="bay card br">
+            <p class="bay__title"><a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" rel="noopener">IM System<svg class="i" aria-hidden="true"><use href="#i-out"/></svg></a></p>
+            <p class="bay__desc">Real-time chat over WebSocket with a Django backend and a web front end.</p>
+            <ul class="chips" aria-label="Technologies"><li>Django</li><li>WebSocket</li><li>TypeScript</li></ul>
+          </li>
+          <li class="bay card br">
+            <p class="bay__title"><a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" rel="noopener">CST-OJ<svg class="i" aria-hidden="true"><use href="#i-out"/></svg></a></p>
+            <p class="bay__desc">An online judge for data-structure coursework: sandboxed grading and a submission queue.</p>
+            <ul class="chips" aria-label="Technologies"><li>Rust</li></ul>
+          </li>
+          <li class="bay card br">
+            <p class="bay__title">TritonGym</p>
+            <p class="bay__desc">Benchmark and evaluation harness for LLM agents that write Triton GPU kernels. See the paper above.</p>
+            <ul class="chips" aria-label="Technologies"><li>Python</li></ul>
+          </li>
+        </ul>
+
+        <div class="st__sub" id="skills">
+          <p class="tag" aria-hidden="true">Loadout</p>
+          <h3 class="sub__title">Tools</h3>
+          <div class="loadout br">
+            <ul class="chips chips--lg" aria-label="Languages">
+              <li>Python</li><li>C++</li><li>Rust</li><li>Go</li><li>TypeScript</li><li>JavaScript</li><li>Verilog</li>
+            </ul>
+            <ul class="chips chips--lg" aria-label="Tools">
+              <li>Linux</li><li>Vim</li><li>LaTeX</li><li>WebSocket</li><li>Django</li><li>MongoDB</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S5 · 05 / HOME BASE -->
+    <section class="st st--island" id="island" data-scene="island" data-s="5" data-label="05 / HOME BASE" aria-labelledby="island-h">
+      <div class="st__bg" aria-hidden="true"></div>
+      <div class="tilewave" aria-hidden="true"></div>
+      <div class="wrap">
+        <header class="st__head">
+          <span class="st__num" aria-hidden="true">05</span>
+          <p class="tag" aria-hidden="true">05 / HOME BASE</p>
+          <h2 class="st__title" id="island-h">Explore the island</h2>
+        </header>
+        <div class="island">
+          <figure class="vpanel" data-video>
+            <div class="vpanel__frame br">
+              <video id="v-homebase" poster="assets/video/homebase.jpg" width="1280" height="720" muted playsinline loop preload="none" aria-label="Home base: twelve-second teaser of the island game" aria-describedby="v-homebase-desc">
+                <source src="assets/video/homebase.mp4" type="video/mp4">
+              </video>
+              <button type="button" class="vbtn" aria-label="Play the Home base film"><svg class="i i--play" aria-hidden="true"><use href="#i-play"/></svg><svg class="i i--pause" aria-hidden="true"><use href="#i-pause"/></svg><span class="vbtn__t vbtn__t--play" aria-hidden="true">Play</span><span class="vbtn__t vbtn__t--pause" aria-hidden="true">Pause</span></button>
+            </div>
+            <figcaption class="vpanel__cap"><span class="tag">Home base</span><span class="tag">12 s</span></figcaption>
+            <p class="sr" id="v-homebase-desc">Twelve-second teaser of the island game. From the sky, a small island; the machine lands on its plaza, the scholar in a blue robe and the companion Bit run in, islanders wave from the library steps, and the glyph on a sealed chamber door pulses violet.</p>
+          </figure>
+          <div class="launch plate br">
+            <p class="launch__line">Side quest: a scholar in a blue robe, the companion creature Bit, islanders Nell, Unit-7, Mo, Tide, Fern and Ash, three bosses, and a sealed chamber.</p>
+            <p class="launch__note">The island is playable: a small voxel world in three.js. Desktop with a keyboard.</p>
+            <button type="button" class="launch__btn br" id="play-btn-island" data-play hidden>
+              <svg class="i" aria-hidden="true"><use href="#i-tile"/></svg> Explore the island
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- S6 · 06 / COMMS -->
+    <section class="st st--comms" id="contact" data-scene="comms" data-s="6" data-label="06 / COMMS" aria-labelledby="contact-h">
+      <div class="st__bg" aria-hidden="true"></div>
+      <div class="tilewave" aria-hidden="true"></div>
+      <div class="wrap">
+        <header class="st__head">
+          <span class="st__num" aria-hidden="true">06</span>
+          <p class="tag" aria-hidden="true">06 / COMMS</p>
+          <h2 class="st__title" id="contact-h">Contact</h2>
+        </header>
+        <dl class="comms plate br">
+          <div class="comms__row"><dt><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg>Email</dt><dd><a href="mailto:yil384@ucsd.edu">yil384@ucsd.edu</a></dd></div>
+          <div class="comms__row"><dt><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg>Phone</dt><dd><a href="tel:+18583197361">(858) 319-7361</a></dd></div>
+          <div class="comms__row"><dt><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg>Address</dt><dd>Computer Science and Engineering, UC San Diego, La Jolla, CA.</dd></div>
+          <div class="comms__row"><dt>GitHub</dt><dd><a href="https://github.com/yil384" target="_blank" rel="noopener">yil384</a></dd></div>
+          <div class="comms__row"><dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener">yichen-lin-206293384</a></dd></div>
+          <div class="comms__row"><dt>Google Scholar</dt><dd><a href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener">itFHNzoAAAAJ</a></dd></div>
+        </dl>
       </div>
     </section>
   </main>
 
   <footer class="foot">
-    <p>© 2025–2026 Yichen Lin. Built with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>; no frameworks, no build step.</p>
-    <p class="foot__credits">Logos belong to their organisations. Icons: <a href="https://simpleicons.org" target="_blank" rel="noopener">Simple Icons</a>, <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a>, and <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> (CC BY 3.0).</p>
+    <div class="wrap foot__in">
+      <div class="foot__text">
+        <p>© 2025–2026 Yichen Lin. Built with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> (WebGPU, WebGL2 fallback); no frameworks, no build step.</p>
+        <p class="foot__credits">The opening film and the loops were made with p5.js and p5.brush in a studio engine ported from ClaudeAnimationBase (MIT). Logos belong to their organisations. Icons: <a href="https://simpleicons.org" target="_blank" rel="noopener">Simple Icons</a>, <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a>, and <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> (CC BY 3.0).</p>
+      </div>
+      <button type="button" class="pill br foot__replay" data-replay hidden><svg class="i" aria-hidden="true"><use href="#i-play"/></svg> Replay opening</button>
+    </div>
   </footer>
 
   <div id="game-root"></div>

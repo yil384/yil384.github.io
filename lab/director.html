@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+  <title>Director lab</title>
+  <style>
+    html, body { margin: 0; background: #0a0b14; color: #F4EEDF; font: 14px ui-monospace, monospace; }
+    #stage { position: fixed; inset: 0; width: 100vw; height: 100vh; }
+    section { position: relative; height: 100vh; padding: 24px; box-sizing: border-box; }
+    #hud { position: fixed; left: 12px; top: 10px; z-index: 5; white-space: pre; background: rgba(10,11,20,.6); padding: 4px 8px; }
+  </style>
+  <script type="importmap">{ "imports": { "three": "../assets/vendor/three/build/three.webgpu.js", "three/webgpu": "../assets/vendor/three/build/three.webgpu.js", "three/tsl": "../assets/vendor/three/build/three.tsl.js", "three/addons/": "../assets/vendor/three/examples/jsm/" } }</script>
+</head>
+<body>
+  <canvas id="stage" hidden></canvas>
+  <div id="hud">booting…</div>
+  <section data-scene="hangar" data-s="0">S0</section><section data-scene="hangar" data-s="1">S1</section><section data-scene="catapult" data-s="2">S2</section>
+  <section data-scene="ops" data-s="3">S3</section><section data-scene="armory" data-s="4">S4</section><section data-scene="island" data-s="5">S5</section><section data-scene="comms" data-s="6">S6</section>
+  <script type="module">
+    // Lab for the live director. ?tier=1|2  ?webgl=1 (boot.js)  ?shim=swizzle (WebGPU test shim)
+    import { mount } from '../assets/js/director/director.js';
+    const q = new URLSearchParams(location.search);
+    try {
+      window.__dir = await mount(document.getElementById('stage'), { tier: +(q.get('tier') || 1), force: true });
+      document.getElementById('hud').textContent = `${window.__dir.backend} tier ${window.__dir.tier}`;
+      window.__ready = true;
+    } catch (e) { console.error('[lab] mount failed', e); document.getElementById('hud').textContent = 'mount failed: ' + e.message; window.__failed = String(e); }
+  </script>
+</body>
+</html>
