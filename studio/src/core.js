@@ -319,7 +319,7 @@ function defineBrushes() {
   brush.add('ink', { type: 'default', weight: 5, scatter: .25, sharpness: .8, grain: 40, opacity: 235, spacing: .2, pressure: [1.15, .75], rotate: 'natural', noise: .15 });
   brush.add('inkfine', { type: 'default', weight: 2.6, scatter: .15, sharpness: .85, grain: 40, opacity: 230, spacing: .2, pressure: [1.1, .8], rotate: 'natural', noise: .1 });
   brush.add('dry', { type: 'default', weight: 14, scatter: 3, sharpness: .3, grain: 6, opacity: 90, spacing: .6, pressure: [1, .6], rotate: 'natural', noise: .4 });
-  brush.add('neon', { type: 'default', weight: 7, scatter: .1, sharpness: .95, grain: 0, opacity: 255, spacing: .15, pressure: [1, 1], rotate: 'natural', noise: 0 });
+  brush.add('neon', { type: 'default', weight: 7, scatter: .1, sharpness: .95, grain: 40, opacity: 255, spacing: .15, pressure: [1, 1], rotate: 'natural', noise: 0 });
 }
 
 // ---------- frame ----------

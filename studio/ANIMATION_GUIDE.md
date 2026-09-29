@@ -65,6 +65,10 @@ is a global. p5 globals are also present, so never name a function `box`, `cylin
   stroke, strokeW, ink:false, align })` and `sfx(txt, x, y, size, col, age, { life, rot })` for painted sound effects.
   **No text in videos** except the name card and a few SFX (`DON`, `ZAAA`, `GO`).
 
+* Custom brushes (`brush.add`): **`grain: 0` draws nothing at all** (measured; any other value works). Give clean lines
+  `grain: 40` like `ink`. Never name a global helper `frustum`, `box`, `cone`, ... (p5 owns them; the page then fails to load).
+* Multi-point `inkLine`s want `curv` > 0 (a spline); `curv: 0` is fine for two-point lines.
+
 ## 4. Cel-3D
 
 * Camera: `const cam = cam3({ pos, look, fov, roll })`. `cam.project(p)` → `[sx, sy, depth]` (NaN behind the near plane),
