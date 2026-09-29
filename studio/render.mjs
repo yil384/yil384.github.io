@@ -7,7 +7,8 @@
 //     node render.mjs --video=opening --stills=1.2,3.4 --out=out/stills                                 full-res PNGs
 //   Make the video:
 //     node render.mjs --video=opening --frames [--range=0:8] --workers=3       JPEG frames -> out/frames/<video> (parallel, resumable)
-//     node render.mjs --video=opening --encode --out=../assets/video/opening   -> opening.mp4 (H.264) + opening.webm (VP9) + opening.jpg (poster)
+//     node render.mjs --video=opening --encode --out=../assets/video/opening   -> opening.mp4 (H.264, crf 29 -tune animation) + opening.jpg (poster)
+//       [--poster=<sec>] [--crf=29] [--webm  also VP9: measured larger than the mp4 for this flat-colour material, so off by default]
 //   Loops: add --loop=<name> to any of the above (times are loop times).
 //   Flags: --fps=24 (must match PROJECT.fps), --scale=0.6667 overrides PROJECT.scale, --chromium=<path>.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
@@ -36,11 +37,11 @@ if (args.encode) {
   const base = resolve(HERE, out);
   console.log(`encoding ${n} frames from ${FRAMES_DIR} -> ${base}.mp4 / .webm / .jpg`);
   const input = ['-framerate', String(fps), '-i', `${FRAMES_DIR}/f%05d.jpg`];
-  await run(ff, ['-y', '-loglevel', 'error', '-stats', ...input, '-c:v', 'libx264', '-preset', 'slow', '-crf', String(args.crf || 20), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${base}.mp4`]);
-  await run(ff, ['-y', '-loglevel', 'error', '-stats', ...input, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', String(args.vcrf || 33), '-row-mt', '1', '-deadline', 'good', '-cpu-used', '2', '-pix_fmt', 'yuv420p', '-an', `${base}.webm`]);
+  await run(ff, ['-y', '-loglevel', 'error', '-stats', ...input, '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', String(args.crf || 29), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', `${base}.mp4`]);
+  if (args.webm) await run(ff, ['-y', '-loglevel', 'error', '-stats', ...input, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', String(args.vcrf || 38), '-row-mt', '1', '-deadline', 'good', '-cpu-used', '2', '-pix_fmt', 'yuv420p', '-an', `${base}.webm`]);
   const poster = `${FRAMES_DIR}/f${String(Math.min(n - 1, Math.round(+(args.poster ?? 0.5) * fps))).padStart(5, '0')}.jpg`;
   copyFileSync(poster, `${base}.jpg`);
-  for (const ext of ['mp4', 'webm', 'jpg']) console.log(`${base}.${ext}  ${(statSync(`${base}.${ext}`).size / 1024).toFixed(0)} KB`);
+  for (const ext of args.webm ? ['mp4', 'webm', 'jpg'] : ['mp4', 'jpg']) console.log(`${base}.${ext}  ${(statSync(`${base}.${ext}`).size / 1024).toFixed(0)} KB`);
   process.exit(0);
 }
 
