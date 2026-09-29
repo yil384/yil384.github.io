@@ -59,6 +59,7 @@ export function createAnimePipeline(renderer, scene, camera, {
   outline = {},
   bloom: bloomOpts = {},
   scanlines: withScanlines = false,
+  debug = {}, // QA only: noBlendMode, noOutlineEmissive, noBloom, noFinish, noFxaa, noVignette
 } = {}) {
   const { color: outlineColor = '#0a0a12', thickness: outlineThickness = 0.003 } = outline;
   const { strength = 1.2, radius = 0.6, threshold = 0 } = bloomOpts;
@@ -68,16 +69,17 @@ export function createAnimePipeline(renderer, scene, camera, {
   // The outline material is a bare NodeMaterial: give it an explicit emissive so the MRT
   // emissive attachment never contains uninitialised fragments on GLSL.
   const createOutlineMaterial = scenePass._createMaterial.bind(scenePass);
-  scenePass._createMaterial = () => { const m = createOutlineMaterial(); m.emissiveNode = vec3(0); return m; };
+  if (!debug.noOutlineEmissive) scenePass._createMaterial = () => { const m = createOutlineMaterial(); m.emissiveNode = vec3(0); return m; };
   // Non-`output` MRT attachments default to NoBlending (overwrite) on WebGPU, while WebGL2 without
   // OES_draw_buffers_indexed blends every attachment with the material's state. Use the material
   // blending for `emissive` on both, so additive glow sprites add and never erase the glow behind.
-  scenePass.setMRT(mrt({ output, emissive }).setBlendMode('emissive', new THREE.BlendMode(THREE.MaterialBlending)));
+  const mrtNode = mrt({ output, emissive });
+  scenePass.setMRT(debug.noBlendMode ? mrtNode : mrtNode.setBlendMode('emissive', new THREE.BlendMode(THREE.MaterialBlending)));
   const beauty = scenePass.getTextureNode('output');
   const emissTex = scenePass.getTextureNode('emissive');
 
   // 2. bloom on the emissive attachment only (threshold 0 -> everything emissive blooms)
-  const bloomPass = bloom(emissTex, strength, radius, threshold);
+  const bloomPass = bloom(emissTex, debug.noBloom ? 0 : strength, radius, threshold);
 
   // uniforms the page animates
   const impact = uniform(0); // 0/1 manga impact frame (binary)
@@ -92,17 +94,17 @@ export function createAnimePipeline(renderer, scene, camera, {
   const vig = screenUV.distance(.5).remap(.6, 1).mul(2).clamp().oneMinus(); // 1 centre -> 0 corners
 
   const ldrFinish = (ldr, { full }) => {
+    if (debug.noFinish) return vec4(ldr.rgb, 1);
     let c = ldr;
     if (full) c = mix(c, vec4(1), speedLineMask(speedLines, float(0.25), float(140)));
     if (full && withScanlines) c = crtScanlines(c, scanlinesU, screenSize.y.mul(0.5), float(0));
-    c = c.mul(mix(float(1), vig, vignette));
-    return Fn(() => { // impact frame + flash, forced opaque
-      const g = luminance(c.rgb);
-      const inv = vec3(step(0.5, g).oneMinus()); // 2-tone ink
-      const peak = smoothstep(0.6, 1.0, impact);
-      const out = mix(mix(c.rgb, inv, step(0.01, impact)), vec3(1), peak.max(flash));
-      return vec4(out, 1);
-    })();
+    if (!debug.noVignette) c = c.mul(mix(float(1), vig, vignette));
+    // impact frame (binary two-tone: bright -> ink, dark -> paper) + flash, forced opaque.
+    // Plain node expressions, no Fn() wrapper (fxaa() renders its input to a texture first).
+    const g = luminance(c.rgb);
+    const inv = vec3(step(0.5, g).oneMinus());
+    const out = mix(mix(c.rgb, inv, step(0.01, impact)), vec3(1), flash.clamp(0, 1));
+    return vec4(out, 1);
   };
 
   // FULL: hdr composite -> one RTT -> distortion group -> LDR finish -> FXAA
@@ -123,11 +125,12 @@ export function createAnimePipeline(renderer, scene, camera, {
       }
       return vec4(acc.div(N), 1);
     })();
-    return fxaa(ldrFinish(distorted.renderOutput(), { full: true }));
+    const fin = ldrFinish(distorted.renderOutput(), { full: true });
+    return debug.noFxaa ? fin : fxaa(fin);
   };
 
   // CHEAP: no RTT for distortion; bloom at quarter res
-  const buildCheap = () => fxaa(ldrFinish(beauty.add(bloomPass).renderOutput(), { full: false }));
+  const buildCheap = () => { const fin = ldrFinish(beauty.add(bloomPass).renderOutput(), { full: false }); return debug.noFxaa ? fin : fxaa(fin); };
 
   const pipeline = new THREE.RenderPipeline(renderer);
   pipeline.outputColorTransform = false; // we call renderOutput() ourselves (before the LDR effects)

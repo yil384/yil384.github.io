@@ -184,7 +184,7 @@
           const u = {}; for (const k of ['impact', 'shake', 'aberration', 'speedLines', 'vignette', 'scanlines', 'flash']) u[k] = { value: k === 'shake' ? new THREE.Vector2() : 0 };
           post = { pipeline: p, uniforms: u, render: () => p.render(), setSize(w, h) { r.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); } };
         } else {
-          const debug = { noVignette: q.has('noVignette'), noImpact: q.has('noImpact') };
+          const debug = Object.fromEntries(['noBlendMode', 'noOutlineEmissive', 'noBloom', 'noFinish', 'noFxaa', 'noVignette'].map(k => [k, q.has(k)]));
           post = createAnimePipeline(r, scene, camera, { quality, scanlines: true, outline: { color: '#0a0a12', thickness: 0.0035 }, bloom: { strength: 1.2, radius: 0.6, threshold: 0 }, debug });
         }
         resize(r);
@@ -241,7 +241,30 @@
         hud.textContent = `backend ${backend}  quality ${quality}  sky ${skyMode}\nframe ${s ? s.avgMs + ' ms avg / p95 ' + s.p95 : '…'}  draws ${info.drawCalls}  tris ${info.triangles}`;
       }
     };
-    const loop = runLoop(renderer, tick);
+    // ?still=<t>[&impact=1][&flash=0.5][&lines=0.6]: no animation loop; one deterministic frame at time t, then
+    // window.__lab.stillDone = true once the GPU has finished it (screenshots in the software-GL sandbox need this).
+    let loop;
+    if (q.has('still')) {
+      loop = { stats: () => null };
+      nextBurst = Infinity;
+      tick(0.016, +q.get('still') || 1);
+      U.impact.value = q.get('impact') === '1' ? 1 : 0;
+      U.flash.value = +(q.get('flash') || 0);
+      U.speedLines.value = +(q.get('lines') || 0);
+      U.shake.value.set(0, 0);
+      // WebGPU builds pipelines asynchronously and skips draws until they are ready: warm up over a few frames.
+      for (let i = 0; i < 8; i++) { post.render(); await new Promise((r) => setTimeout(r, 300)); }
+      post.render();
+      // Grab the frame in the same task as the render (a WebGPU canvas can't be screenshotted in the software sandbox).
+      const c2 = document.createElement('canvas');
+      c2.width = live.width; c2.height = live.height;
+      c2.getContext('2d').drawImage(live, 0, 0);
+      window.__lab.snapshot = c2.toDataURL('image/png');
+      renderer.backend.gl?.finish();
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await new Promise((r) => setTimeout(r, 1200)); // software GL rasterises after the commands are queued
+      window.__lab.stillDone = true;
+    } else loop = runLoop(renderer, tick);
   </script>
 </body>
 </html>
