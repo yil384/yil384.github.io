@@ -217,7 +217,7 @@
     const cam = cam3({ pos: [dist * Math.sin(a), 10, -dist * Math.cos(a)], look: [0, lookY, 0], fov });
     const pitch = Math.atan2(10 - lookY, dist), hy = 540 - (540 / Math.tan(fov * Math.PI / 360)) * Math.tan(pitch);   // horizon row
     bands(-200, hy, [PAL.indigo, PAL.cyan, PAL.cream], 10);
-    const sun = kf(t, [[16.5, [1350, hy - 150]], [20.0, [960, 430]]], ease);
+    const sun = kf(t, [[16.5, [1350, hy - 150]], [20.0, [960, 300]]], ease);
     glow(sun[0], sun[1], 420, PAL.gold, .8);
     paint(ellPts(960, hy, 1500, 140, 30, 10), { fill: PAL.cream, fillOp: 130, bleed: .3, tex: .5, ink: null });   // fill 1: horizon haze
     bands(hy, 1300, [PAL.teal, PAL.indigo], 6);
@@ -246,13 +246,13 @@
 
   // ---- V1-G  20.0-24.0  The name (carried by the page's HTML title) ----
   function shotG(t, lt) {
-    const cam = cam3({ pos: [-80, 8, 40], look: [0, 10, 40], fov: 40 });
+    const cam = cam3({ pos: [-80, 8, 40], look: [0, 3, 40], fov: 40 });   // aimed low: the mech rides high in the frame
     camBegin(960 + 10 * Math.sin(lt * .5), 540 + 6 * Math.sin(lt * .35), 1);
     bands(-200, 700, [PAL.cream, PAL.gold, PAL.rose], 9);
     bands(700, 1300, [PAL.rose, PAL.indigo], 5);
-    paint(ellPts(960, 430, 260, 260, 40), { wash: PAL.gold, washOp: 255, fill: PAL.gold, fillOp: 80, bleed: .2, ink: null });
-    paint(ellPts(960, 560, 700, 140, 30, 10), { fill: PAL.cream, fillOp: 110, bleed: .3, tex: .5, ink: null });
-    glow(960, 430, 520, PAL.gold, .7);
+    paint(ellPts(960, 300, 260, 260, 40), { wash: PAL.gold, washOp: 255, fill: PAL.gold, fillOp: 80, bleed: .2, ink: null });
+    paint(ellPts(960, 440, 700, 140, 30, 10), { fill: PAL.cream, fillOp: 110, bleed: .3, tex: .5, ink: null });
+    glow(960, 300, 520, PAL.gold, .7);
     const tip = .06 * spring(t, 23.0, .6, 7);
     const mech = k01({ ...K01_POSES.flight, rot: [1.3 + tip, 0, 0], pos: [0, 10 - 9 + 0, 40], thrust: 1 });
     cel3dPaint(cam, silhouette(mech.parts), { edges: 'none', light: [0, 1, 0] });
