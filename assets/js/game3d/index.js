@@ -7,6 +7,7 @@ import * as THREE from 'three/webgpu';
 import { pass, mrt, output, emissive } from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import { createRobustRenderer, runLoop, probeGPU } from '../three/boot.js';
+import { paintedSky } from '../engine/sky.js';
 import { S, save } from './state.js';
 import { clock, advance } from './clock.js';
 import { on, emit } from './bus.js';
@@ -46,10 +47,11 @@ export async function createGame({ root, heroCtl } = {}) {
   root.append(overlay);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(BG);
-  scene.fog = new THREE.FogExp2(BG, 0.012);
-  scene.add(new THREE.HemisphereLight('#c7d2fe', '#0b1024', 1.0));
-  const sun = new THREE.DirectionalLight('#ffe7c2', 2.2);
+  // site restyle: painted dawn sky (zenith indigo, horizon rose, gold sun), violet-tinted fog, warm key light
+  scene.backgroundNode = paintedSky({ zenith: '#1E2A5E', horizon: '#E9557D', sun: '#FFD470', sunDir: new THREE.Vector3(-0.55, 0.3, -0.6) });
+  scene.fog = new THREE.FogExp2('#3A2E6B', 0.010);
+  scene.add(new THREE.HemisphereLight('#8FA3C7', '#3A2E6B', 0.55));
+  const sun = new THREE.DirectionalLight('#ffd9a0', 1.55);
   sun.position.set(-30, 46, 24);
   sun.castShadow = !lowfx;
   sun.shadow.mapSize.set(1536, 1536);

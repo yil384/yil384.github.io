@@ -99,7 +99,13 @@
     bg(PAL.night, 1040);
     ['front', 'q', 'side', 'back'].forEach((v, i) => pilot(260 + i * 470, 1040, 1000, { view: v, hold: i < 3 ? 'helmet' : null, t, key: 'd' + i }));
   }
+  function dev2(t) {   // DEV (removed later): options gallery
+    bg(PAL.night, 800);
+    const o = [{ rim: PAL.amber }, { rim: PAL.cream, view: 'q' }, { op: 110, view: 'q' }, { tone: [PAL.ink, .75] }, { flip: true, view: 'q', hold: 'helmet' }, { sq: .16, lean: .08 }, { armR: -1.2 + .4 * Math.sin(t * 9), emo: 'joy', coat: false }, { look: -1, hold: 'paper', emo: 'curious', view: 'q' }, { sil: PAL.indigo, view: 'side' }, { view: 'qb', hold: 'helmet', armL: -.9 }];
+    o.forEach((oo, i) => pilot(150 + i * 190, 800, 430, { t, ...oo, key: 'g' + i }));
+  }
   function shot(t) {
+    if (t >= 21) return dev2(t);
     if (t >= 20) return dev(t);
     if (t < 1) s0(t); else if (t < 2) s1(t); else if (t < 3) s2(t); else if (t < 4) s3(t); else if (t < 5) s4(t);
     else if (t < 6) s5(t); else if (t < 7) s6(t); else if (t < 8) s7(t); else if (t < 9) s8(t); else if (t < 10) s9(t);

@@ -115,8 +115,8 @@ function mkQ(o, h, key, x0, y0) {
   Q.T = pts => { const w = W(pts); return fl < 0 ? w.map(p => [2 * x0 - p[0], p[1]]) : w; };
   Q.M = p => fl < 0 ? [2 * x0 - p[0], p[1]] : p;
   Q.fillP = (pts, col, opac) => paint(Q.T(pts), { wash: Q.c(col), washOp: opac ?? op, ink: null });
-  Q.inkP = (pts, sw = 1.1, curv = .3, col = PAL.ink, br = 'ink') => paint(Q.T(pts), { ink: sil ? sil : col, sw: sw * kk, br, curv });
-  Q.line = (pts, sw = .7, col = PAL.ink, br = 'inkfine', curv = .4) => { if (!sil) inkLine(Q.T(pts), sw * kk, Q.c(col), br, curv); };
+  Q.inkP = (pts, sw = 1.1, curv = .3, col = PAL.ink, br = 'ink') => op < 250 ? 0 : paint(Q.T(pts), { ink: sil ? sil : col, sw: sw * kk, br, curv });
+  Q.line = (pts, sw = .7, col = PAL.ink, br = 'inkfine', curv = .4) => { if (!sil && op >= 250) inkLine(Q.T(pts), sw * kk, Q.c(col), br, curv); };
   Q.shade = (pts, col) => { if (!sil) paint(Q.T(pts), { wash: Q.c(col), washOp: op, ink: null }); };
   return Q;
 }
@@ -163,9 +163,10 @@ const EMO = {
 };
 
 // projection: rig (X right, Y up, Z toward viewer at yaw 0; units of h) -> [screen x, screen y, depth]
-function mkProj(x0, y0, h, yaw, lean, sq, dy) {
+function mkProj(x0, y0, h, yaw, lean, sq, dy, lat = 0) {
   const cy = Math.cos(yaw), sy = Math.sin(yaw), cl = Math.cos(lean), sl = Math.sin(lean), kx = 1 + sq * .6, ky = 1 - sq, PITCH = .10;
   return (X, Y, Z) => {
+    if (lat) X += lat * clamp(Y / .5, 0, 1);
     const Y1 = Y * cl - Z * sl, Z1 = Y * sl + Z * cl, xs = X * cy + Z1 * sy, zs = -X * sy + Z1 * cy;
     return [x0 + xs * h * kx, y0 + dy + (-Y1 + zs * PITCH) * h * ky, zs];
   };
@@ -180,7 +181,7 @@ function pilotPose(x, y, h, o) {
   const sq = o.sq || 0, lean = (o.lean || 0) + (seated ? .10 : 0);
   const yaw = (o.yaw ?? YAWS[view] ?? 0) + (walking ? .055 * sinP : 0);
   const bobPx = walking ? .007 * h * (1 - Math.abs(cosP)) : 0, dy = (o.dy || 0) + bobPx;
-  const pr = mkProj(x, y, h, yaw, lean, sq, dy);
+  const pr = mkProj(x, y, h, yaw, lean, sq, dy, walking ? .007 * sinP : 0);
   const M = p => fl < 0 ? [2 * x - p[0], p[1], p[2]] : p;
   const br = Math.sin(bpOf(t) * PI), up = br * .0042;                        // breath, on the beat (period 2 beats)
   const sw = .0075 * Math.sin(t * 2.3) + .008 * (pulse(t, 5) - .15);         // hem sway
@@ -207,7 +208,7 @@ function pilotPose(x, y, h, o) {
   const chain = (side, kind, param) => {
     const S = [side * .100, Sy + up, 0];
     if (kind === 'wave') {
-      const a = clamp(-param, .05, 2.4), a2 = a + .75;
+      const a = clamp(-param, .05, 2.4), a2 = a + 1.25;
       const E1 = [S[0] + side * Math.sin(a) * .155, S[1] - Math.cos(a) * .155, .02], W1 = [E1[0] + side * Math.sin(a2) * .14, E1[1] - Math.cos(a2) * .14, .04];
       return { S, E: E1, W: W1 };
     }
@@ -352,6 +353,7 @@ function drawHead(Q, P, o) {
   const vis = p => p[2] > .012;
   // 1. hair mass behind everything
   const HB = edgePoly(hp, rowsOf(HAIRT, VLO, 1.09, 24), true);
+  P.hairEdges = HB;
   Q.fillP(HB.pts, HAIR); Q.inkP(HB.pts, 1.1, .3);
   // 2. skin
   const SK = edgePoly(hp, rowsOf(SKULL, 0, 1, 22), true);
@@ -445,6 +447,14 @@ function drawHead(Q, P, o) {
   }
 }
 
+// a warm rim light on the lit side of the head and collar (o.rim = colour): drawn last, along the silhouette edge
+function drawRim(Q, P, col, side) {
+  Q.part('rim');
+  const pick = E => (side * P.fl < 0 ? E.L : E.R);           // edges are unflipped; Q.line mirrors
+  if (P.hairEdges) { const e = pick(P.hairEdges).map(p => [p[0], p[1]]); Q.line(e.slice(0, Math.round(e.length * .62)), 1.5, col, 'ink', 0); }
+  if (P.collarEdges) Q.line(pick(P.collarEdges).map(p => [p[0], p[1]]), 1.4, col, 'ink', 0);
+}
+
 // ---------- pilot: standing ----------
 const ellR = (cx, cy, rx, ry, rot, n = 12) => { const c = Math.cos(rot), s = Math.sin(rot), out = []; for (let i = 0; i < n; i++) { const a = i / n * TAU, x = Math.cos(a) * rx, y = Math.sin(a) * ry; out.push([cx + x * c - y * s, cy + x * s + y * c]); } return out; };
 function surfPt(P, tab, y, X, mod) {           // a point on the front surface of a torso loft
@@ -531,7 +541,7 @@ function drawBody(Q, P, o) {
   const ringMod = r => {
     const f = seated ? 0 : clamp((.58 - r.y) / .34, 0, 1), g = f * f * (1.5 - .5 * f);
     r.xc = P.sw * g; r.zc = (P.walking ? -.014 : 0) * g;
-    const spread = P.walking ? .020 * Math.abs(P.sinP) : 0;
+    const spread = P.walking ? .026 * Math.abs(P.sinP) : 0;
     r.df += spread * g; r.db += spread * g * .7; r.rx += spread * .25 * g;
     if (r.y > .56) r.y += P.up * clamp((r.y - .56) / .25, 0, 1);
     r.y += P.base;
@@ -541,7 +551,7 @@ function drawBody(Q, P, o) {
   // ---- lower body ----
   if (!seated) {
     const feet = [-1, 1].map(s => {
-      const ph = P.phi + (s > 0 ? PI : 0), zf = P.walking ? .075 * Math.sin(ph) : 0, lift = P.walking ? .045 * Math.max(0, Math.cos(ph)) : 0;
+      const ph = P.phi + (s > 0 ? PI : 0), zf = P.walking ? .105 * Math.sin(ph) : 0, lift = P.walking ? .05 * Math.max(0, Math.cos(ph)) : 0;
       return { s, zf, lift, z: pr(s * .052, 0, zf)[2] };
     }).sort((a, b) => a.z - b.z);
     add(-1, () => {
@@ -655,6 +665,7 @@ function drawBody(Q, P, o) {
     if (coat) {
       Q.part('collar');
       const rows = rowsOf(COLLART, .79, .88, 6, r => { r.y += P.up + P.base; }), C = edgePoly(pr, rows, true);
+      P.collarEdges = C;
       Q.fillP(C.pts, HULL); Q.shade(strip(C.L, C.R, sdU, .32, .12, .5), HULLS);
       Q.inkP(C.pts, 1.0, .2);
       const arc = nearArc(pr, rows[0]).map(p => [p[0], p[1]]);
@@ -666,6 +677,7 @@ function drawBody(Q, P, o) {
       Q.shade(ellP(chin[0], chin[1] + .010 * h, .034 * h, .016 * h, 12), SKIN_D);
     }
     drawHead(Q, P, o);
+    if (o.rim) drawRim(Q, P, o.rim, o.rimSide === 1 ? 1 : -1);
   });
   items.sort((a, b) => a.z - b.z).forEach(it => it.f());
 }

@@ -334,3 +334,55 @@ html.g-open { overflow: hidden; }
 @media (max-width: 1100px) {
   .hud-tracker { display: none; }
 }
+
+/* ================= SORTIE reskin (docs/DESIGN.md §6.4) =================
+   Overrides only: class names and markup are unchanged. Colour and type tokens are re-declared HERE, scoped to the overlay, so the
+   overlay does not depend on which meaning the page's own stylesheet gives --ink (it is the dark ink on the site, light text here). */
+.g {
+  --ink: #F4EEDF; --ink-2: #D8D2C2; --ink-3: #8FA3C7;
+  --line: rgb(59 74 107 / 0.6); --line-2: rgb(143 163 199 / 0.45);
+  --accent: #F2B84B;
+  --sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --serif: 'Bebas Neue', Impact, 'Arial Narrow', sans-serif;
+  background: #0A0B14;
+}
+/* bracket plates: 1px steel border, cyan corner brackets top-left and bottom-right, no rounding, no drop shadow */
+.hud-card, .hud-actions, .modal__panel, .g__plate, .hud-close {
+  --br: #4FD6FF;
+  border-radius: 0; border: 1px solid var(--line); box-shadow: none; backdrop-filter: blur(8px);
+  background:
+    linear-gradient(var(--br), var(--br)) top left / 12px 1px no-repeat,
+    linear-gradient(var(--br), var(--br)) top left / 1px 12px no-repeat,
+    linear-gradient(var(--br), var(--br)) bottom right / 12px 1px no-repeat,
+    linear-gradient(var(--br), var(--br)) bottom right / 1px 12px no-repeat,
+    rgb(10 11 20 / 0.66);
+}
+.modal__panel { background-color: #0A0B14; }
+.g__plate { padding: 3px 9px; font: 500 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.g__plate-mark { border-radius: 0; }
+.slot, .hud-btn, .btn, .modal__x, .g kbd { border-radius: 0; }
+.slot { background: rgb(59 74 107 / 0.18); }
+.g kbd { font-family: var(--mono); }
+.btn { font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.btn--primary { color: #0A0B14; }
+/* titles in Bebas Neue */
+.hud-zone { font-size: 48px; letter-spacing: 0.08em; text-transform: uppercase; }
+.modal__title { font-size: 36px; letter-spacing: 0.05em; text-transform: uppercase; }
+.modal__sub { font-size: 26px; letter-spacing: 0.05em; text-transform: uppercase; }
+.hud-boss__name { font-family: var(--mono); letter-spacing: 0.12em; }
+/* HP / MP / XP and the boss bar become rows of 12 tiles: lit gold -> amber, cooled steel */
+.hbar__track, .hud-boss__track, .mini-bar {
+  border-radius: 0; background: rgb(59 74 107 / 0.5);
+  -webkit-mask-image: repeating-linear-gradient(90deg, #000 0, #000 calc(100% / 12 - 2px), transparent calc(100% / 12 - 2px), transparent calc(100% / 12));
+          mask-image: repeating-linear-gradient(90deg, #000 0, #000 calc(100% / 12 - 2px), transparent calc(100% / 12 - 2px), transparent calc(100% / 12));
+}
+.hbar__track { height: 9px; }
+.hbar--hp .hbar__fill { background: linear-gradient(90deg, #F2B84B, #FFD470); }
+.hbar--hp.is-low .hbar__fill { background: #E9557D; }
+.hbar--mp .hbar__fill { background: linear-gradient(90deg, #2FA6A0, #4FD6FF); }
+.hbar--xp .hbar__fill, .mini-bar span { background: #8A63D2; }
+.hud-boss__fill { background: #E9557D; }
+.hbar__label, .hbar__text { font-family: var(--mono); letter-spacing: 0.06em; }
+.type-chip { border-radius: 0; font-family: var(--mono); letter-spacing: 0.06em; text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) { .hud-zone.is-in, .g__tag.is-expiring, .hbar--hp.is-low .hbar__fill { animation: none; } }

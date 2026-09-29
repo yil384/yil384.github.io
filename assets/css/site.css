@@ -143,7 +143,7 @@ a:hover { text-decoration-color: var(--amber); }
   background: rgb(79 214 255 / 0.06); border: 0; transition: background-color 0.15s steps(2), color 0.15s steps(2);
 }
 .nav__play:hover { background: rgb(79 214 255 / 0.16); color: var(--cream); }
-.nav__play[hidden], .launch__btn[hidden], .pill[hidden] { display: none; }
+.nav__play[hidden], .launch__btn[hidden], .hbtn[hidden] { display: none; }
 .nav__burger { display: none; }
 
 .hud { position: fixed; top: calc(var(--nav-h) + 10px); left: var(--gutter); right: var(--gutter); z-index: 30; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; transition: opacity 0.3s steps(4); }
@@ -308,14 +308,14 @@ html[data-bars="on"] .hero__bars i { transform: none; }
 @keyframes pip { 50% { transform: translateY(4px); } }
 
 .hero__ctl { position: absolute; z-index: 4; right: var(--gutter); bottom: calc(var(--bar) + 24px); display: flex; gap: 10px; }
-.pill {
+.hbtn {
   display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 18px;
   font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--cream);
   background: rgb(10 11 20 / 0.62); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 0;
   transition: background-color 0.15s steps(2), color 0.15s steps(2);
 }
-.pill .i { color: var(--cyan); }
-.pill:hover { background: rgb(79 214 255 / 0.18); color: var(--gold); }
+.hbtn .i { color: var(--cyan); }
+.hbtn:hover { background: rgb(79 214 255 / 0.18); color: var(--gold); }
 
 /* opening states. Default (no JS) is the finished page. page.js and the head script drive html[data-title]:
    wait (copy hidden while the film runs) -> stamp (the 12 Hz name stamp, keyed on video.currentTime) -> done. */
@@ -462,6 +462,16 @@ html:not(.js) .vbtn { display: none; }
 .foot__text { max-width: 60em; }
 .foot__credits { margin-top: 8px; }
 .foot__replay { flex: none; }
+
+/* ---------------- live canvas behind the page ----------------
+   With a director mounted (html[data-director=on]) the poster backdrops fade out and the 3D scene runs behind the copy.
+   Frames can be a cream flood, a pink sky or a green island, so every text block sits on a blurred, mostly opaque plate. */
+html[data-director="on"] :is(.plate, .loadout) { background: rgb(10 11 20 / 0.76); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+html[data-director="on"] :is(.card, .crew) { background: rgb(15 21 48 / 0.86); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+html[data-director="on"] :is(.st__head, .st__sub) .tag,
+html[data-director="on"] .vpanel__cap .tag { display: inline-block; padding: 5px 9px; background: rgb(10 11 20 / 0.72); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+html[data-director="on"] :is(.st__title, .sub__title) { text-shadow: 0 0 28px rgb(10 11 20 / 0.85), 0 0 6px rgb(10 11 20 / 0.6); }
+html[data-director="on"] .lede { padding: 12px 16px; margin-left: -16px; background: rgb(10 11 20 / 0.72); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 
 /* ---------------- responsive ---------------- */
 @media (max-width: 1000px) {

@@ -341,22 +341,25 @@ function dropToPoster(reason) {
 
 async function mountDirector() {
   if (site.tier === 0) return; // T0: never load anything heavy
-  const stage = $('#stage');
-  if (!stage) return;
+  if (!$('#stage')) return;
   try {
     const mod = await import('./director/director.js'); // optional module: absent means the page runs from posters
     if (!mod || typeof mod.mount !== 'function') return;
-    const ctl = await mod.mount(stage, { tier: site.tier, force: site.force, backend: site.backend, onLost: () => dropToPoster('device-lost') });
+    const lost = (why) => dropToPoster(why || 'device-lost');
+    const ctl = await mod.mount($('#stage'), { tier: site.tier, force: site.force, backend: site.backend, onLost: lost });
     if (!ctl) return;
+    if ('onlost' in ctl) ctl.onlost = lost; // director.js reports device loss / a hopeless frame time through this property
     heroCtl = ctl;
-    stage.hidden = false;
+    const live = $('#stage'); // the director may have swapped the canvas element (WebGPU to WebGL2 retry)
+    if (live) live.hidden = false;
     root.dataset.director = 'on';
     guard('director.setSection', () => ctl.setSection?.(site.section, 0));
     setTelemetryFromDirector();
     telemetryTimer = setInterval(() => { if (!document.hidden) setTelemetryFromDirector(); }, 500);
+    dispatch('site:director', { backend: ctl.backend || site.backend, tier: ctl.tier || site.tier });
   } catch (err) {
     heroCtl = null;
-    stage.hidden = true;
+    const live = $('#stage'); if (live) live.hidden = true;
     console.info('[page] no director, running from posters:', err && err.message ? err.message : err);
   }
 }

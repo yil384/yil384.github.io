@@ -1,9 +1,14 @@
 // The island: a deterministic voxel heightmap with themed zones, built into a few InstancedMeshes.
 // World units: 1 unit = 1 voxel. x/z are horizontal, y is up. The island is centred on (0, 0).
 import * as THREE from 'three/webgpu';
-import { color, sin, time } from 'three/tsl';
+import { color, sin, time, vec3 } from 'three/tsl';
+import { CelNodeMaterial } from '../engine/cel.js';
+import { toonSea } from '../engine/materials.js';
 import { voxelize } from '../three/voxel.js';
 import { ART } from '../three/art.js';
+
+// Site restyle: every voxel InstancedMesh shares the engine's cel (toon) material: 2-3 tone bands, violet shadows, explicit zero emissive.
+const cel = (steps = 3) => { const m = new CelNodeMaterial({}, { steps, shadowTint: '#3A2E6B', rimStrength: 0.35, specStrength: 0.1 }); m.emissiveNode = vec3(0); return m; };
 
 export const SIZE = 64;          // heightmap resolution (SIZE x SIZE)
 const HALF = SIZE / 2;
@@ -167,7 +172,7 @@ export function buildWorld(seed = 7) {
     }
   }
   const box = new THREE.BoxGeometry(1, 1, 1);
-  const terrain = new THREE.InstancedMesh(box, new THREE.MeshStandardNodeMaterial({ roughness: 0.92 }), cells.length / 4);
+  const terrain = new THREE.InstancedMesh(box, cel(3), cells.length / 4);
   const m = new THREE.Matrix4();
   const c = new THREE.Color();
   for (let i = 0; i < cells.length; i += 4) {
@@ -221,7 +226,7 @@ export function buildWorld(seed = 7) {
       props.push(x, baseY + fy + 1, z - 1, fy % 2 ? '#e6e9ef' : '#9aa5b5');
     }
   }
-  const propMesh = new THREE.InstancedMesh(box, new THREE.MeshStandardNodeMaterial({ roughness: 0.85 }), props.length / 4);
+  const propMesh = new THREE.InstancedMesh(box, cel(3), props.length / 4);
   for (let i = 0; i < props.length; i += 4) {
     m.makeTranslation(props[i], props[i + 1], props[i + 2]);
     propMesh.setMatrixAt(i / 4, m);
@@ -251,12 +256,12 @@ export function buildWorld(seed = 7) {
   for (const [x, z] of wallCells) { const hy = height(x, z); for (let y = 1; y <= 4; y++) wallVox.push(x, hy + y, z, y === 4 ? '#4b5568' : (x + z) % 2 ? '#3a4356' : '#333b4c'); blocked.add(`${x},${z}`); }
   const gateVox = [];
   for (const [x, z] of gateCells) { const hy = height(x, z); for (let y = 1; y <= 4; y++) gateVox.push(x, hy + y, z, y === 4 ? '#4b5568' : '#2b2f45'); }
-  const wallMesh = new THREE.InstancedMesh(box, new THREE.MeshStandardNodeMaterial({ roughness: 0.9 }), Math.max(1, wallVox.length / 4));
+  const wallMesh = new THREE.InstancedMesh(box, cel(2), Math.max(1, wallVox.length / 4));
   for (let i = 0; i < wallVox.length; i += 4) { m.makeTranslation(wallVox[i], wallVox[i + 1], wallVox[i + 2]); wallMesh.setMatrixAt(i / 4, m); wallMesh.setColorAt(i / 4, c.set(wallVox[i + 3])); }
   wallMesh.count = wallVox.length / 4;
   wallMesh.castShadow = wallMesh.receiveShadow = true;
   group.add(wallMesh);
-  const gateMesh = new THREE.InstancedMesh(box, new THREE.MeshStandardNodeMaterial({ roughness: 0.9 }), Math.max(1, gateVox.length / 4));
+  const gateMesh = new THREE.InstancedMesh(box, cel(2), Math.max(1, gateVox.length / 4));
   for (let i = 0; i < gateVox.length; i += 4) { m.makeTranslation(gateVox[i], gateVox[i + 1], gateVox[i + 2]); gateMesh.setMatrixAt(i / 4, m); gateMesh.setColorAt(i / 4, c.set(gateVox[i + 3])); }
   gateMesh.count = gateVox.length / 4;
   gateMesh.castShadow = gateMesh.receiveShadow = true;
@@ -293,7 +298,7 @@ export function buildWorld(seed = 7) {
   group.add(crystals);
 
   // Sea: a flat dark disc under the island.
-  const sea = new THREE.Mesh(new THREE.CircleGeometry(HALF * 1.6, 48), new THREE.MeshStandardNodeMaterial({ color: '#0a1428', roughness: 0.2, metalness: 0.1 }));
+  const sea = new THREE.Mesh(new THREE.CircleGeometry(HALF * 3, 48), toonSea());
   sea.rotation.x = -Math.PI / 2;
   sea.position.y = -7;
   sea.receiveShadow = true;

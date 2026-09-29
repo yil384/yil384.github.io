@@ -8,6 +8,7 @@
 //                                              MeshStandardNodeMaterial grid floor with distance fade;
 //                                              major lines glow (emissive)
 //   energyShield({ color, power, pulse })      additive fresnel bubble; `.shield = { color, power, pulse, hit }`
+//   toonSea({ deep, shallow, streak })         unlit banded sea: slow swell bands + horizontal foam streaks (no reflections)
 //   safeAnisotropy(renderer)                   max anisotropy or 1 when the driver reports 0
 //
 // All unlit materials assign `emissiveNode` explicitly (0 or the glow) so the emissive MRT
@@ -63,6 +64,17 @@ export function animeGround({ base = '#20183a', line = '#5ec8ff', cell = 1, majo
   m.colorNode = mix(cBase, cLine, grid.mul(fade).mul(0.8));
   m.emissiveNode = cLine.mul(big).mul(fade).mul(0.6); // major lines glow into bloom
   m.ground = { base: cBase, line: cLine };
+  return m;
+}
+
+export function toonSea({ deep = '#1E2A5E', shallow = '#2FA6A0', streak = '#8FA3C7' } = {}) {
+  const m = new THREE.MeshBasicNodeMaterial();
+  const p = positionWorld.xz;
+  const swell = smoothstep(-0.5, 0.9, sin(p.x.mul(0.035).add(time.mul(0.15))).mul(sin(p.y.mul(0.03).sub(time.mul(0.11)))));
+  const foam = step(0.985, sin(p.y.mul(0.9).add(sin(p.x.mul(0.04)).mul(4)).add(time.mul(0.35))));
+  const base = mix(color(deep), color(shallow), swell.mul(0.85).add(0.1));
+  m.colorNode = mix(base, color(streak), foam.mul(0.55));
+  m.emissiveNode = vec3(0);
   return m;
 }
 

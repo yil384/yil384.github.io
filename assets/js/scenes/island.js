@@ -1,21 +1,10 @@
 // scenes/island.js — home base: the voxel-style island seen from the sky at dawn (painted sky, toon sea, K-01 parked on the plaza).
 // The island is built at scale 4 so the 18 u mech fits its plaza (same numbers as the V4 video). Plaza top is y = 0.98.
 import * as THREE from 'three/webgpu';
-import { positionWorld, sin, mix, step, smoothstep, time, color, float, vec3 } from 'three/tsl';
+import { toonSea } from '../engine/materials.js';
 import { buildK01, staticGroup } from '../props/loader.js';
 
 const S = 4, PLAZA = new THREE.Vector3(0.6 * S, 0.245 * S, 0.8 * S);
-
-function seaMaterial() {
-  const m = new THREE.MeshBasicNodeMaterial();
-  const p = positionWorld.xz;
-  const swell = smoothstep(-0.5, 0.9, sin(p.x.mul(0.035).add(time.mul(0.15))).mul(sin(p.y.mul(0.03).sub(time.mul(0.11)))));
-  const streak = step(0.985, sin(p.y.mul(0.9).add(sin(p.x.mul(0.04)).mul(4)).add(time.mul(0.35))));
-  const base = mix(color('#1E2A5E'), color('#2FA6A0'), swell.mul(0.85).add(0.1));
-  m.colorNode = mix(base, color('#8FA3C7'), streak.mul(0.55));
-  m.emissiveNode = vec3(0);
-  return m;
-}
 
 export function build({ props, mats, tier }) {
   const group = new THREE.Group();
@@ -34,7 +23,7 @@ export function build({ props, mats, tier }) {
   rig.add(isl, mech.root);
   group.add(rig);
 
-  const sea = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400), seaMaterial());
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400), toonSea());
   sea.rotation.x = -Math.PI / 2; sea.position.y = -34;
   group.add(sea);
 

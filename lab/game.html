@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><base href="/"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Game lab</title>
+<link rel="stylesheet" href="../assets/css/fonts.css"><link rel="stylesheet" href="../assets/css/game.css">
+<script type="importmap">{ "imports": { "three": "../assets/vendor/three/build/three.webgpu.js", "three/webgpu": "../assets/vendor/three/build/three.webgpu.js", "three/tsl": "../assets/vendor/three/build/three.tsl.js", "three/addons/": "../assets/vendor/three/examples/jsm/" } }</script>
+<style>html,body{margin:0;background:#0a0b14;color:#F4EEDF;font-family:Inter,system-ui,sans-serif}</style></head>
+<body><div id="game-root"></div>
+<script type="module">
+  // Game lab: opens the island overlay directly (window.__g is the game's QA handle).  ?webgl=1  ?lowfx=1
+  import { createGame } from '../assets/js/game3d/index.js';
+  try { const game = await createGame({ root: document.getElementById('game-root'), heroCtl: null }); game.open(); window.__game = game; window.__ready = true; }
+  catch (e) { console.error('[lab] game failed', e); window.__failed = String(e); }
+</script></body></html>
