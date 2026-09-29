@@ -81,12 +81,12 @@
     const lookUp = seg(t, 7.8, 8.05), turnK = ease(seg(t, 8.0, 8.25));
     const emo = t < 8.8 ? 'calm' : 'resolve';
     const view = t < 7.8 ? s.view : 'q', yaw = t < 7.8 ? undefined : lerp(.70, PI - .70, turnK);
-    return { x: s.x, y: FLOOR_Y + s.dy * 6, view, yaw, flip: s.flip, walk: onTwos(s.walk * 2) / 2, emo, sq: .06 * ring(t, [7.8], 6, 16), armL: -.9 * easeOut(seg(t, 9.2, 9.5)), look: t < 7.8 ? 0 : -.6 * lookUp * (1 - turnK), lean: -.03 * lookUp };
+    return { x: s.x, y: FLOOR_Y + s.dy * 6, view, yaw, flip: s.flip, walk: onTwos(s.walk * 2) / 2, moving: t < 7.8 && s.view === 'q', emo, sq: .06 * ring(t, [7.8], 6, 16), armL: -.9 * easeOut(seg(t, 9.2, 9.5)), look: t < 7.8 ? 0 : -.6 * lookUp * (1 - turnK), lean: -.03 * lookUp };
   }
   const CAM_C = { pos: [-6, 1.6, -14], look: [0, 2.6, 0], fov: 38 }, DEPTH_C = 7.4;
   // the pilot stands on the 3D floor: a point DEPTH_C in front of the camera, slid sideways by his screen-x
   function pilotWorld(cam, px) { const fwd = vnorm([cam.f[0], 0, cam.f[2]]), sc = cam.F / DEPTH_C; return vadd(vadd(cam.pos, vmul(fwd, DEPTH_C)), vadd(vmul(cam.r, (px - 960) / sc), [0, -cam.pos[1], 0])); }
-  function pilotOpts(P, t) { return { view: P.view, yaw: P.yaw, flip: P.flip, walk: P.walk, emo: P.emo, sq: P.sq, armL: P.armL, look: P.look, lean: P.lean, hold: 'helmet', coat: true, t }; }
+  function pilotOpts(P, t) { return { view: P.view, yaw: P.yaw, flip: P.flip, walk: P.walk, moving: P.moving, emo: P.emo, sq: P.sq, armL: P.armL, look: P.look, lean: P.lean, hold: 'helmet', coat: true, t }; }
   function shotC(t, lt) {
     const cam = cam3({ ...CAM_C });
     camBegin(960 + 18 * Math.sin(lt * .8), 540, 1);
