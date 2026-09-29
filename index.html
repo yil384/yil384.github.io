@@ -1,48 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" data-mode="play">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Yichen Lin · Ph.D. Student @ UC San Diego CSE</title>
-  <meta name="description" content="Yichen Lin is a Ph.D. student in Computer Science and Engineering at UC San Diego, advised by Prof. Yufei Ding, working on systems, compilers, GPU code generation and tool-augmented LLM workflows.">
+  <title>Yichen Lin</title>
+  <meta name="description" content="Yichen Lin is a Ph.D. student in Computer Science and Engineering at UC San Diego, advised by Prof. Yufei Ding. Systems, compilers, GPU code generation, and tooling for LLM agents.">
   <meta name="author" content="Yichen Lin">
-  <meta name="theme-color" content="#060a14">
+  <meta name="theme-color" content="#0a0d14">
   <link rel="canonical" href="https://yil384.github.io/">
 
   <meta property="og:type" content="profile">
-  <meta property="og:title" content="Yichen Lin · Ph.D. Student @ UC San Diego CSE">
-  <meta property="og:description" content="Systems, compilers, GPU code generation and tool-augmented LLM workflows. Research portfolio with an optional playable layer.">
+  <meta property="og:title" content="Yichen Lin">
+  <meta property="og:description" content="Ph.D. student in Computer Science and Engineering at UC San Diego. Systems, compilers, GPU code generation, and tooling for LLM agents.">
   <meta property="og:url" content="https://yil384.github.io/">
   <meta property="og:image" content="https://yil384.github.io/assets/img/og.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="icon" type="image/png" sizes="64x64" href="assets/img/favicon-64.png">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Press+Start+2P&family=Space+Grotesk:wght@500;600;700&display=swap">
-  <link rel="preload" as="image" href="assets/img/portrait.webp" type="image/webp">
-
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="assets/css/site.css">
-  <link rel="stylesheet" href="assets/css/game.css">
 
-  <script>
-    // Resolve the page mode before first paint so there is no flash of game UI in read mode.
-    (function () {
-      var root = document.documentElement;
-      var mode = 'play';
-      try {
-        var save = JSON.parse(localStorage.getItem('yl.save.v2') || 'null');
-        if (save && save.settings && save.settings.mode) mode = save.settings.mode;
-      } catch (e) {}
-      var canPlay = window.matchMedia('(min-width: 900px) and (pointer: fine)').matches;
-      root.dataset.mode = canPlay ? mode : 'read';
-      root.dataset.canPlay = canPlay ? 'yes' : 'no';
-      try { if (sessionStorage.getItem('yl.splash')) root.dataset.splash = 'seen'; } catch (e) {}
-    })();
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./assets/vendor/three/build/three.webgpu.js",
+      "three/webgpu": "./assets/vendor/three/build/three.webgpu.js",
+      "three/tsl": "./assets/vendor/three/build/three.tsl.js",
+      "three/addons/": "./assets/vendor/three/examples/jsm/"
+    }
+  }
   </script>
 
   <script type="application/ld+json">
@@ -63,523 +56,214 @@
     ]
   }
   </script>
-
-  <script type="module" src="assets/js/main.js"></script>
+  <script type="module" src="assets/js/page.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <canvas id="sky" aria-hidden="true"></canvas>
+  <a class="skip" href="#about">Skip to content</a>
 
-  <!-- Splash (first visit per session) -->
-  <div id="splash" aria-hidden="true">
-    <div class="splash__inner">
-      <p class="splash__kicker">RESEARCH PORTFOLIO</p>
-      <p class="splash__name" id="splash-name">YICHEN LIN</p>
-      <p class="splash__sub">Ph.D. Student · UC San Diego CSE</p>
-      <p class="splash__prompt">Press Enter</p>
-    </div>
-  </div>
+  <header class="hero" id="top">
+    <canvas class="hero__canvas" id="hero-canvas" aria-hidden="true"></canvas>
+    <div class="hero__poster" aria-hidden="true"></div>
 
-  <!-- Top bar -->
-  <header class="topbar" id="topbar">
-    <div class="topbar__inner">
-      <a class="brand" href="#profile" aria-label="Yichen Lin, back to top">
-        <span class="brand__mark" aria-hidden="true">YL</span>
-        <span class="brand__name">Yichen Lin</span>
-      </a>
-      <nav class="nav" id="nav" aria-label="Sections">
-        <a href="#profile">Profile</a>
-        <a href="#education">Education</a>
+    <nav class="nav" aria-label="Site">
+      <a class="nav__name" href="#top">Yichen Lin</a>
+      <div class="nav__links">
+        <a href="#about">About</a>
         <a href="#publications">Publications</a>
         <a href="#experience">Experience</a>
         <a href="#projects">Projects</a>
-        <a href="#adventure" class="game-only">Adventure</a>
-        <a href="#links">Links</a>
-      </nav>
-      <div class="topbar__actions">
-        <div class="mode-switch play-capable" role="group" aria-label="Page mode">
-          <button type="button" data-set-mode="read" title="Reading mode: hide the game layer">Read</button>
-          <button type="button" data-set-mode="play" title="Play mode: explore the page as a small RPG">Play</button>
-        </div>
-        <button type="button" class="icon-btn game-only" id="sound-btn" aria-label="Toggle sound effects" title="Sound">
-          <span aria-hidden="true">🔊</span>
-        </button>
-        <button type="button" class="icon-btn nav-toggle" id="nav-toggle" aria-label="Open section menu" aria-expanded="false" aria-controls="nav">
-          <span aria-hidden="true">☰</span>
+        <button type="button" class="nav__play" id="play-btn" hidden>
+          <img src="assets/icons/ui/gamepad-2.svg" alt="" width="16" height="16"> Explore the island
         </button>
       </div>
+    </nav>
+
+    <div class="hero__text">
+      <h1 class="hero__name">Yichen Lin</h1>
+      <p class="hero__role">Ph.D. student in Computer Science &amp; Engineering at UC San Diego, advised by <a href="https://cseweb.ucsd.edu/~yufeiding/" rel="noopener" target="_blank">Prof. Yufei Ding</a>.</p>
+      <p class="hero__topics">Systems · compilers · GPU code generation · tooling for LLM agents</p>
+      <ul class="hero__links" aria-label="Contact and profiles">
+        <li><a href="mailto:yil384@ucsd.edu"><img src="assets/icons/ui/mail.svg" alt="" width="18" height="18">yil384@ucsd.edu</a></li>
+        <li><a href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener"><img src="assets/icons/brand/googlescholar.svg" alt="" width="18" height="18">Google Scholar</a></li>
+        <li><a href="https://github.com/yil384" target="_blank" rel="noopener"><img src="assets/icons/brand/github.svg" alt="" width="18" height="18">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener"><img src="assets/icons/brand/linkedin.svg" alt="" width="18" height="18">LinkedIn</a></li>
+      </ul>
     </div>
-    <div class="topbar__progress" aria-hidden="true"><span id="read-progress"></span></div>
+    <p class="hero__hint" id="hero-hint" hidden><kbd>P</kbd> or the button above walks onto the island.</p>
   </header>
 
-  <div id="stage">
-    <main id="main">
+  <main class="page">
 
-      <!-- ============ PROFILE ============ -->
-      <section id="profile" class="section hero" data-zone="Profile Hall">
-        <div class="hero__grid">
-          <figure class="avatar-card reveal">
-            <button type="button" class="avatar-card__frame" id="avatar-btn" aria-label="Switch profile photo">
-              <picture id="avatar-picture">
-                <source srcset="assets/img/portrait.webp" type="image/webp">
-                <img src="assets/img/portrait.jpg" alt="Portrait of Yichen Lin" width="640" height="800" id="avatar-img" fetchpriority="high">
-              </picture>
-              <span class="avatar-card__corner tl" aria-hidden="true"></span>
-              <span class="avatar-card__corner tr" aria-hidden="true"></span>
-              <span class="avatar-card__corner bl" aria-hidden="true"></span>
-              <span class="avatar-card__corner br" aria-hidden="true"></span>
-            </button>
-            <figcaption class="avatar-card__caption">
-              <span class="pixel-label">CLASS · SCHOLAR</span>
-              <span class="avatar-card__hint">Tap the photo to switch</span>
-            </figcaption>
-            <span class="spawn spawn--door" data-spawn="door"></span>
-          </figure>
+    <section class="sec" id="about">
+      <h2>About</h2>
+      <div class="sec__body prose">
+        <p>I'm a Ph.D. student at UC San Diego, working with Prof. Yufei Ding. I did my undergraduate degree in Computer Science and Technology at Tsinghua University.</p>
+        <p>My research sits between systems and machine learning: compilers, GPU code generation, and the tooling that lets LLM agents do real engineering work. The most recent project is TritonGym, a benchmark for agentic workflows that write Triton GPU kernels.</p>
+        <p>I like building things end to end, from a kernel's network stack to a grading platform to the small voxel world on this page.</p>
+        <p class="aside">My roommate and labmate is <a href="https://scholar.google.com/citations?user=FVCg0C4AAAAJ&amp;hl=en" target="_blank" rel="noopener">Zhuo Chen</a> (Tsinghua Yao Class), who is also the best cook in the building.</p>
+      </div>
+    </section>
 
-          <div class="hero__body reveal">
-            <p class="eyebrow">Ph.D. Student · Computer Science and Engineering</p>
-            <h1 class="hero__name">Yichen Lin</h1>
-            <p class="hero__lead">Systems, compilers, GPU code generation, and practical AI tooling at <strong>UC San Diego</strong>.</p>
-
-            <dl class="facts">
-              <div class="fact"><dt>Department</dt><dd>UC San Diego · CSE</dd></div>
-              <div class="fact"><dt>Advisor</dt><dd>Prof. Yufei Ding</dd></div>
-              <div class="fact"><dt>Email</dt><dd><a href="mailto:yil384@ucsd.edu">yil384@ucsd.edu</a></dd></div>
-              <div class="fact"><dt>Phone</dt><dd><a href="tel:+18583197361">(858) 319-7361</a></dd></div>
-            </dl>
-
-            <div class="hero__text">
-              <p>I am a Ph.D. student in Computer Science and Engineering at UC San Diego. My work sits around systems, compilers, GPU code generation, and practical AI tooling. I like building things that are technically grounded, useful in practice, and presented clearly enough that the engineering signal is easy to evaluate.</p>
-              <p>My roommate is <a href="https://scholar.google.com/citations?user=FVCg0C4AAAAJ&amp;hl=en" target="_blank" rel="noopener">Zhuo Chen</a>, a Tsinghua Yao Class (B.S.) alumnus and my labmate — and easily the best cook in the building.</p>
-            </div>
-
-            <ul class="chips" aria-label="Research interests">
-              <li>Systems</li>
-              <li>Compilers</li>
-              <li>GPU programming</li>
-              <li>Tool-augmented LLM workflows</li>
-            </ul>
-
-            <div class="hero__cta">
-              <a class="btn btn--primary" href="#publications">Publications</a>
-              <a class="btn" href="#projects">Projects</a>
-              <a class="btn" href="#experience">Experience</a>
-              <a class="btn btn--ghost" href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener">Google Scholar ↗</a>
-            </div>
-
-            <ul class="stat-row" aria-label="At a glance">
-              <li><strong>2</strong><span>papers</span></li>
-              <li><strong>5</strong><span>research &amp; industry roles</span></li>
-              <li><strong>4</strong><span>featured projects</span></li>
-            </ul>
+    <section class="sec" id="publications">
+      <h2>Publications</h2>
+      <ol class="pubs sec__body">
+        <li class="pub">
+          <div class="pub__venue-mark"><img src="assets/logos/icml-mark-white.svg" alt="ICML" width="34" height="34"></div>
+          <div>
+            <p class="pub__title">TritonGym: A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation</p>
+            <p class="pub__authors">Yue Guan*, <b>Yichen Lin</b>*, et al.</p>
+            <p class="pub__meta">Under review at ICML 2026 <span class="pub__note">· * equal contribution</span></p>
           </div>
-        </div>
-
-        <!-- game spawns (read by the game layer; invisible) -->
-        <span class="spawn" data-spawn="player" style="left:36%; top:93%"></span>
-        <span class="spawn spawn--rm" data-spawn="coin" data-id="1" style="top:34%"></span>
-        <span class="spawn spawn--lm" data-spawn="enemy" data-kind="slime-green" style="top:62%"></span>
-      </section>
-
-      <!-- ============ SECRET CHAMBER (unsealed by the three runes) ============ -->
-      <section id="secret-chamber" class="section chamber game-only" data-zone="Secret Chamber" hidden>
-        <div class="chamber__card">
-          <p class="pixel-label pixel-label--purple">SEALED SINCE THE FIRST COMMIT</p>
-          <h2 class="chamber__title">The Secret Chamber</h2>
-          <p class="chamber__lore">Three runes — frost, shadow and ember — fit the sockets of the old door. Behind it, the developer kept the things that never made it into a README.</p>
-          <div class="chamber__vault">
-            <button type="button" class="chest" id="secret-chest" aria-label="Open the legendary chest">
-              <span class="chest__glow" aria-hidden="true"></span>
-              <span class="chest__sprite" aria-hidden="true"></span>
-              <span class="chest__label">Open the chest</span>
-            </button>
-            <ul class="chamber__rewards" id="chamber-rewards" aria-live="polite"></ul>
+        </li>
+        <li class="pub">
+          <div class="pub__venue-mark"><img src="assets/icons/brand/ieee.svg" alt="IEEE" width="52" height="17"></div>
+          <div>
+            <p class="pub__title">(Re)²H₂O: Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning</p>
+            <p class="pub__authors">Haoyi Niu*, Kun Ren*, <b>Yichen Lin</b>, et al.</p>
+            <p class="pub__meta">IEEE Intelligent Vehicles Symposium (IV), 2023</p>
           </div>
-          <blockquote class="chamber__note">“Most bugs are just features that haven't found their boss fight yet.” <cite>— carved into the wall</cite></blockquote>
-        </div>
-      </section>
+        </li>
+      </ol>
+    </section>
 
-      <!-- ============ EDUCATION ============ -->
-      <section id="education" class="section" data-zone="Education">
-        <header class="section__head reveal">
-          <p class="eyebrow">Education</p>
-          <h2 class="section__title">Academic path</h2>
-          <p class="section__lead">From Tsinghua University to the Ph.D. program at UC San Diego CSE.</p>
-        </header>
-        <ol class="timeline reveal">
-          <li class="timeline__node">
-            <div class="timeline__icon" aria-hidden="true">🏛️</div>
-            <div class="card timeline__card">
-              <p class="timeline__date">2021 – 2025</p>
-              <h3>Tsinghua University</h3>
-              <p>B.S. Computer Science and Technology</p>
-            </div>
-          </li>
-          <li class="timeline__node timeline__node--current">
-            <div class="timeline__icon" aria-hidden="true">🔬</div>
-            <div class="card timeline__card">
-              <p class="timeline__date">2025 – Now</p>
-              <h3>UC San Diego</h3>
-              <p>Ph.D. Computer Science and Engineering</p>
-              <p class="muted">Advisor: Prof. Yufei Ding</p>
-            </div>
-          </li>
-        </ol>
-        <span class="spawn spawn--rm" data-spawn="coin" data-id="2" style="top:62%"></span>
-        <span class="spawn spawn--lm" data-spawn="npc" data-npc="charmander" style="top:66%"></span>
-      </section>
+    <section class="sec" id="experience">
+      <h2>Experience</h2>
+      <ul class="rows sec__body">
+        <li class="row">
+          <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23"></div>
+          <div class="row__main">
+            <p class="row__title">Picasso Lab, UC San Diego CSE <span class="row__role">Research intern</span></p>
+            <p class="row__desc">Built a CXL system simulator for large-model communication; set up lab websites and a RAG pipeline for reading papers.</p>
+          </div>
+          <p class="row__when">Mar 2024 – Feb 2025</p>
+        </li>
+        <li class="row">
+          <div class="row__logo row__logo--mono"><img src="assets/logos/metabit.png" alt="Metabit (乾象投资)" width="120" height="29"></div>
+          <div class="row__main">
+            <p class="row__title">Metabit <span class="row__role">Quantitative developer intern</span></p>
+            <p class="row__desc">Sped up data parsing and added streaming reads to the internal AI platform.</p>
+          </div>
+          <p class="row__when">Sep – Nov 2024</p>
+        </li>
+        <li class="row">
+          <div class="row__logo row__logo--mono"><img src="assets/logos/tencent.svg" alt="Tencent" width="120" height="30"></div>
+          <div class="row__main">
+            <p class="row__title">Tencent, TiMi Studio <span class="row__role">Game developer intern</span></p>
+            <p class="row__desc">Client work on the Monster Hunter mobile game, including voice-controlled teammates.</p>
+          </div>
+          <p class="row__when">Jun – Jul 2024</p>
+        </li>
+        <li class="row">
+          <div class="row__logo row__logo--mono"><img src="assets/logos/disney-hotstar.svg" alt="Disney+ Hotstar" width="120" height="28"></div>
+          <div class="row__main">
+            <p class="row__title">Disney+ Hotstar <span class="row__role">Algorithm developer intern</span></p>
+            <p class="row__desc">Optimised the search page and fine-tuned the recommendation model for TPUs.</p>
+          </div>
+          <p class="row__when">Mar – Jun 2024</p>
+        </li>
+        <li class="row">
+          <div class="row__logo row__logo--icon"><img src="assets/logos/lark.png" alt="Lark" width="30" height="30"><span>Lark</span></div>
+          <div class="row__main">
+            <p class="row__title">ByteDance, Lark <span class="row__role">Backend developer intern</span></p>
+            <p class="row__desc">Built the AskAI assistant for sales-data analysis on Redis and RocketMQ.</p>
+          </div>
+          <p class="row__when">Jun – Nov 2023</p>
+        </li>
+      </ul>
+    </section>
 
-      <!-- ============ TOOLKIT ============ -->
-      <section id="toolkit" class="section" data-zone="Technical Toolkit">
-        <header class="section__head reveal">
-          <p class="eyebrow">Toolkit</p>
-          <h2 class="section__title">Languages &amp; tools</h2>
-          <p class="section__lead">What I use most across systems, backend and research work.</p>
-        </header>
-        <div class="card toolkit reveal">
-          <ul class="skills" id="skills">
-            <li class="skill" style="--lv:90; --c:var(--green)"><span class="skill__name">Python</span><span class="skill__bar"><span></span></span><span class="skill__lv">High</span></li>
-            <li class="skill" style="--lv:85; --c:var(--blue)"><span class="skill__name">C++</span><span class="skill__bar"><span></span></span><span class="skill__lv">High</span></li>
-            <li class="skill" style="--lv:75; --c:var(--orange)"><span class="skill__name">Rust</span><span class="skill__bar"><span></span></span><span class="skill__lv">Strong</span></li>
-            <li class="skill" style="--lv:70; --c:var(--indigo)"><span class="skill__name">Go</span><span class="skill__bar"><span></span></span><span class="skill__lv">Strong</span></li>
-            <li class="skill" style="--lv:65; --c:var(--cyan)"><span class="skill__name">TypeScript</span><span class="skill__bar"><span></span></span><span class="skill__lv">Working</span></li>
-            <li class="skill" style="--lv:60; --c:var(--gold)"><span class="skill__name">JavaScript</span><span class="skill__bar"><span></span></span><span class="skill__lv">Working</span></li>
-            <li class="skill" style="--lv:50; --c:var(--red)"><span class="skill__name">Verilog</span><span class="skill__bar"><span></span></span><span class="skill__lv">Familiar</span></li>
-          </ul>
-          <ul class="tags" aria-label="Tools">
-            <li>Linux</li><li>Vim</li><li>LaTeX</li><li>WebSocket</li><li>Django</li><li>MongoDB</li>
-          </ul>
-        </div>
-        <span class="spawn spawn--rm" data-spawn="coin" data-id="3" style="top:22%"></span>
-        <span class="spawn spawn--lm" data-spawn="enemy" data-kind="slime-red" style="top:58%"></span>
-        <span class="spawn spawn--rm" data-spawn="npc" data-npc="pikachu" style="top:52%"></span>
-        <span class="spawn" data-spawn="grass" data-biome="spark-field" data-label="Spark Field" style="right:6%; bottom:44px"></span>
-      </section>
+    <section class="sec" id="education">
+      <h2>Education</h2>
+      <ul class="rows sec__body">
+        <li class="row">
+          <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23"></div>
+          <div class="row__main">
+            <p class="row__title">UC San Diego <span class="row__role">Ph.D., Computer Science and Engineering</span></p>
+            <p class="row__desc">Advisor: Prof. Yufei Ding</p>
+          </div>
+          <p class="row__when">2025 – present</p>
+        </li>
+        <li class="row">
+          <div class="row__logo row__logo--mono"><img src="assets/logos/tsinghua-white.png" alt="Tsinghua University" width="120" height="30"></div>
+          <div class="row__main">
+            <p class="row__title">Tsinghua University <span class="row__role">B.S., Computer Science and Technology</span></p>
+          </div>
+          <p class="row__when">2021 – 2025</p>
+        </li>
+      </ul>
+    </section>
 
-      <!-- ============ ICE CAVERN (mini-boss) ============ -->
-      <section id="ice-cavern" class="arena arena--ice game-only" data-zone="Ice Cavern" data-boss="ice">
-        <div class="arena__plate">
-          <p class="arena__kicker">MINI-BOSS · ICE CAVERN</p>
-          <h2 class="arena__name">Ice Golem <span class="arena__round" data-boss-round>Lv.1</span></h2>
-          <div class="arena__hp" aria-hidden="true"><span data-boss-hp></span></div>
-          <p class="arena__desc">Drops frost fields under your feet. Keep moving. Weak to <b>Fire</b>. First defeat grants the <b>Frost Rune</b>.</p>
-        </div>
-        <span class="spawn" data-spawn="boss" data-boss="ice" style="left:50%; top:74%"></span>
-      </section>
+    <section class="sec" id="projects">
+      <h2>Projects</h2>
+      <ul class="rows sec__body">
+        <li class="row row--project">
+          <div class="row__main">
+            <p class="row__title"><a href="https://github.com/yil384/Starry-Next" target="_blank" rel="noopener">Starry-Next<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
+            <p class="row__desc">Networking stack for a monolithic-kernel operating system. Graduation project.</p>
+          </div>
+          <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
+        </li>
+        <li class="row row--project">
+          <div class="row__main">
+            <p class="row__title"><a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" rel="noopener">IM System<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
+            <p class="row__desc">Real-time chat over WebSocket with a Django backend and a web front end.</p>
+          </div>
+          <p class="row__tags"><img src="assets/icons/brand/django.svg" alt="Django" width="16" height="16" title="Django"><img src="assets/icons/brand/websocket.svg" alt="WebSocket" width="16" height="16" title="WebSocket"><img src="assets/icons/brand/typescript.svg" alt="TypeScript" width="16" height="16" title="TypeScript"></p>
+        </li>
+        <li class="row row--project">
+          <div class="row__main">
+            <p class="row__title"><a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" rel="noopener">CST-OJ<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
+            <p class="row__desc">An online judge for data-structure coursework: sandboxed grading and a submission queue.</p>
+          </div>
+          <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
+        </li>
+        <li class="row row--project">
+          <div class="row__main">
+            <p class="row__title">TritonGym</p>
+            <p class="row__desc">Benchmark and evaluation harness for LLM agents that write Triton GPU kernels. See the paper above.</p>
+          </div>
+          <p class="row__tags"><img src="assets/icons/brand/python.svg" alt="Python" width="16" height="16" title="Python"></p>
+        </li>
+      </ul>
+    </section>
 
-      <!-- ============ PUBLICATIONS ============ -->
-      <section id="publications" class="section" data-zone="Publications">
-        <header class="section__head reveal">
-          <p class="eyebrow">Publications</p>
-          <h2 class="section__title">Research output</h2>
-          <p class="section__lead">Paper titles, venues, collaborators and the problems each project set out to address. <span class="muted">* equal contribution</span></p>
-        </header>
-        <div class="pubs">
-          <article class="card pub reveal" data-tier="silver">
-            <div class="pub__side">
-              <span class="pub__medal" aria-hidden="true">🥈</span>
-              <span class="pub__area">Agentic LLMs</span>
-            </div>
-            <div class="pub__body">
-              <div class="pub__top">
-                <h3 class="pub__name">TritonGym</h3>
-                <span class="badge badge--silver">ICML 2026 submission</span>
-              </div>
-              <p class="pub__title">A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation</p>
-              <p class="pub__authors">Yue Guan*, <strong class="me">Yichen Lin*</strong>, et al.</p>
-              <p class="pub__venue">In submission to ICML 2026</p>
-              <p class="pub__summary">Benchmarks tool-augmented LLM workflows on Triton GPU code generation and frames the project around measurable systems behavior rather than demo-only prompting wins.</p>
-            </div>
-          </article>
-          <article class="card pub reveal" data-tier="gold">
-            <div class="pub__side">
-              <span class="pub__medal" aria-hidden="true">🏆</span>
-              <span class="pub__area">Autonomous Driving</span>
-            </div>
-            <div class="pub__body">
-              <div class="pub__top">
-                <h3 class="pub__name">(Re)²H₂O</h3>
-                <span class="badge badge--gold">IEEE IV 2023</span>
-              </div>
-              <p class="pub__title">Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning</p>
-              <p class="pub__authors">Haoyi Niu*, Kun Ren*, <strong class="me">Yichen Lin</strong>, et al.</p>
-              <p class="pub__venue">IEEE Intelligent Vehicles Symposium (IV) 2023</p>
-              <p class="pub__summary">Explores scenario generation for autonomous driving with a hybrid offline-and-online reinforcement learning setup, focusing on robustness and controllable scenario construction.</p>
-            </div>
-          </article>
-        </div>
-        <span class="spawn spawn--lm" data-spawn="coin" data-id="4" style="top:24%"></span>
-        <span class="spawn spawn--rm" data-spawn="enemy" data-kind="bat" style="top:36%"></span>
-        <span class="spawn spawn--lm" data-spawn="npc" data-npc="squirtle" style="top:56%"></span>
-      </section>
+    <section class="sec" id="skills">
+      <h2>Tools</h2>
+      <div class="sec__body">
+        <ul class="tools" aria-label="Languages">
+          <li><img src="assets/icons/brand/python.svg" alt="" width="20" height="20">Python</li>
+          <li><img src="assets/icons/brand/cplusplus.svg" alt="" width="20" height="20">C++</li>
+          <li><img src="assets/icons/brand/rust.svg" alt="" width="20" height="20">Rust</li>
+          <li><img src="assets/icons/brand/go.svg" alt="" width="20" height="20">Go</li>
+          <li><img src="assets/icons/brand/typescript.svg" alt="" width="20" height="20">TypeScript</li>
+          <li><img src="assets/icons/brand/javascript.svg" alt="" width="20" height="20">JavaScript</li>
+          <li><img src="assets/icons/brand/verilog.svg" alt="" width="20" height="20">Verilog</li>
+        </ul>
+        <ul class="tools" aria-label="Tools">
+          <li><img src="assets/icons/brand/linux.svg" alt="" width="20" height="20">Linux</li>
+          <li><img src="assets/icons/brand/vim.svg" alt="" width="20" height="20">Vim</li>
+          <li><img src="assets/icons/brand/latex.svg" alt="" width="20" height="20">LaTeX</li>
+          <li><img src="assets/icons/brand/websocket.svg" alt="" width="20" height="20">WebSocket</li>
+          <li><img src="assets/icons/brand/django.svg" alt="" width="20" height="20">Django</li>
+          <li><img src="assets/icons/brand/mongodb.svg" alt="" width="20" height="20">MongoDB</li>
+        </ul>
+      </div>
+    </section>
 
-      <!-- ============ EXPERIENCE ============ -->
-      <section id="experience" class="section" data-zone="Experience">
-        <header class="section__head reveal">
-          <p class="eyebrow">Experience</p>
-          <h2 class="section__title">Research &amp; industry</h2>
-          <p class="section__lead">Labs and companies, focused on scope, ownership and concrete technical outcomes.</p>
-        </header>
-        <ol class="jobs">
-          <li class="card job reveal">
-            <details open>
-              <summary>
-                <span class="job__logo" aria-hidden="true">🧪</span>
-                <span class="job__head">
-                  <span class="job__org">Picasso Lab (UCSD CSE)</span>
-                  <span class="job__role">Research Intern</span>
-                </span>
-                <span class="job__date">Mar 2024 – Feb 2025</span>
-              </summary>
-              <p class="job__summary">Worked on systems support for large-model infrastructure and research tooling in an academic lab setting.</p>
-              <ul class="job__bullets">
-                <li>Developed a CXL system simulator for large model communication.</li>
-                <li>Helped set up lab websites and use RAG to parse academic papers.</li>
-              </ul>
-            </details>
-          </li>
-          <li class="card job reveal">
-            <details>
-              <summary>
-                <span class="job__logo" aria-hidden="true">📈</span>
-                <span class="job__head">
-                  <span class="job__org">Metabit</span>
-                  <span class="job__role">Quantitative Developer Intern</span>
-                </span>
-                <span class="job__date">Sep 2024 – Nov 2024</span>
-              </summary>
-              <p class="job__summary">Focused on backend-facing performance and streaming improvements for an internal AI platform.</p>
-              <ul class="job__bullets">
-                <li>Optimized data parsing and added streaming read support for AI Platform.</li>
-              </ul>
-            </details>
-          </li>
-          <li class="card job reveal">
-            <details>
-              <summary>
-                <span class="job__logo" aria-hidden="true">🎮</span>
-                <span class="job__head">
-                  <span class="job__org">Tencent (TiMi Studio)</span>
-                  <span class="job__role">Game Developer Intern</span>
-                </span>
-                <span class="job__date">Jun 2024 – Jul 2024</span>
-              </summary>
-              <p class="job__summary">Built gameplay-adjacent client features and explored voice-driven teammate interaction in a production game environment.</p>
-              <ul class="job__bullets">
-                <li>Developed Monster Hunter mobile game client with voice-controlled teammates.</li>
-              </ul>
-            </details>
-          </li>
-          <li class="card job reveal">
-            <details>
-              <summary>
-                <span class="job__logo" aria-hidden="true">🔎</span>
-                <span class="job__head">
-                  <span class="job__org">Disney+ Hotstar</span>
-                  <span class="job__role">Algorithm Developer Intern</span>
-                </span>
-                <span class="job__date">Mar 2024 – Jun 2024</span>
-              </summary>
-              <p class="job__summary">Worked on ranking and search quality, with emphasis on recommendation and serving efficiency.</p>
-              <ul class="job__bullets">
-                <li>Optimized search page, fine-tuned recommendation model for TPUs.</li>
-              </ul>
-            </details>
-          </li>
-          <li class="card job reveal">
-            <details>
-              <summary>
-                <span class="job__logo" aria-hidden="true">🪶</span>
-                <span class="job__head">
-                  <span class="job__org">ByteDance Lark</span>
-                  <span class="job__role">Backend Developer Intern</span>
-                </span>
-                <span class="job__date">Jun 2023 – Nov 2023</span>
-              </summary>
-              <p class="job__summary">Implemented backend support for AskAI workflows using message queues and caching systems in a sales-analysis context.</p>
-              <ul class="job__bullets">
-                <li>Developed AskAI assistant using Redis and RocketMQ for sales data analysis.</li>
-              </ul>
-            </details>
-          </li>
-        </ol>
-        <span class="spawn spawn--lm" data-spawn="coin" data-id="5" style="top:30%"></span>
-        <span class="spawn spawn--rm" data-spawn="coin" data-id="6" style="top:74%"></span>
-        <span class="spawn spawn--rm" data-spawn="enemy" data-kind="skeleton" style="top:32%"></span>
-        <span class="spawn spawn--lm" data-spawn="npc" data-npc="mario" style="top:70%"></span>
-        <span class="spawn" data-spawn="grass" data-biome="camp-route" data-label="Camp Route" style="right:8%; bottom:44px"></span>
-      </section>
+    <section class="sec" id="contact">
+      <h2>Contact</h2>
+      <div class="sec__body prose">
+        <p><a href="mailto:yil384@ucsd.edu">yil384@ucsd.edu</a> · <a href="tel:+18583197361">(858) 319-7361</a></p>
+        <p>Computer Science and Engineering, UC San Diego, La Jolla, CA.</p>
+      </div>
+    </section>
+  </main>
 
-      <!-- ============ SHADOW REALM (mini-boss) ============ -->
-      <section id="shadow-realm" class="arena arena--shadow game-only" data-zone="Shadow Realm" data-boss="shadow">
-        <div class="arena__plate">
-          <p class="arena__kicker">MINI-BOSS · SHADOW REALM</p>
-          <h2 class="arena__name">Shadow Mage <span class="arena__round" data-boss-round>Lv.1</span></h2>
-          <div class="arena__hp" aria-hidden="true"><span data-boss-hp></span></div>
-          <p class="arena__desc">Blinks around the arena and fans out shadow orbs. First defeat grants the <b>Shadow Rune</b>.</p>
-        </div>
-        <span class="spawn" data-spawn="boss" data-boss="shadow" style="left:50%; top:74%"></span>
-      </section>
+  <footer class="foot">
+    <p>© 2025–2026 Yichen Lin. Built with <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>; no frameworks, no build step.</p>
+    <p class="foot__credits">Logos belong to their organisations. Icons: <a href="https://simpleicons.org" target="_blank" rel="noopener">Simple Icons</a>, <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a>, and <a href="https://game-icons.net" target="_blank" rel="noopener">game-icons.net</a> (CC BY 3.0).</p>
+  </footer>
 
-      <!-- ============ PROJECTS ============ -->
-      <section id="projects" class="section" data-zone="Projects">
-        <header class="section__head reveal">
-          <p class="eyebrow">Projects</p>
-          <h2 class="section__title">Selected builds</h2>
-          <p class="section__lead">Operating systems, real-time communication, evaluation infrastructure and LLM systems work.</p>
-        </header>
-        <div class="projects">
-          <article class="card project reveal" data-rarity="epic">
-            <header class="project__head">
-              <span class="project__icon" aria-hidden="true">🗡️</span>
-              <span class="rarity">Epic</span>
-            </header>
-            <h3 class="project__name">Starry-Next</h3>
-            <p class="project__meta">Operating systems · networking · graduation project</p>
-            <p>Monolithic kernel operating system work centered on networking implementation and low-level systems integration.</p>
-            <p class="project__focus"><b>Focus.</b> Implemented the networking component for a monolithic kernel OS and treated the project as a systems-oriented graduation deliverable.</p>
-            <a class="project__link" href="https://github.com/yil384/Starry-Next" target="_blank" rel="noopener">View on GitHub ↗</a>
-          </article>
-          <article class="card project reveal" data-rarity="rare">
-            <header class="project__head">
-              <span class="project__icon" aria-hidden="true">🛡️</span>
-              <span class="rarity">Rare</span>
-            </header>
-            <h3 class="project__name">IM System</h3>
-            <p class="project__meta">Django · WebSocket · full-stack messaging</p>
-            <p>Real-time chat platform with WebSocket-based messaging, backend services, and web frontend integration.</p>
-            <p class="project__focus"><b>Focus.</b> Built a real-time chat system around Django and WebSocket flows, with emphasis on reliable message delivery and practical web integration.</p>
-            <a class="project__link" href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" rel="noopener">View on GitHub ↗</a>
-          </article>
-          <article class="card project reveal" data-rarity="rare">
-            <header class="project__head">
-              <span class="project__icon" aria-hidden="true">📜</span>
-              <span class="rarity">Rare</span>
-            </header>
-            <h3 class="project__name">CST-OJ</h3>
-            <p class="project__meta">Rust · evaluation platform · teaching infrastructure</p>
-            <p>Rust-based online judge and evaluation platform designed for data structure coursework and assignment grading.</p>
-            <p class="project__focus"><b>Focus.</b> Built a grading and evaluation workflow for coursework submissions, using Rust to keep the platform lightweight and systems-oriented.</p>
-            <a class="project__link" href="https://github.com/yil384/CST-OJ-Rust" target="_blank" rel="noopener">View on GitHub ↗</a>
-          </article>
-          <article class="card project reveal" data-rarity="legendary">
-            <header class="project__head">
-              <span class="project__icon" aria-hidden="true">⚡</span>
-              <span class="rarity">Legendary</span>
-            </header>
-            <h3 class="project__name">TritonGym</h3>
-            <p class="project__meta">LLM agents · Triton codegen · benchmarking</p>
-            <p>Benchmarking and evaluation framework for tool-augmented LLM workflows in Triton GPU code generation.</p>
-            <p class="project__focus"><b>Focus.</b> Frames GPU code generation as a measurable agentic workflow problem, with benchmarks meant to surface systems behavior rather than prompt-only demos.</p>
-            <span class="project__link project__link--muted">Paper-linked work</span>
-          </article>
-        </div>
-        <span class="spawn spawn--rm" data-spawn="coin" data-id="7" style="top:44%"></span>
-        <span class="spawn spawn--lm" data-spawn="enemy" data-kind="slime-dark" style="top:40%"></span>
-        <span class="spawn spawn--rm" data-spawn="npc" data-npc="kirby" style="top:82%"></span>
-        <span class="spawn" data-spawn="grass" data-biome="forge-wilds" data-label="Forge Wilds" style="left:8%; bottom:44px"></span>
-      </section>
-
-      <!-- ============ ADVENTURE HUB (game layer) ============ -->
-      <section id="adventure" class="section game-only" data-zone="Adventure Hub">
-        <header class="section__head reveal">
-          <p class="eyebrow">Optional · interactive layer</p>
-          <h2 class="section__title">Adventure hub</h2>
-          <p class="section__lead">Everything above is the portfolio. Down here it is a small RPG: your buddy fights beside you, grass hides wild monsters, and three bosses guard the runes to a sealed chamber.</p>
-        </header>
-        <div class="hub" id="hub">
-          <article class="card hub__panel hub__quests">
-            <h3 class="hub__title">Quest log</h3>
-            <ol class="quests" id="quest-list"></ol>
-          </article>
-          <article class="card hub__panel hub__party">
-            <h3 class="hub__title">Party <span class="hub__hint">G · signature move &nbsp; T · swap</span></h3>
-            <div class="party" id="party-list"></div>
-          </article>
-          <article class="card hub__panel hub__station">
-            <h3 class="hub__title">Field station</h3>
-            <div class="station-actions">
-              <button type="button" class="btn btn--small" data-action="restore">Rest &amp; restore</button>
-              <button type="button" class="btn btn--small" data-action="restock">Restock bag</button>
-              <button type="button" class="btn btn--small" data-action="evolve">Evolution lab</button>
-            </div>
-            <div class="bag" id="bag-list"></div>
-            <h4 class="hub__sub">Mounts</h4>
-            <div class="mounts" id="mount-list"></div>
-            <h4 class="hub__sub">Fast travel</h4>
-            <div class="travel" id="travel-list"></div>
-          </article>
-          <article class="card hub__panel hub__duels">
-            <h3 class="hub__title">Rival duels</h3>
-            <div class="duels" id="duel-list"></div>
-            <div class="badges" id="badge-list"></div>
-          </article>
-          <article class="card hub__panel hub__dex">
-            <h3 class="hub__title">Monster dex <span class="hub__hint" id="dex-count"></span></h3>
-            <div class="dex" id="dex-grid"></div>
-          </article>
-        </div>
-        <span class="spawn" data-spawn="grass" data-biome="research-garden" data-label="Research Garden" style="right:3%; top:1%"></span>
-      </section>
-
-      <!-- ============ DRAGON LAIR (boss) ============ -->
-      <section id="dragon-lair" class="arena arena--dragon game-only" data-zone="Dragon Lair" data-boss="dragon">
-        <div class="arena__plate">
-          <p class="arena__kicker">FINAL BOSS · DRAGON LAIR</p>
-          <h2 class="arena__name">Dragon King <span class="arena__round" data-boss-round>Lv.1</span></h2>
-          <div class="arena__hp arena__hp--big" aria-hidden="true"><span data-boss-hp></span></div>
-          <p class="arena__desc">Fireball volleys that widen every round. Dragons fear <b>Dragon</b>-type buddies. First defeat grants the <b>Ember Rune</b> — and a small orange friend in Education wants to meet you.</p>
-        </div>
-        <span class="spawn" data-spawn="boss" data-boss="dragon" style="left:50%; top:76%"></span>
-      </section>
-
-      <!-- ============ LINKS ============ -->
-      <section id="links" class="section" data-zone="External Links">
-        <header class="section__head reveal">
-          <p class="eyebrow">Links</p>
-          <h2 class="section__title">Find me elsewhere</h2>
-        </header>
-        <div class="portals">
-          <a class="card portal reveal" href="https://github.com/yil384" target="_blank" rel="noopener">
-            <span class="portal__ring" aria-hidden="true"></span>
-            <span class="portal__name">GitHub</span>
-            <span class="portal__sub">@yil384</span>
-          </a>
-          <a class="card portal reveal" href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener">
-            <span class="portal__ring" aria-hidden="true"></span>
-            <span class="portal__name">Google Scholar</span>
-            <span class="portal__sub">Publications &amp; citations</span>
-          </a>
-          <a class="card portal reveal" href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener">
-            <span class="portal__ring" aria-hidden="true"></span>
-            <span class="portal__name">LinkedIn</span>
-            <span class="portal__sub">Experience</span>
-          </a>
-          <a class="card portal reveal" href="mailto:yil384@ucsd.edu">
-            <span class="portal__ring" aria-hidden="true"></span>
-            <span class="portal__name">Email</span>
-            <span class="portal__sub">yil384@ucsd.edu</span>
-          </a>
-        </div>
-        <span class="spawn spawn--lm" data-spawn="coin" data-id="8" style="top:40%"></span>
-        <span class="spawn spawn--rm" data-spawn="npc" data-npc="link" style="top:40%"></span>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <p>&copy; 2025–2026 Yichen Lin · Research portfolio with an optional playable layer</p>
-      <p class="footer__stats game-only" id="footer-stats"></p>
-    </footer>
-
-    <!-- Game world layer (document coordinates). Populated by assets/js/game. -->
-    <div id="world" aria-hidden="true"></div>
-  </div>
-
-  <!-- Fixed game HUD, toasts and modals are rendered by JS. -->
-  <div id="hud" aria-hidden="true"></div>
-  <div id="toasts" role="status" aria-live="polite"></div>
-  <div id="modal-root"></div>
-
-  <noscript><style>.reveal{opacity:1!important;transform:none!important}.game-only{display:none!important}#splash{display:none!important}</style></noscript>
+  <div id="game-root"></div>
 </body>
 </html>
