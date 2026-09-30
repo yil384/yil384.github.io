@@ -4,12 +4,14 @@
 import { player, markAction } from './player.js';
 import * as fx from './fx.js';
 import { reducedMotion } from '../three/env.js';
+import { sfx } from './audio.js';
 
 export function createTour(world) {
   let goal = null;
   let stuck = 0;
   let dashFx = 0;
-  let warp = null;   // a scripted teleport between two spots (the Education section: Tsinghua -> UCSD)
+  let warp = null;
+  let stepT = 0;     // footstep clock while the scholar walks between shots   // a scripted teleport between two spots (the Education section: Tsinghua -> UCSD)
 
   function canStand(x, z) {
     const hh = world.height(x, z);
@@ -107,6 +109,7 @@ export function createTour(world) {
       player.x = a.x; player.z = a.z; player.y = world.surfaceY(a.x, a.z);
       player.yaw = Math.atan2(b.x - a.x, b.z - a.z);
       goal = { x: b.x, z: b.z, face, arrived: true };
+      sfx('warp');
       warp = { t: 0, a, b, face, onLand, base: player.mesh?.scale.x || 0.22, trail: 0, landed: false };
       fx.ring(a.x, player.y + 0.1, a.z, '#a78bfa', 2.2, 0.8);
     },
@@ -146,6 +149,8 @@ export function createTour(world) {
       }
       player.walking = moved;
       if (moved) {
+        stepT -= dt;
+        if (stepT <= 0) { stepT = 0.2; sfx('step'); }
         stuck = Math.max(0, stuck - dt);
         markAction();
         if (speed > 14) { dashFx -= dt; if (dashFx <= 0) { dashFx = 0.05; fx.burst(player.x, player.y + 0.4, player.z, '#c7d2fe', 1, 1.5, 0.35, 0.5); } }

@@ -3,7 +3,7 @@
 // handed to attachWorld().
 import { S } from '../game3d/state.js';
 import { on, emit } from '../game3d/bus.js';
-import { setSound } from '../game3d/audio.js';
+import { setSound, audioReady } from '../game3d/audio.js';
 import { onChange, foundCount, total } from './eggs.js';
 import { openNotes } from './notes.js';
 import { say, observe } from './ui/kit.js';
@@ -43,6 +43,15 @@ export function initChrome() {
   });
   renderSound();
   on('mode', renderSound);
+  // browsers keep a page silent until the first tap / click / key: say so once, when the reader starts scrolling
+  let hinted = false;
+  const hint = () => {
+    if (hinted || !S.settings.sound || audioReady() || scrollY < 200) return;
+    hinted = true;
+    window.removeEventListener('scroll', hint);
+    say('bit', 'This island has sound. Tap or click anywhere to wake the speakers (the speaker button mutes it).');
+  };
+  window.addEventListener('scroll', hint, { passive: true });
   on('ui:sound', renderSound);
 
   // ---- section cards fade in as they arrive (through kit's shared observer)

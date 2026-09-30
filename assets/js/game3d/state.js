@@ -8,7 +8,7 @@ function defaults() {
   return {
     v: 2,
     island: { v: 1 },
-    settings: { sound: false, soundTouched: false, music: false, tutorial: false, trackerCollapsed: false },
+    settings: { sound: true, soundTouched: false, music: false, tutorial: false, trackerCollapsed: false },
     player: { level: 1, xp: 0, gold: 0, score: 0, bonusHp: 0, bonusMp: 0 },
     tokens: [],
     npcsMet: [],
@@ -211,6 +211,8 @@ function load() {
   const saved = readJSON(KEY, null);
   if (saved && saved.v === 2) {
     const s = merge(defaults(), saved);
+    // sound is on until the visitor turns it off (older saves stored the old default, off)
+    if (!s.settings.soundTouched) s.settings.sound = true;
     if (!saved.island) { try { migrateV2(s); } catch (err) { console.warn('[save] v2 migration failed', err); } }
     return s;
   }

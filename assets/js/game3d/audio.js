@@ -31,7 +31,8 @@ function audio() {
 /** Play a sequence of notes: [[freq, startOffset, duration], ...] */
 function seq(notes, { type = 'square', gain = 0.12, slide } = {}) {
   const c = audio();
-  if (!c) return;
+  // still locked (no tap or key yet): drop the sound instead of queueing a burst for the first tap
+  if (!c || c.state !== 'running') return;
   const now = c.currentTime;
   for (const [f, at = 0, dur = 0.12] of notes) {
     const o = c.createOscillator();
@@ -71,6 +72,10 @@ const SFX = {
   rune: () => seq([[440, 0, 0.2], [554, 0.12, 0.2], [659, 0.24, 0.2], [880, 0.36, 0.6]], { type: 'sine', gain: 0.12 }),
   door: () => seq([[98, 0, 0.8], [147, 0.4, 0.9]], { type: 'triangle', gain: 0.14, slide: 60 }),
   encounter: () => seq([[330, 0, 0.08], [440, 0.08, 0.08], [330, 0.16, 0.08], [554, 0.24, 0.2]], { gain: 0.08 }),
+  // the scroll tour: a new section, a new row, the scholar's feet
+  whoosh: () => { seq([[740, 0, 0.32]], { type: 'sine', gain: 0.045, slide: 300 }); seq([[1047, 0.2, 0.22], [1568, 0.3, 0.34]], { type: 'sine', gain: 0.035 }); },
+  blip: () => seq([[1175, 0, 0.05]], { type: 'triangle', gain: 0.03, slide: 1400 }),
+  step: () => seq([[140 + Math.random() * 40, 0, 0.035]], { type: 'triangle', gain: 0.035 }),
   // page UI (the interactive CV)
   stamp: () => seq([[110, 0, 0.06], [70, 0.03, 0.14]], { type: 'square', gain: 0.13 }),
   flip: () => seq([[620, 0, 0.04], [930, 0.035, 0.05]], { type: 'triangle', gain: 0.05 }),
@@ -88,6 +93,9 @@ const SFX = {
   vehicle: () => seq([[262, 0, 0.08], [392, 0.07, 0.08], [523, 0.14, 0.14]], { type: 'triangle', gain: 0.08 }),
   portal: () => seq([[196, 0, 0.5]], { type: 'sine', gain: 0.1, slide: 1568 }),
 };
+
+/** True once the browser lets this page make sound (after the first tap / click / key). */
+export const audioReady = () => !!ctx && ctx.state === 'running';
 
 export function sfx(name) {
   if (!S.settings.sound) return;

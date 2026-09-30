@@ -10,6 +10,7 @@ import { emit } from './bus.js';
 import * as fx from './fx.js';
 import { h } from './util.js';
 import { reducedMotion } from '../three/boot.js';
+import { sfx } from './audio.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -131,6 +132,8 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     });
     stage.setFocus(steady ? key : shot.item ?? key);
     const enteredSect = sectKey !== lastSect;
+    // the soundtrack of reading: a whoosh and a chime for a new section, a soft blip for each new row
+    if (!force) { if (enteredSect) sfx('whoosh'); else if (changed) sfx('blip'); }
     lastSect = sectKey;
     if (changed || restand) {
       if (sectKey === 'edu' && enteredSect && !restand) eduWarp();
