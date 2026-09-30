@@ -114,3 +114,7 @@ html.rm .pier__bit img { animation: none; }
 .gbtn--hero { font-size: 17px; padding: 14px 26px; background: linear-gradient(135deg, var(--accent-2, #ffd23f), var(--accent, #f2b84b)); color: #1a1300; border-color: transparent; box-shadow: 0 10px 30px rgba(242, 184, 75, 0.35); }
 .gbtn--hero:hover, .gbtn--hero:focus-visible { transform: translateY(-1px); box-shadow: 0 14px 36px rgba(242, 184, 75, 0.5); }
 .credits__enter-sub { max-width: 440px; color: var(--ink-2); font-size: 14px; }
+.credits__auto { display: flex; align-items: center; gap: 10px; margin: 2px 0 0; font: 12px/1.4 var(--pixel, "Press Start 2P", monospace); color: #fde68a; letter-spacing: .04em; }
+.credits__auto[hidden] { display: none; }
+.credits__auto-t { animation: credits-blink 1s steps(2, start) infinite; }
+@keyframes credits-blink { 50% { opacity: .55; } }

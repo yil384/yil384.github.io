@@ -57,7 +57,7 @@ import { registerEgg, found } from '../site/eggs.js';
 import { initPageLink } from './pagelink.js';
 
 const BG = '#070a12';
-const SKY = { tint: '#c7d2fe', ground: '#0b1024', fog: BG, density: 0.0085, background: BG, sun: 2.2 };
+const SKY = { tint: '#c7d2fe', ground: '#0b1024', fog: BG, density: 0.0062, background: BG, sun: 2.2 };
 
 // engine eggs (the controls themselves): kind 'game', grouped under the island in Field Notes
 const ENGINE_EGGS = [
@@ -95,7 +95,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   progress('lighting the island');
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BG);
-  scene.fog = new THREE.FogExp2(BG, 0.0085);
+  scene.fog = new THREE.FogExp2(BG, 0.0062);
   const hemi = new THREE.HemisphereLight(SKY.tint, SKY.ground, 1.05);
   scene.add(hemi);
   const sun = new THREE.DirectionalLight('#ffe7c2', SKY.sun);
@@ -211,7 +211,8 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     if (lowfx) { p.outputNode = sp; return p; }
     sp.setMRT(mrt({ output, emissive }));
     // BloomNode already renders at half resolution (its default resolutionScale is 0.5)
-    p.outputNode = sp.getTextureNode('output').add(bloom(sp.getTextureNode('emissive'), 0.9, 0.5, 0));
+    // a tight, modest glow: signs and windows should shine, not smear the whole skyline
+    p.outputNode = sp.getTextureNode('output').add(bloom(sp.getTextureNode('emissive'), 0.5, 0.18, 0.05));
     return p;
   }
   function resize(r) {
@@ -243,10 +244,13 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       pipeline.render();
       smoked = true;
     },
-    { maxDpr: coarse ? 1.25 : 1.5, antialias: false, alpha: false },
+    { maxDpr: coarse ? 1.25 : 2, antialias: false, alpha: false },
   );
   if (fixedDpr) renderer.setPixelRatio(fixedDpr);
   const maxPr = renderer.getPixelRatio();
+  // never go below 1 pixel per CSS pixel on a desktop (below that the voxels turn to mush)
+  const minPr = Math.min(maxPr, coarse ? 0.75 : 1);
+  const liveAt = performance.now();
   function shotStand() {
     const s = stage.shots[director.currentKey] || stage.shots.hero;
     return { x: s.stand?.[0] ?? HUB_SPAWN.x, z: s.stand?.[1] ?? HUB_SPAWN.z, face: s.face ?? 0 };
@@ -366,13 +370,14 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     const now = performance.now();
     const rafDt = now - lastRaf;
     lastRaf = now;
-    // adaptive resolution, driven by the real display cadence: ~1.5 s of slow frames drops the pixel
-    // ratio 20 %; ~4 s of smooth frames earns it back
-    if (!fixedDpr && smoked && rafDt < 250) {
-      if (rafDt > 34) { slowT += rafDt / 1000; fastT = 0; } else if (rafDt < 20) { fastT += rafDt / 1000; slowT = Math.max(0, slowT - rafDt / 3000); }
+    // adaptive resolution, driven by the real display cadence: ~3 s of mostly slow frames drops the pixel
+    // ratio 15 % (never below minPr); ~3 s of smooth frames earns it back. The first 6 s (shader
+    // compiles, fonts, the intro) don't count.
+    if (!fixedDpr && smoked && rafDt < 250 && now - liveAt > 6000 && !document.hidden) {
+      if (rafDt > 36) { slowT += rafDt / 1000; fastT = 0; } else { slowT = Math.max(0, slowT - rafDt / 2000); if (rafDt < 22) fastT += rafDt / 1000; }
       const pr = renderer.getPixelRatio();
-      if (slowT > 1.5 && pr > 0.6) { slowT = 0; setPr(Math.max(0.6, pr * 0.8)); }
-      else if (fastT > 4 && pr < maxPr) { fastT = 0; setPr(Math.min(maxPr, pr * 1.15)); }
+      if (slowT > 3 && pr > minPr) { slowT = 0; setPr(Math.max(minPr, pr * 0.85)); }
+      else if (fastT > 3 && pr < maxPr) { fastT = 0; setPr(Math.min(maxPr, pr * 1.15)); }
     }
     if (reducedMotion.matches && !mode.play && now > awakeUntil && !tour.busy) return;
     // tour at rest: at most ~30 fps

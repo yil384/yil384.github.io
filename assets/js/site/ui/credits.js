@@ -157,9 +157,49 @@ export function init(ctx) {
     const sync = () => { enter.hidden = !(capabilities().play && kit.world()); };
     onEggs(sync);
     sync();
-    enter.querySelector('button').addEventListener('click', () => {
-      try { kit.world()?.enterPlay({ dive: true }); } catch (err) { console.warn('[credits] enter', err); }
-    });
+    const go = () => { try { kit.world()?.enterPlay({ dive: true }); } catch (err) { console.warn('[credits] enter', err); } };
+    enter.querySelector('button').addEventListener('click', () => { cancelAuto(); autoDone = true; go(); });
+
+    // Reaching the very bottom starts the adventure by itself: a short countdown that pushing on
+    // (scrolling down again) skips, and "Stay here" (or scrolling back up) cancels. Once per visit;
+    // never in Reviewer mode or with reduced motion.
+    const cd = h('p', { class: 'credits__auto', hidden: true, role: 'status' },
+      h('span', { class: 'credits__auto-t' }), ' ',
+      h('button', { type: 'button', class: 'gbtn gbtn--sm', 'data-act': 'stay' }, 'Stay here'));
+    enter.append(cd);
+    let timer = 0, dwell = 0, left = 0, autoDone = false, pushes = 0;
+    const html = document.documentElement;
+    // "the end": the Enter panel is on screen (the page can still grow below it, e.g. the post-credits pier)
+    const atBottom = () => { const r = enter.getBoundingClientRect(); return r.height > 0 && r.top < innerHeight - 30 && r.bottom > 0; };
+    const eligible = () => !autoDone && !enter.hidden && !kit.rm() && !html.classList.contains('is-plain') && !kit.world()?.playing
+      && !document.querySelector('.modal.is-open, .notes.is-open, .term.is-open');
+    function tick() {
+      if (!eligible() || !atBottom()) { cancelAuto(); return; }
+      if (left <= 0) { cancelAuto(); autoDone = true; go(); return; }
+      cd.firstChild.textContent = `Entering the world in ${left}…`;
+      left--;
+      timer = setTimeout(tick, 1000);
+    }
+    function startAuto() {
+      if (timer || !eligible()) return;
+      left = 3; cd.hidden = false; tick();
+    }
+    function cancelAuto() { clearTimeout(timer); clearTimeout(dwell); timer = 0; dwell = 0; pushes = 0; cd.hidden = true; }
+    cd.querySelector('button').addEventListener('click', () => { cancelAuto(); autoDone = true; });
+    addEventListener('scroll', () => {
+      if (!atBottom()) { if (timer) cancelAuto(); clearTimeout(dwell); dwell = 0; return; }
+      if (!dwell && !timer && eligible()) dwell = setTimeout(startAuto, 1200);
+    }, { passive: true });
+    // pushing past the end: two more "down" gestures at the bottom go straight in
+    const push = () => {
+      if (!atBottom() || !eligible()) return;
+      if (++pushes >= 2) { cancelAuto(); autoDone = true; go(); } else startAuto();
+    };
+    addEventListener('wheel', (e) => { if (e.deltaY > 20) push(); }, { passive: true });
+    let ty = null;
+    addEventListener('touchstart', (e) => { ty = e.touches[0]?.clientY ?? null; }, { passive: true });
+    addEventListener('touchend', (e) => { const y = e.changedTouches[0]?.clientY; if (ty != null && y != null && ty - y > 60) push(); ty = null; }, { passive: true });
+    addEventListener('keydown', (e) => { if (['ArrowDown', 'PageDown', 'End', ' '].includes(e.key) && !e.target.closest?.('input, textarea, [contenteditable]')) push(); });
   }
 
   // ---------------------------------------------------------------- buttons
