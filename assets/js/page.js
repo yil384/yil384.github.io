@@ -46,9 +46,9 @@ if (vmapEl && 'IntersectionObserver' in window) {
   const io = new IntersectionObserver((es) => {
     if (!es.some((e) => e.isIntersecting)) return;
     io.disconnect();
-    import('./site/visitors.js').then((m) => m.initVisitorMap(vmapEl.querySelector('.vmap__box') || vmapEl.appendChild(Object.assign(document.createElement('div'), { className: 'vmap__box' })))).catch((err) => console.warn('[visitors]', err));
+    import('./site/visitors.js').then((m) => m.initVisitorMap(vmapEl)).catch((err) => console.warn('[visitors]', err));
   }, { rootMargin: '600px 0px' });
-  io.observe(vmapEl);
+  io.observe(vmapEl.closest('footer') || vmapEl.parentElement);
 }
 
 const start = () => mountWorld();

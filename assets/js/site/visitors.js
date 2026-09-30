@@ -45,8 +45,16 @@ export function initVisitorMap(root) {
   if (!root || root.dataset.ready) return;
   root.dataset.ready = '1';
   root.innerHTML = '<canvas class="vmap__c" role="img" aria-label="Map of where visitors come from"></canvas>'
-    + '<p class="vmap__stats"><span class="vmap__live" aria-hidden="true"></span><b data-v="n">–</b> visits · <b data-v="c">–</b> countries &amp; regions · latest: <span data-v="l">–</span></p>'
+    + '<dl class="vmap__stats">'
+    + '<div><dt>Visits</dt><dd data-v="n">–</dd></div>'
+    + '<div><dt>Regions</dt><dd data-v="c">–</dd></div>'
+    + '<div class="vmap__latest"><dt><span class="vmap__live" aria-hidden="true"></span>Latest</dt><dd data-v="l">–</dd></div>'
+    + '</dl>'
+    + '<p class="vmap__note">City-level and approximate. No IP addresses are stored or shown.</p>'
     + '<div class="vmap__tip" hidden></div>';
+  // the site's own palette: gold for the newest visits, teal for the rest, navy land
+  const css = window.getComputedStyle(document.documentElement);
+  const GOLD = css.getPropertyValue('--gold').trim() || '#ffcd00', TEAL = css.getPropertyValue('--teal').trim() || '#00c6d7';
   const cv = root.querySelector('canvas'), tip = root.querySelector('.vmap__tip');
   const set = (k, v) => { root.querySelector(`[data-v="${k}"]`).textContent = v; };
   bits = bits || Uint8Array.from(window.atob(MASK_B64), (ch) => ch.charCodeAt(0));
@@ -59,7 +67,7 @@ export function initVisitorMap(root) {
     const base = document.createElement('canvas'); base.width = cv.width; base.height = cv.height;
     const g = base.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
     const cw = w / GW, ch = h / GH, r = Math.max(0.6, Math.min(cw, ch) * 0.34);
-    g.fillStyle = 'rgba(125, 170, 230, 0.32)';
+    g.fillStyle = 'rgba(120, 160, 225, 0.30)';
     lay = { w, h, dpr, base };
     // mask rows are evenly spaced in latitude; place each cell through the same Mercator projection as the dots
     for (let y = 0; y < GH; y++) {
@@ -78,9 +86,9 @@ export function initVisitorMap(root) {
     const t = (now - t0) / 1000;
     for (const p of pings) {
       const [x, y] = project(p.lon, p.lat), rad = Math.min(4.2, 1.4 + Math.sqrt(p.n) * 0.55);
-      if (p.live) { const k = (t * 0.6 + p.phase) % 1; g.strokeStyle = `rgba(255, 201, 77, ${0.55 * (1 - k)})`; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, rad + k * 9, 0, 6.283); g.stroke(); }
-      g.shadowColor = p.live ? '#ffc94d' : '#36e0ff'; g.shadowBlur = 6;
-      g.fillStyle = p.live ? '#ffc94d' : 'rgba(54, 224, 255, 0.9)';
+      if (p.live) { const k = (t * 0.6 + p.phase) % 1; g.globalAlpha = 0.55 * (1 - k); g.strokeStyle = GOLD; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, rad + k * 9, 0, 6.283); g.stroke(); g.globalAlpha = 1; }
+      g.shadowColor = p.live ? GOLD : TEAL; g.shadowBlur = 6;
+      g.fillStyle = p.live ? GOLD : TEAL;
       g.beginPath(); g.arc(x, y, rad, 0, 6.283); g.fill();
       g.shadowBlur = 0;
     }
@@ -102,7 +110,7 @@ export function initVisitorMap(root) {
     pings = [...agg.values()].sort((a, b) => b.t - a.t);
     pings.forEach((p, i) => { p.live = i < 3; p.phase = i * 0.33; });
     set('n', rows.length.toLocaleString('en-US')); set('c', countries.size);
-    set('l', pings[0] ? pings[0].where : '–');
+    set('l', pings[0] ? `${pings[0].where}${pings[0].t ? ` · ${ago(pings[0].t)}` : ''}` : '–');
     kick();
   }
 
