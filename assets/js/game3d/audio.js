@@ -129,8 +129,9 @@ export function scrollWind(pxPerSec) {
   const w = windNodes(ctx), t = ctx.currentTime;
   const k = Math.min(1, pxPerSec / 3000);              // 0: still, ~0.1: reading, 1: flinging
   // reading: barely a breath; flinging: clearly louder, but only a little brighter and never higher
-  w.g.gain.setTargetAtTime(k < 0.015 ? 0 : 0.012 + 0.13 * k ** 1.3, t, k < 0.015 ? 0.5 : 0.18);
-  w.f.frequency.setTargetAtTime(480 + 420 * k, t, 0.3);
+  // the top is capped low and eased (a fast fling or momentum glide swells gently instead of rushing)
+  w.g.gain.setTargetAtTime(k < 0.015 ? 0 : 0.012 + 0.055 * Math.sqrt(k), t, k < 0.015 ? 0.6 : 0.35);
+  w.f.frequency.setTargetAtTime(460 + 200 * k, t, 0.4);
 }
 /** The gust recording, once (a new section while reading, the teleport). */
 function gust(level = 0.5) {

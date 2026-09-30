@@ -40,6 +40,17 @@ async function mountWorld() {
   }
 }
 
+// the footer's visitor map: after everything else, and only once the footer is near
+const vmapEl = document.getElementById('vmap');
+if (vmapEl && 'IntersectionObserver' in window) {
+  const io = new IntersectionObserver((es) => {
+    if (!es.some((e) => e.isIntersecting)) return;
+    io.disconnect();
+    import('./site/visitors.js').then((m) => m.initVisitorMap(vmapEl.querySelector('.vmap__box') || vmapEl.appendChild(Object.assign(document.createElement('div'), { className: 'vmap__box' })))).catch((err) => console.warn('[visitors]', err));
+  }, { rootMargin: '600px 0px' });
+  io.observe(vmapEl);
+}
+
 const start = () => mountWorld();
 if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 900 });
 else setTimeout(start, 120);
