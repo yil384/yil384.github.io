@@ -113,7 +113,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     if (!shot) return;
     const side = sideOf(el);
     const compact = compactMQ.matches;
-    const aspect = innerWidth / Math.max(1, innerHeight);
+    const aspect = innerWidth / Math.max(1, worldEl.clientHeight || innerHeight);   // the world layer ignores browser bars
     const sig = `${key}|${side}|${compact}|${Math.round(aspect * 8)}`;
     if (!force && sig === currentSig) return;
     const changed = key !== currentKey;
@@ -193,7 +193,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
 
   // ---------------------------------------------------------------- world -> page
   function setNdc(e) {
-    ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+    ndc.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / (worldEl.clientHeight || innerHeight)) * 2 + 1);
     ray.setFromCamera(ndc, camera);
   }
   const extraRoots = () => [player.mesh, buddy.mesh, ...npcs.map((n) => n.mesh)].filter(Boolean);

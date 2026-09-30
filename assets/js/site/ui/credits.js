@@ -152,7 +152,7 @@ export function init(ctx) {
   if (btnRow && !$('.credits__enter', sec)) {
     const enter = h('div', { class: 'credits__enter', hidden: true },
       h('button', { type: 'button', class: 'gbtn gbtn--hero', 'data-act': 'enter' }, 'Enter the world ▶'),
-      h('p', { class: 'credits__enter-sub' }, 'An open world behind this page: every place in the CV is a door. Esc brings you back here.'));
+      h('p', { class: 'credits__enter-sub' }, matchMedia('(pointer: coarse)').matches ? 'An open world behind this page: every place in the CV is a door. The ☰ menu brings you back here.' : 'An open world behind this page: every place in the CV is a door. Esc brings you back here.'));
     btnRow.before(enter);
     const sync = () => { enter.hidden = !(capabilities().play && kit.world()); };
     onEggs(sync);
@@ -171,7 +171,9 @@ export function init(ctx) {
     const html = document.documentElement;
     // "the end": the Enter panel is on screen (the page can still grow below it, e.g. the post-credits pier)
     const atBottom = () => { const r = enter.getBoundingClientRect(); return r.height > 0 && r.top < innerHeight - 30 && r.bottom > 0; };
-    const eligible = () => !autoDone && !enter.hidden && !kit.rm() && !html.classList.contains('is-plain') && !kit.world()?.playing
+    // phones: never pull a reader into play by itself (a flick past the credits is not a decision); the button does it
+    const coarse = matchMedia('(pointer: coarse)').matches;
+    const eligible = () => !coarse && !autoDone && !enter.hidden && !kit.rm() && !html.classList.contains('is-plain') && !kit.world()?.playing
       && !document.querySelector('.modal.is-open, .notes.is-open, .term.is-open');
     function tick() {
       if (!eligible() || !atBottom()) { cancelAuto(); return; }

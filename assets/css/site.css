@@ -53,6 +53,10 @@ kbd {
 
 /* ---------------- the world layer ---------------- */
 #world { position: fixed; inset: 0; z-index: 0; background: var(--bg); overflow: hidden; touch-action: pan-y; }
+/* phones: the world keeps the large-viewport height, so the browser bars sliding in and out while you
+   scroll do not resize (and re-aim) the 3D view every time */
+@supports (height: 100lvh) { @media (pointer: coarse) { #world { bottom: auto; height: 100lvh; } } }
+html.is-play #world { touch-action: none; }
 .world__poster {
   position: absolute; inset: 0;
   background:
@@ -489,3 +493,24 @@ html:not(.js) .bar__plain, html:not(.js) .bar__eggs, html:not(.js) #sound-btn { 
 .pub, .pub > div, .ach__body, .pub__more, .pub__more details { min-width: 0; max-width: 100%; }
 .pub pre { max-width: 100%; overflow-x: auto; }
 html, body { overflow-x: clip; }
+
+/* ---------------- phones: the bar fits (avatar + icon buttons), readable labels, one toast at a time ---------------- */
+@media (max-width: 719px) {
+  .bar { gap: 6px; padding: 0 12px; }
+  .bar__brand, .bar__tools { min-width: 0; }
+  .bar__id { display: none; }
+  .bar__tools { gap: 5px; }
+  .bar__btn { height: 36px; padding: 0 9px; gap: 5px; }
+  #plain-btn, #sound-btn { width: 36px; padding: 0; justify-content: center; }
+  .bar__burger { flex: none; width: 40px; height: 36px; margin-left: auto; }
+  /* the gamepad stays: the one-tap way into play mode on phones */
+  html .bar__play:not([hidden]) { display: inline-flex; width: 36px; padding: 0; justify-content: center; }
+  .bar__play span, .bar__play kbd { display: none; }
+  html:not(.is-play) .egg-toasts { top: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); left: 12px; right: 12px; width: auto; }
+  .egg-toasts > :not(:last-child) { display: none; }
+  .term input { font-size: 16px; }
+}
+@media (max-width: 380px) { .bar__btn { padding: 0 7px; } .bar__tools { gap: 4px; } }
+.term__x { margin-left: auto; width: 40px; height: 36px; border: 0; background: none; color: var(--ink); font-size: 24px; line-height: 1; }
+.notes__touch { display: flex; gap: 8px; margin: 10px 0 4px; }
+@media (pointer: coarse) { .term { height: min(388px, 55dvh); } }

@@ -155,6 +155,6 @@ html.rm .sealion.is-awake { animation: none; }
   html.is-game #contact .portals { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   html.is-game #contact .portal { grid-template-rows: 66px auto; padding: 8px 4px; }
   html.is-game .portal__ring { width: 62px; height: 62px; }
-  html.is-game .portal__l { font-size: 8px; }
+  html.is-game .portal__l { font-size: 10px; letter-spacing: 0.02em; }
   .sealion { right: 18px; }
 }

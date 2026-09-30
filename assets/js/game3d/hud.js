@@ -212,7 +212,7 @@ export function updateHud() {
   }
 
   if (clock.frame % 20 === 0) updateTracker();
-  if (clock.frame % 4 === 0) drawMinimap();
+  if (clock.frame % 4 === 0 && els.minimap.offsetParent) drawMinimap();   // hidden on phones: skip the 2D work
 }
 
 function updateTracker() {

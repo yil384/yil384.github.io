@@ -166,9 +166,9 @@ html.rm .con-cur { animation: none; }
   html.is-game .attrs__list .attr { grid-template-columns: 18px 84px minmax(0, 1fr) 58px; grid-template-areas: 'ico name bar tier' 'ico name bar val'; height: 34px; column-gap: 8px; }
   html.is-game .attr__bar { height: 6px; }
   html.is-game .attr__tier { align-self: end; padding-bottom: 1px; }
-  .attr__val { display: block; grid-area: val; align-self: start; padding-top: 3px; font: 400 7px/1 var(--px-num); color: var(--ink-3); }
+  .attr__val { display: block; grid-area: val; align-self: start; padding-top: 3px; font: 400 9px/1 var(--px-num); color: var(--ink-3); }
   html.is-game .attrs__list .attr::after { right: auto; left: 30px; }
-  html.is-game .attrs .inv { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: 56px; margin-top: 12px; gap: 4px; padding: 4px; }
-  html.is-game .attrs .inv__slot { font-size: 6.5px; }
+  html.is-game .attrs .inv { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 56px; margin-top: 12px; gap: 4px; padding: 4px; }
+  html.is-game .attrs .inv__slot { font-size: 9px; letter-spacing: 0.02em; }
   html.is-game .attrs__console { font-size: 11px; }
 }

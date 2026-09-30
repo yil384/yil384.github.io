@@ -141,7 +141,7 @@ export function createVehicles({ scene, world, input, rig, mover, onOut }) {
 
   function fly(dt, kind) {
     const w = mover.wish();
-    const boost = input.down('KeyF') || input.down('Boost');
+    const boost = input.down('KeyF') || input.down('Boost') || input.down('Sprint');   // Sprint: the touch stick pushed to its rim
     const maxS = kind === 'sword' ? (boost ? 36 : 22) : (boost ? 32 : 15);
     const acc = kind === 'sword' ? 4.5 : 3.2;
     const k = 1 - Math.exp(-acc * dt);
@@ -194,7 +194,7 @@ export function createVehicles({ scene, world, input, rig, mover, onOut }) {
   function drive(dt) {
     const v = input.axis();
     const throttle = -v.y, steer = v.x;
-    const boost = input.down('ShiftLeft') || input.down('ShiftRight') || input.down('KeyF') || input.down('Boost');
+    const boost = input.down('ShiftLeft') || input.down('ShiftRight') || input.down('KeyF') || input.down('Boost') || input.down('Sprint');
     const drift = input.down('Space');
     let s = player.carSpeed || 0;
     const top = boost ? 38 : 26;

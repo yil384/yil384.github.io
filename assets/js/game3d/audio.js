@@ -17,6 +17,17 @@ function audio() {
   return ctx;
 }
 
+// iOS / Android only let a page start audio inside a user gesture, and touch controls call
+// preventDefault (no click follows): wake the context on the first real gestures while sound is on
+{
+  const unlock = () => {
+    if (!S.settings.sound && !S.settings.music) return;
+    const c = audio();
+    if (c && c.state === 'running') for (const t of ['pointerup', 'touchend', 'keydown']) window.removeEventListener(t, unlock, true);
+  };
+  for (const t of ['pointerup', 'touchend', 'keydown']) window.addEventListener(t, unlock, { capture: true, passive: true });
+}
+
 /** Play a sequence of notes: [[freq, startOffset, duration], ...] */
 function seq(notes, { type = 'square', gain = 0.12, slide } = {}) {
   const c = audio();

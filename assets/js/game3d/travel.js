@@ -217,7 +217,15 @@ export function createTravel(env) {
                 style: { ...at(d.x, d.z), '--dc': d.colour },
                 title: `${regionName(d.to)} · ${known ? 'visited: click to travel' : `not visited yet: ${REGIONS[d.to]?.door || 'find its door'}`}`,
                 'aria-label': `${regionName(d.to)}${known ? '' : ' (not visited yet)'}`,
-                onclick: () => { if (known) go(d.to); else toast(`Find it on the island: ${REGIONS[d.to]?.door || 'its door'}. Walk there and press E.`, { icon: 'treasure-map' }); },
+                onclick: (e) => {
+                  // touch: the first tap names the door (no hover on a phone), the second one travels
+                  const b = e.currentTarget;
+                  if (matchMedia('(pointer: coarse)').matches && !b.classList.contains('is-picked')) {
+                    for (const o of map.querySelectorAll('.wmap2__door.is-picked')) o.classList.remove('is-picked');
+                    b.classList.add('is-picked');
+                    return;
+                  }
+                  if (known) go(d.to); else toast(`Find it on the island: ${REGIONS[d.to]?.door || 'its door'}. Walk there and press E.`, { icon: 'treasure-map' }); },
               }, h('span', { class: 'wmap2__door-dot' }, known ? '✓' : ''), h('span', { class: 'wmap2__door-name' }, regionName(d.to))));
             }
             const P = LAYOUT.pier;

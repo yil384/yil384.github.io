@@ -57,7 +57,11 @@ export function init(ctx) {
 
     const nDone = h('b', null, '0'), nTurn = h('b', null, '0');
     counts = { nDone, nTurn };
-    const read = h('span', { class: 'qmap__read' }, 'Hover a bar');
+    // touch: a tap reads a bar (a second tap on the same bar jumps to its row); there is no hover to undo it
+    const coarse = matchMedia('(pointer: coarse)').matches;
+    const idle = coarse ? 'Tap a bar' : 'Hover a bar';
+    let picked = null;
+    const read = h('span', { class: 'qmap__read' }, idle);
     const chart = h('div', { class: 'qmap__chart', style: { '--lanes': spans.length } });
     for (let y = lo / 12; y * 12 < hi; y++) {
       chart.append(h('span', { class: 'qmap__year', style: { left: pct(y * 12) } }, h('i', null, String(y))));
@@ -79,10 +83,16 @@ export function init(ctx) {
       };
       bar.addEventListener('pointerenter', show);
       bar.addEventListener('pointerenter', () => name.classList.add('is-on'));
-      bar.addEventListener('pointerleave', () => name.classList.remove('is-on'));
+      bar.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') name.classList.remove('is-on'); });
       bar.addEventListener('focus', show);
-      bar.addEventListener('pointerleave', () => { read.textContent = 'Hover a bar'; });
+      bar.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') read.textContent = idle; });
       bar.addEventListener('click', () => {
+        if (coarse && picked !== bar) {
+          picked?.classList.remove('is-hot');
+          chart.querySelectorAll('.qmap__name.is-on').forEach((n) => n.classList.remove('is-on'));
+          picked = bar; bar.classList.add('is-hot'); name.classList.add('is-on'); show();
+          return;
+        }
         s.row.scrollIntoView({ block: 'center', behavior: kit.rm() ? 'auto' : 'smooth' });
         s.row.focus({ preventScroll: true });
       });
@@ -95,9 +105,10 @@ export function init(ctx) {
       for (const s of spans) if (s.a <= peakM && peakM <= s.b) bars.get(s.row)?.classList.add('is-hot');
       kit.found('multithread');
     };
-    const peakOff = () => { peak.classList.remove('is-hot'); bars.forEach((b) => b.classList.remove('is-hot')); read.textContent = 'Hover a bar'; };
-    peak.addEventListener('pointerenter', peakHit);
-    peak.addEventListener('pointerleave', peakOff);
+    const peakOff = () => { peak.classList.remove('is-hot'); bars.forEach((b) => b.classList.remove('is-hot')); read.textContent = idle; picked = null; };
+    peak.addEventListener('pointerenter', (e) => { if (e.pointerType !== 'touch') peakHit(); });
+    peak.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') peakOff(); });
+    if (coarse) peak.addEventListener('click', () => { if (peak.classList.contains('is-hot')) peakOff(); else peakHit(); });
     peak.addEventListener('click', peakHit);
 
     map.append(

@@ -53,6 +53,13 @@ function build() {
   out = root.querySelector('.term__out');
   input = root.querySelector('input');
   root.querySelector('.term__dots i').addEventListener('click', close);
+  if (matchMedia('(pointer: coarse)').matches) {
+    root.querySelector('.term__bar > span:last-child').textContent = 'visitor@island: ~';
+    const x = document.createElement('button');
+    x.type = 'button'; x.className = 'term__x'; x.setAttribute('aria-label', 'Close the terminal'); x.textContent = '×';
+    x.addEventListener('click', close);
+    root.querySelector('.term__bar').append(x);
+  }
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { const line = input.value; input.value = ''; run(line); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); if (hi > 0) input.value = history[--hi] || ''; }
@@ -172,6 +179,9 @@ async function run(raw) {
     case 'hire': case 'hire-me': print('Yichen is a Ph.D. student, not a job posting. But: yil384@ucsd.edu.'); break;
     case 'play': { const w = getWorld(); if (w) { close(); w.enterPlay(); } else print('The island is not running on this device.', 'err'); break; }
     case 'eggs': print(`${foundCount()} / ${total()} eggs found.`); break;
+    // phones have no arrow keys and nowhere to type a name: the shell takes both
+    case 'yichen': case 'lin': case 'yil384': print(found('typename') ? 'Autocomplete: yichen → Yichen Lin, Ph.D. student, UC San Diego.' : 'Yes, that is him.'); break;
+    case 'konami': case 'uuddlrlrba': case '↑↑↓↓←→←→ba': print(found('konami') ? 'Thirty lives granted. All of them will be spent on rebuttals.' : 'You already have thirty lives.'); break;
     case 'clear': out.replaceChildren(); break;
     case 'exit': close(); break;
     default: print(`${cmd}: command not found. Try \`help\`.`, 'err');

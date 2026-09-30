@@ -401,8 +401,12 @@ html.is-play .g__hud { animation: g-hud-in 0.6s ease-out 0.35s both; }
 .wmap2__door.is-known .wmap2__door-dot { background: var(--dc); color: #0b1020; }
 .wmap2__door.is-done .wmap2__door-dot { box-shadow: 0 0 0 3px rgba(242, 193, 78, 0.6); }
 .wmap2__door-name { display: none; padding: 2px 6px; border-radius: 6px; background: rgba(7, 10, 18, 0.9); border: 1px solid var(--dc); white-space: nowrap; }
-.wmap2__door:hover, .wmap2__door:focus-visible { z-index: 3; }
-.wmap2__door:hover .wmap2__door-name, .wmap2__door:focus-visible .wmap2__door-name { display: inline-block; }
+.wmap2__door:focus-visible { z-index: 3; }
+@media (hover: hover) { .wmap2__door:hover { z-index: 3; } }
+@media (hover: hover) { .wmap2__door:hover .wmap2__door-name { display: inline-block; } }
+.wmap2__door:focus-visible .wmap2__door-name, .wmap2__door.is-picked .wmap2__door-name { display: inline-block; }
+.wmap2__door.is-picked { z-index: 4; }
+@media (pointer: coarse) { .wmap2__door-dot { position: relative; } .wmap2__door-dot::before { content: ''; position: absolute; inset: -7px; border-radius: 50%; } }
 @keyframes wmap-pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--dc) 10%, transparent); } }
 .wmap2__boat { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px;
   background: rgba(7, 10, 18, 0.85); border: 1px solid rgba(14, 165, 233, 0.8); }
@@ -521,7 +525,7 @@ html.is-play .touch.is-on ~ .hud-actions, .g__hud:has(.touch.is-on) .hud-actions
   .g__toasts { width: min(300px, 70vw); }
   html.is-play .g__toasts { left: calc(8px + var(--sa-l)); }
   /* a compact quest line under the vitals (tap to open or fold it) */
-  .g__hud:has(.touch.is-on) .hud-tracker { display: block; left: calc(8px + var(--sa-l)); right: auto; top: calc(76px + var(--sa-t)); width: min(220px, 56vw); border-radius: 10px; background: rgba(7, 10, 18, 0.72); }
+  .g__hud:has(.touch.is-on) .hud-tracker { display: block; left: calc(8px + var(--sa-l)); right: auto; top: calc(90px + var(--sa-t)); width: min(220px, 56vw); border-radius: 10px; background: rgba(7, 10, 18, 0.72); }
   .g__hud:has(.touch.is-on) .hud-tracker__head { padding: 6px 10px; font-size: 12px; }
   .g__hud:has(.touch.is-on) .hud-quests { padding: 0 10px 8px; gap: 5px; font-size: 12px; }
   .g__hud:has(.touch.is-on) .hud-quests li:nth-child(n + 3) { display: none; }
@@ -600,3 +604,27 @@ html.is-play .phud { opacity: 0; visibility: hidden; }
 .hud-help { bottom: 92px; max-width: 520px; text-align: right; line-height: 1.9; }
 @media (max-width: 1250px) { .hud-help { display: none; } }
 @media (pointer: coarse) { html.is-play .egg-toasts { top: 150px; left: 10px; right: auto; width: min(300px, 72vw); } }
+
+/* touch: bigger close buttons and rows, no keyboard hints, the boss bar and banner clear of the corners */
+@media (pointer: coarse) {
+  .modal__x { width: 44px; height: 44px; }
+  .btn, .cmd, .talk__choice { min-height: 44px; }
+  .btn--small { min-height: 40px; }
+  .cmd kbd, .talk__choice kbd, .g__plate-hint kbd { display: none; }
+  html.is-play .g__banner { top: 36%; max-width: calc(100vw - 32px); }
+}
+@media (pointer: coarse) and (orientation: portrait) {
+  .hud-top { padding-top: calc(140px + var(--sa-t)); }
+  .hud-boss { width: calc(100vw - 32px); }
+  html.is-play .g__toasts { top: calc(196px + var(--sa-t)); }
+}
+@media (pointer: coarse) and (max-height: 500px) {
+  .modal--dialog { place-items: center; }
+  .modal--dialog .modal__panel { width: min(760px, 100%); }
+  .talk { grid-template-columns: 64px 1fr; }
+  .talk__face img { width: 56px; height: auto; }
+  .talk__choices { grid-template-columns: 1fr 1fr; }
+  .wmap2 { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+  .wmap2__map { max-width: min(46vw, calc(100dvh - 90px)); }
+}
+@media (pointer: coarse) and (max-height: 500px) { html.is-play .egg-toasts { top: calc(10px + var(--sa-t)); left: 50%; transform: translateX(-50%); width: min(300px, 40vw); } }

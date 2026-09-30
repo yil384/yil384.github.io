@@ -6,7 +6,7 @@ import { clock } from './clock.js';
 import { emit, on } from './bus.js';
 import { ZONES } from './world.js';
 import { player, heal, restoreMp, reward, spendGold } from './player.js';
-import { openModal, closeModal, isModalOpen } from './modal.js';
+import { openModal, isModalOpen } from './modal.js';
 import { capture, setActive, startRival, evolveActive, restock, restoreAtStation, travelList, canEvolve, activeId, mountList } from './monsters.js';
 import { spriteImg } from './pixelart.js';
 import { makeActor } from './actors.js';

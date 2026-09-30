@@ -134,7 +134,7 @@ html.rm .trail.is-arrived .trail__step { animation: none; opacity: 1; }
   .trail__post::before { top: -4px; bottom: -4px; left: 8px; }
   .trail__post::after { display: none; }
   .trail__lantern { left: 2px; top: 50%; margin-top: -9px; width: 12px; height: 16px; }
-  .trail__sign { font-size: 8px; min-height: 28px; padding: 0 20px 0 8px; max-width: calc(100vw - 32px - 110px); overflow: hidden; text-overflow: ellipsis; }
+  .trail__sign { font-size: 10px; letter-spacing: 0.04em; min-height: 40px; padding: 0 20px 0 8px; max-width: calc(100vw - 32px - 110px); overflow: hidden; text-overflow: ellipsis; }
   .trail > .token, .trail--r > .token { grid-column: 2; grid-row: 2; align-self: center; margin: 0; }
   .trail__house { width: 36px; height: 36px; }
   .trail__house::before { bottom: 6px; } .trail__house::after { bottom: 11px; }

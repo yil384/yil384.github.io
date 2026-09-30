@@ -297,3 +297,11 @@ html.is-game .world__poster { transition: opacity 1.1s ease 0.15s, filter 0.2s; 
 .world__poster.is-echo { filter: brightness(1.25); }
 .px, .fx-layer img { image-rendering: pixelated; }
 html.is-game .pubs .pub__more details[open] > :not(summary) { animation: fx-fade 240ms var(--ease); }
+
+/* phones: the ribbon stays one line (the flavour half goes), pixel labels never drop below a readable size */
+@media (max-width: 719px) {
+  html.is-game .tag { white-space: nowrap; max-width: 100%; letter-spacing: 0.06em; }
+  html.is-game .tag__k { display: none; }
+  html.is-game .qmap__name, html.is-game .qmap__year i, html.is-game .equip__paper, html.is-game .ach__ribbon { font-size: 9px; letter-spacing: 0.04em; }
+  html.is-game .qmap__peak i { display: none; }
+}

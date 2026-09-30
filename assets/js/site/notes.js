@@ -53,6 +53,17 @@ function build() {
     tabs: [...root.querySelectorAll('.notes__tab')],
   };
   root.querySelector('.notes__x').addEventListener('click', closeNotes);
+  // phones have no backtick or ? key: the terminal and the controls sheet open from here
+  if (matchMedia('(pointer: coarse)').matches) {
+    const btn = (label, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'gbtn gbtn--sm'; b.textContent = label; b.addEventListener('click', fn); return b; };
+    const row = document.createElement('div');
+    row.className = 'notes__touch';
+    row.append(
+      btn('Terminal >_', () => { closeNotes(); import('./terminal.js').then((m) => m.toggleTerminal(() => window.__page?.world)); }),
+      btn('Controls ?', () => { closeNotes(); import('./ui/keys.js').then((m) => m.toggleSheet(true)); }),
+    );
+    root.querySelector('.notes__meter').after(row);
+  }
   root.addEventListener('mousedown', (e) => { if (e.target === root) closeNotes(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('is-open')) closeNotes(); });
   els.tabs.forEach((t) => {

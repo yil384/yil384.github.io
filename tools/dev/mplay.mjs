@@ -5,7 +5,7 @@
 //   drag turns the camera, jump / attack / E / map / vehicle buttons do something, the map, a battle
 //   and a panel fit the screen. Prints a JSON report (problems first).
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
-const [,, W = '390', H = '844', out = '/tmp/yl/mp', shotList = 'play,map,battle,modal'] = process.argv;
+const [,, W = '390', H = '844', out = '/tmp/yl/mp', shotList = 'play,map,battle,menu'] = process.argv;
 const shots = new Set(shotList.split(','));
 const base = process.env.BASE || 'http://localhost:8000/';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
@@ -141,12 +141,28 @@ if (shots.has('battle')) await p.screenshot({ path: `${out}_battle.png` });
 await p.evaluate(() => window.__g.closeAllModals());
 await p.waitForTimeout(300);
 
-// 6. a panel (help / controls) through the HUD
-const opened = await p.evaluate(() => { const e = document.querySelector('.hud-menu button, .hud-actions button[title^="Controls"], button[title^="Controls"]'); if (!e) return null; const r = e.getBoundingClientRect(); return r.width ? [r.left + r.width / 2, r.top + r.height / 2] : 'hidden'; });
-report.helpBtn = opened;
-if (Array.isArray(opened)) { await tap(...opened); await p.waitForTimeout(800); problems.push(...await audit('help')); if (shots.has('modal')) await p.screenshot({ path: `${out}_modal.png` }); await p.evaluate(() => window.__g.closeAllModals()); }
-else problems.push('no reachable Controls/help/leave button on phone');
-
+// 6. the phone menu: open it, then Controls & settings from it
+if (await tapSel('.touch.is-on .touch__btn--menu', 'menu button')) {
+  await p.waitForTimeout(700);
+  report.menu = await p.evaluate(() => [...document.querySelectorAll('.menu-panel .gmenu__item b')].map((b) => b.textContent));
+  if (!report.menu.length) problems.push('menu button opened nothing');
+  problems.push(...await audit('menu'));
+  if (shots.has('menu')) await p.screenshot({ path: `${out}_menu.png` });
+  const help = await p.evaluate(() => { const e = [...document.querySelectorAll('.gmenu__item')].find((x) => /Controls/.test(x.textContent)); if (!e) return null; const r = e.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; });
+  if (help) { await tap(...help); await p.waitForTimeout(700); report.help = await p.evaluate(() => !!document.querySelector('.modal .keys')); problems.push(...await audit('help')); if (shots.has('modal')) await p.screenshot({ path: `${out}_modal.png` }); }
+  await p.evaluate(() => window.__g.closeAllModals());
+  await p.waitForTimeout(300);
+}
+// 6b. spell: long-press opens the picker, a tap on Mend casts it and makes it the button's spell
+const sp = await btn('spell');
+if (sp) {
+  await touch('touchStart', [sp]); await p.waitForTimeout(500); await touch('touchEnd', []); await p.waitForTimeout(200);
+  report.picker = await p.evaluate(() => !document.querySelector('.touch__picker')?.hidden);
+  if (!report.picker) problems.push('long-press on the spell button did not open the picker');
+  if (shots.has('picker')) await p.screenshot({ path: `${out}_picker.png` });
+  const mend = await center('.touch__pick[data-spell="heal"]');
+  if (mend) { await tap(...mend); report.spellAfter = await p.evaluate(() => window.__g.S.settings.touchSpell); }
+}
 // 7. vehicle
 if (await tapSel('.touch.is-on .touch__btn--vehicle', 'vehicle button')) { await p.evaluate(() => window.__g.sim(0.5)); report.vehicle = (await state()).vehicle; }
 // 8. leave play: is there a visible way back?

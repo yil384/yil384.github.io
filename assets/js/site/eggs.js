@@ -10,7 +10,7 @@ export const EGGS = [
   // ---- on the page
   { id: 'notes',    kind: 'page',  name: 'Green eggs', hint: 'Open the field notes. Do you like them here or there?', done: 'You opened the notebook. Ham not included.' },
   { id: 'konami',   kind: 'page',  name: 'Thirty lives', hint: '↑ ↑ ↓ ↓ ← → ← → B A', done: 'All thirty lives spent on rebuttals.' },
-  { id: 'terminal', kind: 'page',  name: 'Shell person', hint: 'Some people prefer a shell. Try the key under Esc.', done: 'You opened the terminal with `.' },
+  { id: 'terminal', kind: 'page',  name: 'Shell person', hint: 'Some people prefer a shell. Try the key under Esc (on a phone: Field Notes).', done: 'You opened the terminal with `.' },
   { id: 'sudo',     kind: 'page',  name: 'Sudoers', hint: 'The terminal knows who you are not.', done: 'This incident has been reported. To no one.' },
   { id: 'rmrf',     kind: 'page',  name: 'Scorched earth', hint: 'Never run this. (A reload fixes it.)', done: 'The island noticed. It has since recovered.' },
   { id: 'vim',      kind: 'page',  name: 'Trapped', hint: 'A famous trap for the unwary.', done: 'Still inside. Try :q!' },
@@ -86,7 +86,7 @@ export const EGGS = [
   { id: "cleared", kind: 'page', src: 'cv', name: "Cover to cover", hint: "Read every chapter.", done: "Six chapters cleared. Reviewer #1 would be proud." },
   { id: "exterminator", kind: 'page', src: 'cv', name: "Bug bash", hint: "Bonk all five critters.", done: "Five bugs fixed. Four new ones filed." },
   { id: "invincible", kind: 'page', src: 'cv', name: "God mode", hint: "Poke your HP.", done: "God mode was on the whole time." },
-  { id: "manual", kind: 'page', src: 'cv', name: "RTFM", hint: "Press ?", done: "Nobody reads the manual. You did." },
+  { id: "manual", kind: 'page', src: 'cv', name: "RTFM", hint: "Press ? (on a phone: Field Notes).", done: "Nobody reads the manual. You did." },
   { id: "vimnav", kind: 'page', src: 'cv', name: "j and k", hint: "Navigate without a mouse.", done: "You navigated a CV with j and k. Unit-7 is proud." },
   { id: "reviewermode", kind: 'page', src: 'cv', name: "Plain text", hint: "Switch to Reviewer mode.", done: "One column, no nonsense. Recommend: accept." },
   { id: "phd", kind: 'page', src: 'cv', name: "Dr. (Honorary)", hint: "Keep reading. Keep clicking.", done: "Degree conferred. Not accredited." },

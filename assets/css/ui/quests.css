@@ -132,3 +132,4 @@ html.rm .qlark svg { animation: none; }
   .qmap__read { flex-basis: 100%; margin-left: 0; }
   .quest__turnin, .quest__mic { min-height: 44px; }
 }
+@media (pointer: coarse) { .qmap__bar::before { inset: -3px -4px; } }

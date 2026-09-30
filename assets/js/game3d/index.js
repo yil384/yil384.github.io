@@ -286,6 +286,18 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     // phones and tablets: WebGL2 (the mature, lighter path on mobile GPUs; ?webgpu=1 to try WebGPU there)
     { maxDpr: coarse ? 1.5 : 2, antialias: false, alpha: false, forceWebGL: coarse && q.get('webgpu') !== '1' },
   );
+  // phones drop the GPU context when memory runs short or the tab sleeps: show the poster again and
+  // rebuild the island (a reload; the save is in localStorage) as soon as the visitor is back
+  renderer.onDeviceLost = (info) => {
+    console.warn('[3d] GPU context lost:', info?.message || info);
+    renderer.setAnimationLoop(null);
+    document.body.classList.remove('world-live');
+    let n = 0;
+    try { n = Number(window.sessionStorage.getItem('yl-lost') || 0); window.sessionStorage.setItem('yl-lost', String(n + 1)); } catch { /* private mode */ }
+    if (n >= 2) return;                // twice in one visit: stay on the poster
+    const back = () => { if (!document.hidden) location.reload(); };
+    if (!document.hidden) setTimeout(back, 1500); else document.addEventListener('visibilitychange', back);
+  };
   if (fixedDpr) renderer.setPixelRatio(fixedDpr);
   const maxPr = renderer.getPixelRatio();
   // never go below 1 pixel per CSS pixel on a desktop (below that the voxels turn to mush)
@@ -460,7 +472,15 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   on('progress', wake);
   on('shot', wake);
   window.addEventListener('pointermove', wake, { passive: true });
-  window.addEventListener('resize', () => { resize(renderer); wake(); });
+  // the layer's own size (after layout settles: rotations on iOS report the old size in 'resize')
+  let sized = `${worldEl.clientWidth}x${worldEl.clientHeight}`;
+  new ResizeObserver(() => requestAnimationFrame(() => {
+    const k = `${worldEl.clientWidth}x${worldEl.clientHeight}`;
+    if (k === sized) return;
+    sized = k;
+    resize(renderer);
+    wake();
+  })).observe(worldEl);
 
   // ---- actions (play) ----
   let combo = 0, comboAt = 0;
