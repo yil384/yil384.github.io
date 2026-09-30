@@ -4,6 +4,7 @@ import { clock } from './clock.js';
 import { on } from './bus.js';
 import { SPECIES, TYPE_COLOR } from './data.js';
 import { player, heal, markAction } from './player.js';
+import { mode } from './mode.js';
 import { nearestTarget, targetsWithin, liveTargets, dealDamage, spawnProjectile } from './combat.js';
 import { activeId, buddyLevel, grantBuddyXp } from './monsters.js';
 import { makeActor } from './actors.js';
@@ -28,6 +29,8 @@ export function refreshBuddy() {
   if (buddy.mesh) scene.remove(buddy.mesh);
   buddy.id = id;
   buddy.mesh = makeActor(SPECIES[id].sprite, { scale: 0.2 });
+  buddy.mesh.userData.pickId = 'bit';
+  buddy.mesh.userData.pickLabel = SPECIES[id].name;
   scene.add(buddy.mesh);
 }
 
@@ -51,7 +54,7 @@ export function updateCompanion(dt) {
   buddy.y = world.surfaceY(buddy.x, buddy.z);
   buddy.anim += dt * (player.walking ? 7 : 3);
   const t = nearestTarget(buddy.x, buddy.z, sp.field.range);
-  if (t && !player.dead && clock.t - buddy.lastShot >= sp.field.interval) {
+  if (mode.play && t && !player.dead && clock.t - buddy.lastShot >= sp.field.interval) {
     buddy.lastShot = clock.t;
     spawnProjectile({
       x: buddy.x, y: buddy.y + 1.4, z: buddy.z, tx: t.x, ty: t.y + t.h * 0.5, tz: t.z, target: t, homing: 6, speed: 13,

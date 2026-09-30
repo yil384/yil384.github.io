@@ -1,18 +1,24 @@
-// The island, playable. Opens as a full-screen overlay above the page; Esc returns to the page.
+// The island, always on. It renders full-viewport behind the page ("tour": the camera follows the
+// page's scroll, the scholar walks between landmarks, everything is harmless). W/A/S/D or the Play
+// button hands the reader the controls ("play": the full game, including combat and encounters).
 //
-// Key rule: the world only advances while no modal is open. Dialogs, the shop, battles, panels,
-// mini-games and game-over are all modals, so hostile AI, projectiles, hazards and every timer
-// freeze while they are up, and the player gets a short grace window when play resumes.
+// Key rule of play mode: the world only advances while no modal is open. Dialogs, the shop,
+// battles, panels, mini-games and game-over are all modals, so hostile AI, projectiles, hazards
+// and every timer freeze while they are up, and the player gets a short grace window afterwards.
 import * as THREE from 'three/webgpu';
 import { pass, mrt, output, emissive } from 'three/tsl';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
-import { createRobustRenderer, runLoop, probeGPU } from '../three/boot.js';
+import { createRobustRenderer, probeGPU, reducedMotion } from '../three/boot.js';
 import { S, save } from './state.js';
 import { clock, advance } from './clock.js';
 import { on, emit } from './bus.js';
+import { mode } from './mode.js';
 import { buildWorld, ZONES } from './world.js';
+import { buildStage } from './stage.js';
 import { createCamera } from './camera.js';
 import { createInput } from './input.js';
+import { createTour } from './tour.js';
+import { createDirector } from './director.js';
 import * as fx from './fx.js';
 import { initModals, modalOpen, modalKey, closeAllModals, isModalOpen } from './modal.js';
 import { initNotify, toast, banner } from './notify.js';
@@ -33,22 +39,33 @@ import { h } from './util.js';
 const BG = '#070a12';
 const SPAWN = { x: 1.5, z: 6 };
 
-export async function createGame({ root, heroCtl } = {}) {
-  // Software rasterisers (and ?lowfx=1) skip shadows and bloom.
+/**
+ * @param {{ worldEl: HTMLElement, root: HTMLElement, progress?: (msg: string) => void }} opts
+ *   worldEl  the fixed full-viewport layer behind the page (gets the canvas and the world labels)
+ *   root     the overlay for HUD, dialogs and toasts
+ */
+export async function createGame({ worldEl, root, progress = () => {} }) {
+  const q = new URLSearchParams(location.search);
   const probe = probeGPU();
-  const lowfx = probe.software || new URLSearchParams(location.search).get('lowfx') === '1';
+  const coarse = matchMedia('(pointer: coarse)').matches;
+  const lowfx = q.get('fullfx') === '1' ? false : (probe.software || q.get('lowfx') === '1' || coarse);
+  const fixedDpr = q.get('dpr') ? Number(q.get('dpr')) : null;
+
   root.innerHTML = '';
-  const overlay = h('div', { class: 'g', hidden: true });
-  let canvas = h('canvas', { class: 'g__canvas', 'aria-label': 'The island' });
+  root.classList.add('g');
+  const noticesEl = h('div', { class: 'g__notices' });
   const hudEl = h('div', { class: 'g__hud' });
   const modalsEl = h('div', { class: 'g__modals' });
-  overlay.append(canvas, hudEl, modalsEl);
-  root.append(overlay);
+  root.append(noticesEl, hudEl, modalsEl);
+  let canvas = h('canvas', { class: 'g__canvas', 'aria-hidden': 'true' });
+  worldEl.append(canvas);
 
+  progress('lighting the island');
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BG);
-  scene.fog = new THREE.FogExp2(BG, 0.012);
-  scene.add(new THREE.HemisphereLight('#c7d2fe', '#0b1024', 1.0));
+  scene.fog = new THREE.FogExp2(BG, 0.0085);
+  const hemi = new THREE.HemisphereLight('#c7d2fe', '#0b1024', 1.05);
+  scene.add(hemi);
   const sun = new THREE.DirectionalLight('#ffe7c2', 2.2);
   sun.position.set(-30, 46, 24);
   sun.castShadow = !lowfx;
@@ -57,16 +74,18 @@ export async function createGame({ root, heroCtl } = {}) {
   sun.shadow.bias = -0.0008;
   scene.add(sun);
 
+  progress('growing the campus');
   const world = buildWorld(7);
   scene.add(world.group);
-  const camera = createCamera();
-  const input = createInput(overlay);
+  const stage = buildStage(world, scene, { lowfx });
+  const rig = createCamera();
+  const input = createInput(worldEl);
+  const tour = createTour(world);
 
   // ---- systems ----
-  fx.initFx({ scene, camera: camera.cam, root: overlay });
-  overlay.insertBefore(overlay.querySelector('.g__fx'), hudEl); // labels sit under the HUD
+  fx.initFx({ scene, camera: rig.cam, root: worldEl });
   initModals(modalsEl);
-  initNotify(hudEl);
+  initNotify(noticesEl);
   initCombat(scene);
   initPlayer(scene);
   player.x = SPAWN.x; player.z = SPAWN.z; player.y = world.surfaceY(player.x, player.z);
@@ -82,55 +101,76 @@ export async function createGame({ root, heroCtl } = {}) {
   initHud(hudEl, {
     attack: doAttack, spell: doSpell, signature: doSignature, swap: () => { if (!modalOpen()) cycleActive(); },
     achievements: openAchievements, inventory: openInventory, party: openParty,
-    help: () => openHelp({ onLeave: close }), leave: () => close(),
+    help: () => openHelp({ onLeave: exitPlay }), leave: () => exitPlay(),
   }, { world, markers: minimapData });
 
+  const director = createDirector({
+    worldEl, overlayEl: root, stage, rig, tour, world, player, buddy, npcs, camera: rig.cam,
+    hooks: {
+      onPick(hit) {
+        if (hit.id === 'scholar') scholarQuip();
+        else if (hit.id === 'bit') { emit('bit:pet'); director.say('bit', petLine()); fx.burst(buddy.x, buddy.y + 2, buddy.z, '#f9a8d4', 8, 3, 0.7, 0.6); }
+        else if (hit.id.startsWith('npc:')) { const n = npcs.find((q) => `npc:${q.id}` === hit.id); if (n) talk(n); }
+      },
+    },
+  });
+
   // ---- renderer ----
+  progress('compiling shaders');
   let pipeline;
   function build(r) {
     r.toneMapping = THREE.NeutralToneMapping;
     r.shadowMap.enabled = !lowfx;
     r.shadowMap.type = THREE.PCFShadowMap;
     const p = new THREE.RenderPipeline(r);
-    const sp = pass(scene, camera.cam);
+    const sp = pass(scene, rig.cam);
     if (lowfx) { p.outputNode = sp; return p; }
     sp.setMRT(mrt({ output, emissive }));
     p.outputNode = sp.getTextureNode('output').add(bloom(sp.getTextureNode('emissive'), 0.9, 0.5, 0));
     return p;
   }
   function resize(r) {
-    const w = overlay.clientWidth || window.innerWidth;
-    const hh = overlay.clientHeight || window.innerHeight;
-    camera.cam.aspect = w / hh;
-    camera.cam.updateProjectionMatrix();
+    const w = worldEl.clientWidth || window.innerWidth;
+    const hh = worldEl.clientHeight || window.innerHeight;
+    rig.resize(w, hh);
     r.setSize(w, hh, false);
+    rig.update(player, null, 0, 0);
   }
+  let smoked = false;
   const { renderer, backend } = await createRobustRenderer(
     () => {
-      const c = h('canvas', { class: 'g__canvas', 'aria-label': 'The island' });
+      const c = h('canvas', { class: 'g__canvas', 'aria-hidden': 'true' });
       canvas.replaceWith(c);
       canvas = c;
       return c;
     },
     async (r) => {
-      overlay.hidden = false;
       resize(r);
+      director.retarget();
+      tour.stand(shotStand().x, shotStand().z, shotStand().face, { instant: true });
       placeActors(0);
-      camera.snap(player);
-      await r.compileAsync(scene, camera.cam);
+      placeBuddy();
+      rig.settle();
+      stage.update(0, 0);
+      await r.compileAsync(scene, rig.cam);
       pipeline = build(r);
       pipeline.render();
-      overlay.hidden = true;
+      smoked = true;
     },
-    { maxDpr: 1.5, antialias: false, alpha: false },
+    { maxDpr: coarse ? 1.25 : 1.5, antialias: false, alpha: false },
   );
+  if (fixedDpr) renderer.setPixelRatio(fixedDpr);
+  function shotStand() {
+    const s = stage.shots[director.currentKey] || stage.shots.hero;
+    return { x: s.stand?.[0] ?? SPAWN.x, z: s.stand?.[1] ?? SPAWN.z, face: s.face ?? 0 };
+  }
 
-  // ---- movement ----
+  // ---- movement (play) ----
   function move(dt) {
     const v = input.axis();
     let moved = false;
     if (v.x || v.y) {
-      const yaw = camera.yaw;
+      const yaw = rig.yaw;
       const dx = (v.x * Math.cos(yaw) - v.y * Math.sin(yaw));
       const dz = (v.x * Math.sin(yaw) + v.y * Math.cos(yaw));
       const len = Math.hypot(dx, dz) || 1;
@@ -161,42 +201,80 @@ export async function createGame({ root, heroCtl } = {}) {
   function teleport(x, z) {
     player.x = x; player.z = z; player.y = world.surfaceY(x, z);
     placeBuddy();
-    camera.snap(player);
+    rig.snap(player);
     grace(1500);
   }
   onTravel(teleport);
 
   // ---- loop ----
-  let open = false;
-  function frame(dt) {
-    if (!open) return;
-    if (!modalOpen()) {
-      advance(dt * 1000);
-      move(dt);
-      tickPlayer(dt);
+  let nearLabels = false;
+  let dirty = 6;                 // frames still owed while animation is off (reduced motion)
+  let last = performance.now();
+  let slow = 0;
+  function frame(dt, t) {
+    if (mode.play) {
+      if (!modalOpen()) {
+        advance(dt * 1000);
+        move(dt);
+        tickPlayer(dt);
+        updateCompanion(dt);
+        updateEnemies(dt);
+        updateBosses(dt);
+        updateProjectiles(dt);
+        updateLoot(dt);
+        updateNpcs(dt);
+        updateSecret(dt);
+        updateGrass();
+        S.stats.playMs += dt * 1000;
+      }
+      updateHud();
+    } else {
+      tour.update(dt);
       updateCompanion(dt);
       updateEnemies(dt);
       updateBosses(dt);
-      updateProjectiles(dt);
       updateLoot(dt);
       updateNpcs(dt);
-      updateSecret(dt);
-      updateGrass();
-      S.stats.playMs += dt * 1000;
+      director.update(dt);
     }
+    stage.update(dt, t);
     placeActors(dt);
-    camera.update(player, input, dt);
+    rig.update(player, mode.play ? input : null, dt, t);
+    // islander name plates only show when the camera is close enough to read them
+    const near = mode.play || rig.cur.dist < 48;
+    if (near !== nearLabels) { nearLabels = near; worldEl.classList.toggle('is-near', near); }
     const sh = fx.shakeOffset();
-    if (sh) { camera.cam.position.x += (Math.random() - 0.5) * sh; camera.cam.position.y += (Math.random() - 0.5) * sh; }
+    if (sh) { rig.cam.position.x += (Math.random() - 0.5) * sh; rig.cam.position.y += (Math.random() - 0.5) * sh; }
     fx.updateFx(modalOpen() ? 0 : dt);
-    updateHud();
     pipeline.render();
   }
-  const loop = runLoop(renderer, frame);
-  loop.setEnabled(false);
-  const onResize = () => resize(renderer);
+  function step() {
+    const now = performance.now();
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (reducedMotion.matches && !mode.play) {
+      if (dirty <= 0) return;
+      dirty--;
+    }
+    // adaptive resolution: a weak GPU trades pixels for smoothness
+    if (!fixedDpr && smoked) {
+      slow = dt > 0.034 ? slow + 1 : Math.max(0, slow - 2);
+      if (slow > 90) {
+        slow = 0;
+        const pr = renderer.getPixelRatio();
+        if (pr > 0.7) { renderer.setPixelRatio(Math.max(0.7, pr * 0.8)); renderer.setSize(worldEl.clientWidth, worldEl.clientHeight, false); }
+      }
+    }
+    frame(dt, now / 1000);
+  }
+  renderer.setAnimationLoop(step);
+  const wake = () => { dirty = 8; };
+  on('progress', wake);
+  on('shot', wake);
+  window.addEventListener('pointermove', wake, { passive: true });
+  window.addEventListener('resize', () => { resize(renderer); wake(); });
 
-  // ---- actions ----
+  // ---- actions (play) ----
   function doAttack() { if (!modalOpen()) playerAttack(); }
   function doSpell(id) { if (modalOpen()) return; if (!castSpell(id)) flashSlot(id); }
   function doSignature() { if (modalOpen()) return; if (!signature()) flashSlot('sig'); }
@@ -219,20 +297,21 @@ export async function createGame({ root, heroCtl } = {}) {
       case 'g': case 'G': doSignature(); return true;
       case 't': case 'T': cycleActive(); return true;
       case 'e': case 'E': interact(); return true;
-      case '?': openHelp({ onLeave: close }); return true;
+      case '?': openHelp({ onLeave: exitPlay }); return true;
       default: return false;
     }
   };
-  input.onEscape = () => { if (!modalOpen()) close(); };
-  overlay.addEventListener('click', (e) => {
+  input.onEscape = () => { if (!modalOpen()) exitPlay(); };
+  worldEl.addEventListener('click', (e) => {
     const plate = e.target.closest('.g__plate');
     if (!plate || modalOpen()) return;
     const npc = npcs.find((n) => n.plate === plate);
-    if (npc && Math.hypot(player.x - npc.x, player.z - npc.z) < 6) talk(npc);
+    if (npc && (!mode.play || Math.hypot(player.x - npc.x, player.z - npc.z) < 6)) talk(npc);
   });
-
-  // ---- events ----
+  // in tour mode a modal (an islander's dialog) also locks the page scroll behind it
   on('pause', (paused) => {
+    document.documentElement.classList.toggle('modal-open', paused);
+    if (!mode.play) return;
     input.clear();
     if (paused) { clearHostileProjectiles(); clearBossHazards(); }
     else grace(1200);
@@ -252,14 +331,14 @@ export async function createGame({ root, heroCtl } = {}) {
   on('levelup', ({ level }) => banner(`Level ${level}`, 'HP and MP fully restored.', 'upgrade'));
   on('boss:defeated', ({ name, round, rune }) => {
     if (!rune) toast(`${name} Lv.${round} defeated. It will return stronger.`, { icon: 'trophy', tone: 'gold' });
-    if (name === 'Dragon King' && !S.trainer.captured.tidefin) setTimeout(() => toast('Fern in the meadow has news for you.', { icon: 'conversation' }), 3500);
+    if (name === 'Deadline Dragon' && !S.trainer.captured.tidefin) setTimeout(() => toast('Fern on the lawn has news for you.', { icon: 'conversation' }), 3500);
   });
   on('boss:returned', ({ name, round }) => toast(`${name} Lv.${round} has returned.`, { icon: 'triangle-alert' }));
   on('spell:nomp', () => toast('Not enough MP.', { icon: 'crystal-shine' }));
   on('buddy:changed', () => placeBuddy());
 
   function showGameOver() {
-    if (!open || !player.dead || isModalOpen('gameover')) return;
+    if (!mode.play || !player.dead || isModalOpen('gameover')) return;
     openGameOver({ stats: { cause: lastDeathCause }, onRespawn: respawn });
   }
   function respawn() {
@@ -283,49 +362,94 @@ export async function createGame({ root, heroCtl } = {}) {
     };
   }
 
+  // ---- small talk ----
+  const QUIPS = [
+    'One more experiment and then I will write it up.',
+    'The camera-ready deadline is in… never mind.',
+    'Reviewer #2 asked for more baselines. Again.',
+    'It works on my GPU.',
+    'I only came here for the free coffee.',
+    'Have you tried turning the loss function off and on again?',
+    'This is fine. The loss is going down. Somewhere.',
+  ];
+  let quip = 0;
+  function scholarQuip() {
+    player.walking = false;
+    director.say('me', QUIPS[quip++ % QUIPS.length]);
+    fx.burst(player.x, player.y + 3.6, player.z, '#f2b84b', 6, 3, 0.6, 0.6);
+    emit('scholar:poke', quip);
+  }
+  let pets = 0;
+  const PET = ['Bit purrs in binary.', 'Bit does a little hop.', 'Bit wiggles its antenna.', 'Bit is very pleased.'];
+  const petLine = () => PET[pets++ % PET.length];
+
   // ---- first-run coach ----
   let coach = null;
   function showCoach() {
     coach = h('div', { class: 'g__coach', role: 'dialog', 'aria-label': 'How to play' },
-      h('p', { class: 'g__coach-title' }, 'Welcome to the island'),
-      h('p', null, h('kbd', null, 'W'), h('kbd', null, 'A'), h('kbd', null, 'S'), h('kbd', null, 'D'), ' move · ', h('kbd', null, 'Space'), ' attack · ', h('kbd', null, '1'), '–', h('kbd', null, '4'), ' spells · ', h('kbd', null, 'E'), ' talk · ', h('kbd', null, 'G'), ' companion move'),
-      h('p', { class: 'muted small' }, 'Bit follows you and fights on its own. Talk to the islanders at the plaza first; the tall grass hides more companions.'),
+      h('p', { class: 'g__coach-title' }, 'You have the controls'),
+      h('p', null, h('kbd', null, 'W'), h('kbd', null, 'A'), h('kbd', null, 'S'), h('kbd', null, 'D'), ' move · ', h('kbd', null, 'Space'), ' attack · ', h('kbd', null, '1'), '–', h('kbd', null, '4'), ' spells · ', h('kbd', null, 'E'), ' talk · ', h('kbd', null, 'G'), ' companion move · ', h('kbd', null, 'Esc'), ' back to the page'),
+      h('p', { class: 'muted small' }, 'Bit follows you and fights on its own. Talk to the islanders first; the tall grass hides more companions.'),
       h('button', { type: 'button', class: 'btn btn--small btn--primary', onclick: () => { S.settings.tutorial = true; save(); coach.remove(); coach = null; } }, 'Got it'),
     );
     hudEl.append(coach);
   }
 
-  // ---- open / close ----
-  function openGame() {
-    if (open) return;
-    open = true;
-    overlay.hidden = false;
-    document.documentElement.classList.add('g-open');
-    heroCtl?.pause();
-    resize(renderer);
-    window.addEventListener('resize', onResize);
+  // ---- modes ----
+  function enterPlay() {
+    if (mode.play) return;
+    mode.play = true;
+    document.documentElement.classList.add('is-play');
+    director.setEnabled(false);
+    tour.stand(player.x, player.z, null, { instant: true });
     input.attach();
-    loop.setEnabled(true);
+    rig.setPlay(true, player);
+    if (!S.settings.soundTouched) { S.settings.sound = true; }
     grace(1500);
     if (S.settings.music) startMusic();
     if (!S.settings.tutorial && !coach) showCoach();
     if (player.dead) queueMicrotask(showGameOver);
-    overlay.focus?.();
+    placeBuddy();
+    emit('mode', 'play');
+    worldEl.focus?.();
   }
-  function close() {
-    if (!open) return;
-    open = false;
+  function exitPlay() {
+    if (!mode.play) return;
     closeAllModals();
-    loop.setEnabled(false);
     input.detach();
     stopMusic();
-    window.removeEventListener('resize', onResize);
-    overlay.hidden = true;
-    document.documentElement.classList.remove('g-open');
-    heroCtl?.resume();
+    clearAllProjectiles();
+    clearBossHazards();
+    if (player.dead) revive();
+    mode.play = false;
+    document.documentElement.classList.remove('is-play');
+    rig.setPlay(false);
+    director.setEnabled(true);
+    director.retarget();
     save();
+    emit('mode', 'tour');
+    dirty = 12;
   }
 
-  window.__g = { S, player, buddy, clock, world, camera, scene, renderer, backend, lowfx, loop, bosses, enemies, npcs, liveTargets, emit, on, modalOpen, teleport, open: openGame, close, ZONES };
-  return { open: openGame, close, get isOpen() { return open; } };
+  // ---- the opening fly-in ----
+  function intro() {
+    const s = stage.shots.hero;
+    rig.jump({ look: [s.look[0] - 6, s.look[1] + 8, s.look[2]], yaw: s.yaw + 1.5, pitch: 0.62, dist: s.dist * 2.1, fov: 34, shiftX: 0 });
+    rig.tourRate = 0.75;
+    setTimeout(() => { rig.tourRate = 2.2; }, 3600);
+  }
+  if (q.get('intro') !== '0' && !reducedMotion.matches) intro();
+  wake();
+
+  const api = {
+    world, stage, director, rig, tour, renderer, backend, lowfx, scene,
+    enterPlay, exitPlay,
+    get playing() { return mode.play; },
+    say: (who, text, ms) => director.say(who, text, ms),
+    talk, npcs, player, buddy, fx, toast, banner,
+    invalidate: wake,
+    dispose() { renderer.setAnimationLoop(null); },
+  };
+  window.__g = { S, player, buddy, clock, world, stage, rig, director, scene, renderer, backend, lowfx, bosses, enemies, npcs, liveTargets, emit, on, modalOpen, teleport, mode, ZONES, ...api };
+  return api;
 }

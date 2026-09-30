@@ -1,51 +1,41 @@
-// Page behaviour: mount the hero scene when the device can run it, and wire the Play button.
+// Page boot: chrome first (bar, nav, cards, DOM easter eggs), then the 3D world when the device can
+// run it. The page is fully usable, and the poster stays behind it, if the world never starts.
+import { probeGPU } from './three/env.js';
+import { initChrome } from './site/chrome.js';
+import { setCapabilities } from './site/eggs.js';
+import { initDomEggs } from './site/eggs-dom.js';
 
-const hero = document.querySelector('.hero');
-const canvas = document.getElementById('hero-canvas');
-const playBtn = document.getElementById('play-btn');
-const hint = document.getElementById('hero-hint');
+const q = new URLSearchParams(location.search);
+const chrome = initChrome();
+let world = null;
+initDomEggs(() => world);
 
-let heroCtl = null;
-let game = null;
-
-async function mount() {
+async function mountWorld() {
+  const probe = probeGPU();
+  const saveData = navigator.connection?.saveData === true;
+  const force = q.get('force') === '1';
+  if (q.get('world') === '0') return chrome.worldFailed('disabled by ?world=0');
+  if (!force && (!probe.ok || probe.software || saveData)) return chrome.worldFailed(probe.ok ? (saveData ? 'save-data' : 'software renderer') : probe.reason);
   try {
-    const { mountHero } = await import('./three/hero.js');
-    heroCtl = await mountHero(canvas, { heroEl: hero, force: new URLSearchParams(location.search).get('force') === '1' });
+    chrome.status('loading the island…');
+    const { createGame } = await import('./game3d/index.js');
+    world = await createGame({
+      worldEl: document.getElementById('world'),
+      root: document.getElementById('game-root'),
+      progress: chrome.status,
+    });
+    const canPlay = chrome.attachWorld(world);
+    setCapabilities({ world: true, play: canPlay });
+    if (q.get('play') === '1') setTimeout(() => world.enterPlay(), 400);
+    const { initWorldEggs } = await import('./game3d/eggs3d.js');
+    initWorldEggs(world);
   } catch (err) {
-    console.warn('[hero] 3D unavailable:', err);
-    heroCtl = null;
-  }
-  if (heroCtl) {
-    hero.classList.add('is-3d');
-    if (matchMedia('(min-width: 900px) and (pointer: fine)').matches) {
-      playBtn.hidden = false;
-      hint.hidden = false;
-    }
-  } else {
-    canvas.remove();
+    console.warn('[world] failed to start:', err);
+    chrome.worldFailed(String(err?.message || err));
   }
 }
 
-async function play() {
-  if (game) { game.open(); return; }
-  playBtn.disabled = true;
-  try {
-    const mod = await import('./game3d/index.js');
-    game = await mod.createGame({ root: document.getElementById('game-root'), heroCtl });
-    game.open();
-  } catch (err) {
-    console.error('[game] failed to start', err);
-  } finally {
-    playBtn.disabled = false;
-  }
-}
-
-playBtn?.addEventListener('click', play);
-// ?play=1 opens the island straight away (used by the QA scripts).
-if (new URLSearchParams(location.search).get('play') === '1') window.addEventListener('load', () => setTimeout(play, 300));
-
-if ('requestIdleCallback' in window) requestIdleCallback(mount, { timeout: 1200 });
-else setTimeout(mount, 200);
-
-window.__page = { get heroCtl() { return heroCtl; }, get game() { return game; } };
+window.__page = { chrome, get world() { return world; } };
+const start = () => mountWorld();
+if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 900 });
+else setTimeout(start, 120);

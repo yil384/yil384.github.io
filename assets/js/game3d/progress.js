@@ -20,7 +20,7 @@ export const ACHIEVEMENTS = [
   { id: 'firstBlood', icon: 'sword-wound', name: 'First Blood', desc: 'Defeat your first enemy', test: () => S.stats.kills >= 1 },
   { id: 'coinCollector', icon: 'two-coins', name: 'Token Collector', desc: 'Collect 4 knowledge tokens', test: () => S.tokens.length >= 4 },
   { id: 'treasureHunter', icon: 'gems', name: 'Treasure Hunter', desc: 'Collect all 8 tokens', test: () => S.tokens.length >= 8 },
-  { id: 'explorer', icon: 'treasure-map', name: 'Explorer', desc: 'Talk to all 6 islanders', test: () => S.npcsMet.length >= 6 },
+  { id: 'explorer', icon: 'treasure-map', name: 'Explorer', desc: 'Talk to all 7 islanders', test: () => S.npcsMet.length >= 7 },
   { id: 'level5', icon: 'upgrade', name: 'Level 5', desc: 'Reach level 5', test: () => S.player.level >= 5 },
   { id: 'level10', icon: 'star-swirl', name: 'Level 10', desc: 'Reach level 10', test: () => S.player.level >= 10 },
   { id: 'spellMaster', icon: 'crystal-ball', name: 'Spell Master', desc: 'Cast all four spells', test: () => ['fireball', 'heal', 'lightning', 'meteor'].every((k) => S.stats.spells[k]) },
@@ -29,7 +29,7 @@ export const ACHIEVEMENTS = [
   { id: 'shoppingSpree', icon: 'shopping-cart', name: 'Shopping Spree', desc: "Buy 3 items at Mo's shop", test: () => S.stats.purchases >= 3 },
   { id: 'speedTyper', icon: 'keyboard', name: 'Speed Typer', desc: 'Finish a calibration sprint in under 5 s', test: () => S.best.typing > 0 && S.best.typing < 5 },
   { id: 'runeSeeker', icon: 'rune-stone', name: 'Rune Seeker', desc: 'Obtain your first rune', test: () => Object.values(S.runes).some(Boolean) },
-  { id: 'dragonSlayer', icon: 'dragon-head', name: 'Dragon Slayer', desc: 'Defeat the Dragon King', test: () => S.bosses.dragon.kills >= 1 },
+  { id: 'dragonSlayer', icon: 'dragon-head', name: 'Deadline Slayer', desc: 'Defeat the Deadline Dragon', test: () => S.bosses.dragon.kills >= 1 },
   { id: 'secretKeeper', icon: 'boss-key', name: 'Secret Keeper', desc: 'Open the chest in the secret chamber', test: () => S.secret.chest },
   { id: 'collector', icon: 'paw-print', name: 'Collector', desc: 'Catch 5 different creatures', test: () => Object.values(S.trainer.captured).filter(Boolean).length >= 5 },
   { id: 'bestFriends', icon: 'heart-inside', name: 'Best Friends', desc: 'Raise a companion to Lv.10', test: () => Object.values(S.trainer.levels).some((l) => l >= 10) },
@@ -71,10 +71,10 @@ export function quests() {
   if (S.bosses.dragon.kills > 0 && !t.captured.tidefin) list.push({ id: 'tidefin', icon: 'paw-print', label: 'Tidefin wants to join', detail: 'Talk to Fern in the meadow', hot: true });
   list.push(
     { id: 'tokens', icon: 'two-coins', label: 'Collect knowledge tokens', detail: `${S.tokens.length} / 8`, done: S.tokens.length >= 8, progress: S.tokens.length / 8 },
-    { id: 'npcs', icon: 'conversation', label: 'Meet the islanders', detail: `${S.npcsMet.length} / 6`, done: S.npcsMet.length >= 6, progress: S.npcsMet.length / 6 },
-    { id: 'rune-ice', icon: 'snowflake-2', label: 'Frost Rune', detail: 'Defeat the Ice Golem (ice cavern)', done: S.runes.ice },
-    { id: 'rune-shadow', icon: 'evil-moon', label: 'Shadow Rune', detail: 'Defeat the Shadow Mage (shadow grove)', done: S.runes.shadow },
-    { id: 'rune-dragon', icon: 'fire-ring', label: 'Ember Rune', detail: 'Defeat the Dragon King (dragon peak)', done: S.runes.dragon },
+    { id: 'npcs', icon: 'conversation', label: 'Meet the islanders', detail: `${S.npcsMet.length} / 7`, done: S.npcsMet.length >= 7, progress: S.npcsMet.length / 7 },
+    { id: 'rune-ice', icon: 'snowflake-2', label: 'Frost Rune', detail: 'Defeat the CUDA OOM Golem (the cold aisle)', done: S.runes.ice },
+    { id: 'rune-shadow', icon: 'evil-moon', label: 'Shadow Rune', detail: 'Defeat Reviewer #2 (eucalyptus grove)', done: S.runes.shadow },
+    { id: 'rune-dragon', icon: 'fire-ring', label: 'Ember Rune', detail: 'Defeat the Deadline Dragon (Torrey Pines bluff)', done: S.runes.dragon },
     { id: 'secret', icon: 'boss-key', label: 'The secret chamber', detail: S.secret.chest ? 'Opened' : S.secret.unsealed ? 'Unsealed' : `Sealed · ${runes}/3 runes`, done: S.secret.chest },
     { id: 'duels', icon: 'ribbon-medal', label: 'Rival duels', detail: `${t.badges.length} / 2 badges`, done: t.badges.length >= 2, progress: t.badges.length / 2 },
   );
@@ -171,7 +171,7 @@ export function interactDoor() {
   const n = runeCount();
   if (n < 3) {
     sfx('error');
-    const missing = [!S.runes.ice && 'Frost (Ice Golem)', !S.runes.shadow && 'Shadow (Shadow Mage)', !S.runes.dragon && 'Ember (Dragon King)'].filter(Boolean);
+    const missing = [!S.runes.ice && 'Frost (CUDA OOM Golem)', !S.runes.shadow && 'Shadow (Reviewer #2)', !S.runes.dragon && 'Ember (Deadline Dragon)'].filter(Boolean);
     toast(`The door will not move. Missing runes: ${missing.join(', ')}.`, { icon: 'lock' });
     return true;
   }

@@ -1,21 +1,21 @@
 // The island: a deterministic voxel heightmap with themed zones, built into a few InstancedMeshes.
 // World units: 1 unit = 1 voxel. x/z are horizontal, y is up. The island is centred on (0, 0).
 import * as THREE from 'three/webgpu';
-import { color, sin, time } from 'three/tsl';
 import { voxelize } from '../three/voxel.js';
 import { ART } from '../three/art.js';
+import { LAYOUT } from './layout.js';
 
 export const SIZE = 64;          // heightmap resolution (SIZE x SIZE)
 const HALF = SIZE / 2;
 
 // Zone centres (x, z) and radii. These are the places the game systems refer to.
 export const ZONES = {
-  plaza:   { x: 0,   z: 0,   r: 9,  label: 'Library plaza' },
-  meadow:  { x: 16,  z: 10,  r: 9,  label: 'East meadow' },
-  camp:    { x: 14,  z: -12, r: 7,  label: 'Field station' },
-  ice:     { x: -4,  z: -20, r: 8,  label: 'Ice cavern' },
-  shadow:  { x: -20, z: 6,   r: 8,  label: 'Shadow grove' },
-  peak:    { x: 6,   z: 22,  r: 8,  label: 'Dragon peak' },
+  plaza:   { x: 0,   z: 0,   r: 9,  label: 'Geisel Plaza' },
+  meadow:  { x: 16,  z: 10,  r: 9,  label: 'Sun God Lawn' },
+  camp:    { x: 14,  z: -12, r: 7,  label: 'Jacobs Yard' },
+  ice:     { x: -4,  z: -20, r: 8,  label: 'The cold aisle' },
+  shadow:  { x: -20, z: 6,   r: 8,  label: 'Eucalyptus grove' },
+  peak:    { x: 6,   z: 22,  r: 8,  label: 'Torrey Pines bluff' },
   door:    { x: -14, z: -14, r: 4,  label: 'Sealed door' },
   chamber: { x: -20, z: -18, r: 4.5, label: 'Secret chamber' },
 };
@@ -119,6 +119,19 @@ export function buildWorld(seed = 7) {
     }
   }
 
+  // level the ground under the landmark plots, with a gentle ramp around each
+  for (const pl of LAYOUT.plots) {
+    for (let z = Math.floor(pl.cz - pl.hz) - 2; z <= Math.ceil(pl.cz + pl.hz) + 2; z++) {
+      for (let x = Math.floor(pl.cx - pl.hx) - 2; x <= Math.ceil(pl.cx + pl.hx) + 2; x++) {
+        if (!inRange(x, z) || H[idx(x, z)] === -128) continue;
+        const dx = Math.max(0, Math.abs(x - pl.cx) - pl.hx), dz = Math.max(0, Math.abs(z - pl.cz) - pl.hz);
+        const ring = Math.max(dx, dz);
+        if (ring <= 0) { H[idx(x, z)] = pl.h; T[idx(x, z)] = TYPE[pl.type]; }
+        else if (ring <= 2) H[idx(x, z)] = Math.max(pl.h - ring, Math.min(pl.h + ring, H[idx(x, z)]));
+      }
+    }
+  }
+
   const height = (x, z) => {
     const xi = Math.round(x), zi = Math.round(z);
     if (!inRange(xi, zi)) return -Infinity;
@@ -181,25 +194,66 @@ export function buildWorld(seed = 7) {
 
   // ---- props: trees, ice crystals, dead trees, torches, the tower ----
   const props = [];
-  const addTree = (x, z, dark = false) => {
+  // Trees of the campus: Torrey pines (lopsided, needles in tufts), palms, eucalyptus. `dark` is the
+  // night-time eucalyptus grove where Reviewer #2 lurks.
+  const tuft = (cx, cy, cz, r, cols) => {
+    for (let dx = -r; dx <= r; dx++) for (let dz = -r; dz <= r; dz++) {
+      if (Math.abs(dx) + Math.abs(dz) > r + (r > 1 ? 1 : 0)) continue;
+      if (Math.abs(dx) === r && Math.abs(dz) === r) continue;
+      props.push(cx + dx, cy, cz + dz, cols[Math.floor(rand() * cols.length)]);
+      if (Math.abs(dx) + Math.abs(dz) <= r - 1) props.push(cx + dx, cy + 1, cz + dz, cols[Math.floor(rand() * cols.length)]);
+    }
+  };
+  const addPine = (x, z) => {
     const h = height(x, z);
     if (h === -Infinity) return;
-    const trunk = dark ? '#2b2440' : '#6b3f1d';
-    const leaf = dark ? ['#4c3a7a', '#5b4791'] : ['#2f8449', '#3f9d5a', '#46a862'];
-    const th = 3 + Math.floor(rand() * 2);
-    for (let y = 1; y <= th; y++) props.push(x, h + y, z, trunk);
-    for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) for (let dy = 0; dy <= 1; dy++) {
-      if (dy === 1 && Math.abs(dx) + Math.abs(dz) === 2) continue;
-      props.push(x + dx, h + th + dy, z + dz, leaf[Math.floor(rand() * leaf.length)]);
+    const th = 5 + Math.floor(rand() * 3);
+    const lean = rand() < 0.5 ? 1 : -1;
+    const axis = rand() < 0.5;
+    let ox = 0, oz = 0;
+    for (let y = 1; y <= th; y++) {
+      if (y === 3 || y === 5) { if (axis) ox += lean; else oz += lean; }
+      props.push(x + ox, h + y, z + oz, y % 2 ? '#6a4a2e' : '#5a3d25');
     }
-    props.push(x, h + th + 2, z, leaf[0]);
+    const cols = ['#2f6b3a', '#3a7d44', '#28583a'];
+    tuft(x + ox, h + th, z + oz, 2, cols);
+    tuft(x + ox + (axis ? -lean * 2 : 1), h + th - 2, z + oz + (axis ? 1 : -lean * 2), 1, cols);
+    tuft(x + ox + (axis ? lean * 2 : -1), h + th - 3, z + oz + (axis ? -1 : lean * 2), 1, cols);
+  };
+  const addPalm = (x, z) => {
+    const h = height(x, z);
+    if (h === -Infinity) return;
+    const th = 6 + Math.floor(rand() * 3);
+    const dir = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(rand() * 4)];
+    let ox = 0, oz = 0;
+    for (let y = 1; y <= th; y++) {
+      if (y === 4 || y === 6) { ox += dir[0]; oz += dir[1]; }
+      props.push(x + ox, h + y, z + oz, y % 2 ? '#9a7a52' : '#8a6a45');
+    }
+    const top = h + th;
+    const frond = ['#3aa35a', '#2f8f4e', '#46b566'];
+    props.push(x + ox, top + 1, z + oz, frond[0]);
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+      props.push(x + ox + dx, top + 1, z + oz + dz, frond[Math.floor(rand() * 3)]);
+      props.push(x + ox + dx * 2, top + 1, z + oz + dz * 2, frond[Math.floor(rand() * 3)]);
+      props.push(x + ox + dx * 3, top, z + oz + dz * 3, frond[Math.floor(rand() * 3)]);
+    }
+  };
+  const addEucalyptus = (x, z, dark = false) => {
+    const h = height(x, z);
+    if (h === -Infinity) return;
+    const th = 7 + Math.floor(rand() * 3);
+    const trunk = dark ? ['#3b3358', '#2b2440'] : ['#d9d2c3', '#c9c0ac'];
+    const leaf = dark ? ['#4c3a7a', '#5b4791', '#3f3266'] : ['#7fa08c', '#93b39f', '#6f9080'];
+    for (let y = 1; y <= th; y++) props.push(x, h + y, z, trunk[y % 2]);
+    for (const [dx, dy, dz] of [[0, 0, 0], [1, -1, 0], [-1, -2, 0], [0, -2, 1], [0, -3, -1], [1, -4, 1]]) tuft(x + dx * 1, h + th + dy, z + dz * 1, dy === 0 ? 2 : 1, leaf);
   };
   const placed = [];
-  const tryPlace = (zoneKey, count, minGap, cb) => {
+  const tryPlace = (zoneKey, count, minGap, cb, rMin = 2) => {
     const zn = ZONES[zoneKey];
     let tries = 0;
     for (let n = 0; n < count && tries < 200; tries++) {
-      const a = rand() * Math.PI * 2, r = 2 + rand() * (zn.r - 2.5);
+      const a = rand() * Math.PI * 2, r = rMin + rand() * Math.max(0.5, zn.r - 0.5 - rMin);
       const x = Math.round(zn.x + Math.cos(a) * r), z = Math.round(zn.z + Math.sin(a) * r);
       if (!walkable(x, z) || typeAt(x, z) === TYPE.PATH) continue;
       if (placed.some(([px, pz]) => dist2(px, pz, x, z) < minGap)) continue;
@@ -208,19 +262,18 @@ export function buildWorld(seed = 7) {
       n++;
     }
   };
-  tryPlace('meadow', 7, 3, (x, z) => addTree(x, z));
-  tryPlace('camp', 4, 3, (x, z) => addTree(x, z));
-  tryPlace('shadow', 9, 2.5, (x, z) => addTree(x, z, true));
-  for (let i = 0; i < 6; i++) tryPlace('plaza', 1, 3, (x, z) => addTree(x, z));
-  // stepped library tower at the plaza centre (the same silhouette as the hero)
-  const floors = [[0, 2.5], [1, 2.5], [2, 3.5], [3, 4.5], [4, 5.5], [5, 5.5], [6, 4.5], [7, 3.5]];
-  const baseY = height(0, 0);
-  for (const [fy, hw] of floors) {
-    for (let x = -hw; x <= hw; x++) for (let z = -hw; z <= hw; z++) {
-      if (fy > 1 && Math.abs(x) < hw - 0.6 && Math.abs(z) < hw - 0.6 && fy !== 7) continue;
-      props.push(x, baseY + fy + 1, z - 1, fy % 2 ? '#e6e9ef' : '#9aa5b5');
-    }
-  }
+  // keep the Sun God lawn, the mailbox and the pier's landing clear so they can be seen
+  const clearSpot = (x, z) => [[LAYOUT.sungod.x, LAYOUT.sungod.z, 7], [LAYOUT.mailbox.x, LAYOUT.mailbox.z, 5], [LAYOUT.pier.x, LAYOUT.pier.z, 6], [LAYOUT.cse.x, LAYOUT.cse.z + 6, 9]].some(([cx, cz, r]) => Math.hypot(x - cx, z - cz) < r);
+  tryPlace('meadow', 5, 3.2, (x, z) => { if (!clearSpot(x, z)) addPalm(x, z); });
+  tryPlace('meadow', 4, 3.2, (x, z) => { if (!clearSpot(x, z)) addPine(x, z); });
+  tryPlace('camp', 3, 3.2, (x, z) => addPine(x, z));
+  tryPlace('camp', 2, 3.2, (x, z) => addEucalyptus(x, z));
+  // the grove keeps clear of the Second Gate's lawn in the north
+  tryPlace('shadow', 10, 2.5, (x, z) => { if (z > 3) addEucalyptus(x, z, true); });
+  // plaza trees stand on the rim so the walking area stays open
+  for (let i = 0; i < 3; i++) tryPlace('plaza', 1, 3, (x, z) => { if (z < -3 && Math.abs(x) < 8) addPalm(x, z); }, 7);
+  for (let i = 0; i < 3; i++) tryPlace('plaza', 1, 3, (x, z) => { if (z < -3 && Math.abs(x) < 8) addPine(x, z); }, 7);
+  // (the library tower is built by stage.js so it can be animated and highlighted)
   const propMesh = new THREE.InstancedMesh(box, new THREE.MeshStandardNodeMaterial({ roughness: 0.85 }), props.length / 4);
   for (let i = 0; i < props.length; i += 4) {
     m.makeTranslation(props[i], props[i + 1], props[i + 2]);
@@ -265,22 +318,6 @@ export function buildWorld(seed = 7) {
     gateMesh.visible = on;
     for (const [x, z] of gateCells) { if (on) blocked.add(`${x},${z}`); else blocked.delete(`${x},${z}`); }
   };
-  // Windows glow at night.
-  const winMat = new THREE.MeshStandardNodeMaterial({ color: '#0f172a', roughness: 0.4 });
-  winMat.emissiveNode = color('#fde68a').mul(sin(time.mul(0.7)).mul(0.15).add(0.9));
-  const wins = new THREE.InstancedMesh(new THREE.BoxGeometry(1.02, 0.5, 1.02), winMat, 20);
-  let wi = 0;
-  for (const [fy, hw] of floors) {
-    if (fy < 2 || fy > 6) continue;
-    for (const [x, z] of [[hw, 0], [-hw, 0], [0, hw], [0, -hw]]) {
-      if (wi >= 20) break;
-      m.makeTranslation(x, baseY + fy + 1, z - 1);
-      wins.setMatrixAt(wi++, m);
-    }
-  }
-  wins.count = wi;
-  group.add(wins);
-
   // Ice crystals (emissive) and rune-door cliff marker are placed by entities.js; here only static decor.
   const crystals = new THREE.Group();
   tryPlace('ice', 6, 2.5, (x, z) => {
@@ -301,5 +338,7 @@ export function buildWorld(seed = 7) {
 
   const surfaceY = (x, z) => height(x, z) + 0.5;
   const isBlocked = (x, z) => blocked.has(`${Math.round(x)},${Math.round(z)}`);
-  return { group, height, walkable, zoneAt, typeAt, surfaceY, isBlocked, sealChamber, gate, voxels: cells.length / 4 + props.length / 4, TYPE, rand };
+  const block = (x, z) => blocked.add(`${Math.round(x)},${Math.round(z)}`);
+  const unblock = (x, z) => blocked.delete(`${Math.round(x)},${Math.round(z)}`);
+  return { group, height, walkable, zoneAt, typeAt, surfaceY, isBlocked, block, unblock, sealChamber, gate, voxels: cells.length / 4 + props.length / 4, TYPE, rand };
 }

@@ -16,6 +16,8 @@ import { sfx } from './audio.js';
 import * as fx from './fx.js';
 import * as games from './minigames.js';
 import { SPECIES } from './data.js';
+import { openDossier } from './dossier.js';
+import { found } from '../site/eggs.js';
 
 // id -> where they stand (zone + offset), sprite, name, and what they say.
 const NPCS = {
@@ -24,6 +26,7 @@ const NPCS = {
     talk: () => ({
       text: 'The library keeps every page anyone has ever forgotten. I keep the library. Want to test your memory, or your companion?',
       choices: [
+        { label: 'What has Yichen published?', icon: 'scroll-text', action: () => openDossier('publications') },
         { label: 'Memory match', icon: 'book-open', action: games.openMemory },
         { label: 'Duel for the Library Badge', icon: 'ribbon-medal', action: () => startRival('nell') },
         { label: 'How do companions work?', next: once('nell', {
@@ -44,6 +47,7 @@ const NPCS = {
           ? `Field station online. ${SPECIES[id].name} has reached the threshold: I can run the evolution now.`
           : 'Field station online. I calibrate companions, restock bags, and rest trainers. Duel me when you hold the Library Badge.',
         choices: [
+          { label: 'What has Yichen built?', icon: 'file-code-2', action: () => openDossier('projects') },
           evo ? { label: `Evolve ${SPECIES[id].name}`, icon: 'dna2', action: evolveActive } : null,
           { label: 'Rest (restore HP & MP)', icon: 'camping-tent', action: restoreAtStation },
           { label: 'Restock the bag', icon: 'backpack', action: restock },
@@ -59,6 +63,7 @@ const NPCS = {
     talk: () => ({
       text: 'Potions, crystals, capsules. Everything a trainer runs out of at the worst moment. Have a look?',
       choices: [
+        { label: 'How do I reach Yichen?', icon: 'mail', action: () => openDossier('contact') },
         { label: 'Open the shop', icon: 'shop', action: openShop },
         { label: 'Bye' },
       ],
@@ -71,9 +76,9 @@ const NPCS = {
       choices: [
         { label: 'Play breakout', icon: 'ball-glow', action: games.openBreakout },
         { label: 'Any advice?', next: once('tide', {
-          text: 'The Shadow Mage in the grove fans its orbs out sideways: step through the gaps, never backwards. Here, a drink to keep you going.',
+          text: 'Reviewer #2 in the eucalyptus grove fans its objections out sideways: step through the gaps, never backwards. Here, a drink to keep you going.',
           gift: { gold: 60, heal: 40 },
-        }, 'Sidestep the Shadow Mage\'s orbs. Mo sells potions if the grove goes badly.') },
+        }, 'Sidestep Reviewer #2\'s objections. Mo sells potions if the grove goes badly.') },
         { label: 'Bye' },
       ],
     }),
@@ -93,6 +98,7 @@ const NPCS = {
       return {
         text: 'Things grow if you leave them alone. Snakes too. Want to play in the garden?',
         choices: [
+          { label: 'Where did Yichen study?', icon: 'graduation-cap', action: () => openDossier('education') },
           { label: 'Play snake', icon: 'snail', action: games.openSnake },
           { label: 'Where do wild creatures live?', next: once('fern', {
             text: 'Walk through the tall grass around the meadow, the station, the grove and the peak. Throw a capsule when their HP is low. Keep this to start.',
@@ -103,22 +109,46 @@ const NPCS = {
       };
     },
   },
+  zhuo: {
+    name: 'Chef Zhuo', sprite: 'chef', zone: 'camp', dx: 3, dz: -3.5, face: 3.5,
+    talk: () => ({
+      text: "Order up. Today's special is green eggs and ham. Yichen says I am the best cook in the building; I have never corrected him.",
+      choices: [
+        { label: 'Try the green eggs and ham', icon: 'health-potion', action: eatSpecial },
+        { label: 'Who are you?', next: () => ({ text: "Zhuo Chen. Tsinghua Yao Class alumnus, Yichen's labmate and roommate, and the reason nobody in the building orders takeout.", choices: [{ label: 'Impressive' }] }) },
+        { label: 'Bye' },
+      ],
+    }),
+  },
   ash: {
     name: 'Ash', sprite: 'cartographer', zone: 'plaza', dx: -3, dz: 8, face: 3.14,
     talk: () => ({
       text: 'I map the island. Some of it I can send you to directly, once you have earned the way in.',
       choices: [
+        { label: 'Tell me about Yichen', icon: 'book-open', next: () => ({ text: 'Which chapter?', choices: [
+          { label: 'About', icon: 'conversation', action: () => openDossier('about') },
+          { label: 'Education', icon: 'graduation-cap', action: () => openDossier('education') },
+          { label: 'Experience', icon: 'briefcase', action: () => openDossier('experience') },
+        ] }) },
         { label: 'Fast travel', icon: 'magic-portal', action: openTravel },
         { label: 'Ride a companion', icon: 'horse-head', action: openMounts },
         { label: 'Tell me about the sealed door', next: once('ash', {
-          text: 'Three runes: frost, shadow, ember. The Ice Golem, the Shadow Mage and the Dragon King each keep one. Bring all three to the door on the north-west cliff and the chamber behind it opens.',
+          text: 'Three runes: frost, shadow, ember. The CUDA OOM Golem, Reviewer #2 and the Deadline Dragon each keep one. Bring all three to the door on the north-west cliff and the chamber behind it opens.',
           gift: { xp: 40 },
-        }, 'Ice Golem, Shadow Mage, Dragon King. Three runes, one door, north-west cliff.') },
+        }, 'CUDA OOM Golem, Reviewer #2, Deadline Dragon. Three runes, one door, north-west cliff.') },
         { label: 'Bye' },
       ],
     }),
   },
 };
+
+function eatSpecial() {
+  heal(200, true);
+  restoreMp(200, true);
+  sfx('heal');
+  toast('Well fed: HP and MP restored. You do like them.', { icon: 'health-potion', tone: 'good' });
+  found('chef');
+}
 
 /** A dialog branch that gives a gift only the first time. */
 function once(npcId, first, repeat) {
@@ -149,6 +179,8 @@ export function initNpcs(w, scene) {
     const y = world.surfaceY(x, z);
     mesh.position.set(x, y, z);
     mesh.rotation.y = cfg.face;
+    mesh.userData.pickId = `npc:${id}`;
+    mesh.userData.pickLabel = cfg.name;
     scene.add(mesh);
     const npc = { id, cfg, x, y, z, mesh, near: false, anim: Math.random() * 6, h: mesh.userData.height };
     npc.plate = h('div', { class: 'g__plate' },

@@ -86,11 +86,11 @@ export const ART = {
     pal: { C: '#b5432f', c: '#8a2f22', P: '#f5efe0', p: '#d8cfb8', G: '#f2b84b' },
     frames: [[
       'CCCCCCCCCCCC',
+      'CPpppPCPpppC',
       'CPPPPPCPPPPC',
-      'CPppPPCPPppC',
+      'CPpppPCPpppC',
       'CPPPPPCPPPPC',
-      'CPppPPCPPppC',
-      'CPPPPPCPPPPC',
+      'CPpppPCPpPPC',
       'CGGGGGCGGGGC',
       'cccccccccccc',
     ]],
@@ -440,6 +440,131 @@ export const ART = {
     ]],
   },
 
+
+  // ---------- campus landmarks (UC San Diego) ----------
+  // King Triton, the Tritons' mascot: crown, beard, trident. Blue and gold.
+  triton: {
+    pal: { S: '#3a7be0', s: '#2a5db5', G: '#f2c14e', g: '#c99a2e', W: '#eaf1ff', e: '#101a33', T: '#22d3ee', t: '#0ea5c4', K: '#6b7280', k: '#4b5563' },
+    frames: [[
+      '..........G.G.G.',
+      '..........G.G.G.',
+      '..........GGGGG.',
+      '....G.G.G...G...',
+      '....GGGGG...G...',
+      '....SSSSS...G...',
+      '....SeSeS...G...',
+      '...WSSSSSW..G...',
+      '...WWWWWWW..G...',
+      '....WWWWW...G...',
+      '..SSSSSSSSSSG...',
+      '.SSsSSSSSsSSG...',
+      '.SS.sSSSs.SSG...',
+      '.SS..SSS...SG...',
+      '.S...SSS....G...',
+      '.....sSs....G...',
+      '.....TTT....G...',
+      '....TTtTT...G...',
+      '...TTTtTTT..g...',
+      '..TTT.t..TT.....',
+      '.TT........TT...',
+      'KKKKKKKKKKKKKKK.',
+      'kkkkkkkkkkkkkkk.',
+    ]],
+  },
+
+  // The Sun God: a big grinning bird-creature in mosaic colours (a nod to the Stuart Collection piece).
+  sungod: {
+    pal: { R: '#e5484d', Y: '#ffd23f', B: '#2f6fe4', b: '#1f4fb0', G: '#22c55e', O: '#fb923c', W: '#ffffff', k: '#111827', P: '#ec4899', K: '#6b7280' },
+    frames: [[
+      '.....YY..YY.....',
+      '....YRRYYRRY....',
+      '.G.YRRBBBBRRY.G.',
+      'GGG.RBBBBBBR.GGG',
+      'GRG.BBWkBWkB.GRG',
+      '.GRRBBBBBBBBRRG.',
+      '..GRBBRRRRBBRG..',
+      '..OYBBRWWRBBYO..',
+      '.OOYYBBRRBBYYOO.',
+      'OPOYYBBBBBBYYOPO',
+      'OPPOYYbBBbYYOPPO',
+      '.OPOOYbBBbYOOPO.',
+      '..OOO.bbbb.OOO..',
+      '......YBBY......',
+      '.....YY..YY.....',
+      '.....RR..RR.....',
+      '....KKKKKKKK....',
+    ]],
+  },
+
+  // A sea lion hauled out on the rocks below the pier.
+  sealion: {
+    pal: { B: '#7a5a3c', b: '#5c4029', L: '#a98461', k: '#111827', W: '#f5f5f4', K: '#6b7280', j: '#4b5563' },
+    frames: [
+      [
+        '............BB..',
+        '...........BBBB.',
+        '..........BBkBBW',
+        '.........BBBBBWW',
+        '.........BBBBBB.',
+        '........BBBBBB..',
+        '.......BBBBBB...',
+        '..bBBBBBBBBBL...',
+        'bbBBBBBBBBBLL...',
+        'b.bBBBBBBBLL....',
+        'KKKKKKKKKKKKKKKK',
+        'jjjjjjjjjjjjjjjj',
+      ],
+      [
+        '...........BB...',
+        '..........BBBB..',
+        '..........BBkBBW',
+        '.........BBBBBWW',
+        '.........BBBBBB.',
+        '........BBBBBB..',
+        '.......BBBBBB...',
+        '..bBBBBBBBBBL...',
+        'bbBBBBBBBBBLL...',
+        '.bbBBBBBBBLL....',
+        'KKKKKKKKKKKKKKKK',
+        'jjjjjjjjjjjjjjjj',
+      ],
+    ],
+  },
+
+  // A paraglider drifting over the Torrey Pines bluffs.
+  paraglider: {
+    pal: { R: '#ef4444', W: '#f8fafc', Y: '#fbbf24', B: '#3b82f6', l: '#cbd5e1', S: '#f3cfa4', H: '#111827' },
+    frames: [[
+      '...RRWWRRWWRRWW...',
+      '.RRWWRRWWRRWWRRWW.',
+      'RWWRRWWRRWWRRWWRRW',
+      'R.l...l....l...l.W',
+      '..l...l....l...l..',
+      '...l..l....l..l...',
+      '....l.l....l.l....',
+      '.....lHSSSSHl.....',
+      '......BBBBBB......',
+      '.......B..B.......',
+    ]],
+  },
+
+  // The story-book hat that appears on Geisel Library when you look at it the right way.
+  hat: {
+    pal: { R: '#e11d2e', W: '#fafafa', r: '#b91c1c' },
+    frames: [[
+      '....RR....',
+      '...RRRR...',
+      '...WWWW...',
+      '...RRRR...',
+      '..WWWWWW..',
+      '..RRRRRR..',
+      '..WWWWWW..',
+      '.RRRRRRRR.',
+      'WWWWWWWWWW',
+      'rrrrrrrrrr',
+    ]],
+  },
+
   // ---------- islanders (NPCs) ----------
   // Archivist Nell: an owl who keeps the library.
   owl: {
@@ -531,6 +656,28 @@ export const ART = {
       '..ll....ll..',
     ]],
   },
+  // Chef Zhuo: a cook by the camp fire.
+  chef: {
+    pal: { W: '#fafafa', w: '#d4d4d8', S: '#f3cfa4', k: '#2b1d14', e: '#1b1b2f', R: '#ef4444', B: '#3b82f6', g: '#9ca3af', Y: '#facc15', d: '#3b3b46' },
+    frames: [[
+      '....WWWW....',
+      '...WWWWWW...',
+      '...WWWWWW...',
+      '....wwww....',
+      '...kSSSSk...',
+      '...SeSSeS...',
+      '...SSSSSS...',
+      '....SRRS....',
+      '..WWWWWWWW..',
+      '.SWWBBBBWWSg',
+      '.SWWBBBBWWSY',
+      '..WWBBBBWW..',
+      '..WWBBBBWW..',
+      '...dd..dd...',
+      '...kk..kk...',
+    ]],
+  },
+
   // Ash: the old cartographer, a hooded traveller with a lantern.
   cartographer: {
     pal: { C: '#78716c', c: '#44403c', S: '#f3cfa4', e: '#1d1d2b', Y: '#fde68a', y: '#b45309', B: '#57534e' },
@@ -593,6 +740,7 @@ export const ART = {
 
 // Palette swaps for enemy variants.
 export const VARIANTS = {
+  seagull: ['bat', { P: '#cbd5e1', p: '#f1f5f9', W: '#f59e0b' }],
   'slime-green': ['slime', {}],
   'slime-red': ['slime', { O: '#7f1d1d', M: '#ef4444', L: '#fca5a5' }],
   'slime-dark': ['slime', { O: '#020617', M: '#334155', L: '#64748b', W: '#e9d5ff', k: '#a855f7' }],

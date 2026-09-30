@@ -155,10 +155,10 @@ export function restoreAtStation() {
 export function travelSpots() {
   const t = T();
   return [
-    { id: 'plaza', label: 'Library plaza', open: true },
-    { id: 'camp', label: 'Field station', open: true },
-    { id: 'ice', label: 'Ice cavern', open: t.badges.includes('library'), need: 'the Library Badge' },
-    { id: 'peak', label: 'Dragon peak', open: t.badges.includes('forge'), need: 'the Forge Badge' },
+    { id: 'plaza', label: 'Geisel Plaza', open: true },
+    { id: 'camp', label: 'Jacobs Yard', open: true },
+    { id: 'ice', label: 'The cold aisle', open: t.badges.includes('library'), need: 'the Library Badge' },
+    { id: 'peak', label: 'Torrey Pines bluff', open: t.badges.includes('forge'), need: 'the Forge Badge' },
     { id: 'chamber', label: 'Secret chamber', open: S.secret.unsealed, need: 'all three runes' },
   ];
 }

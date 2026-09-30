@@ -8,6 +8,7 @@ import { voxelSprite } from '../three/voxel.js';
 import { ART } from '../three/art.js';
 import { sfx } from './audio.js';
 import { modalOpen } from './modal.js';
+import { mode } from './mode.js';
 import * as fx from './fx.js';
 
 const HIT_IFRAMES = 450;
@@ -22,6 +23,7 @@ export const player = {
 
 export function initPlayer(scene) {
   player.mesh = makeActor('scholar', { scale: 0.22 });
+  player.mesh.userData.pickId = 'scholar';
   scene.add(player.mesh);
   player.hp = maxHp();
   player.mp = maxMp();
@@ -71,6 +73,8 @@ export function refreshLook() {
   const g = voxelSprite(ART.scholar, { glow: { G: 0.7 }, overrides: { H: hat, h: shade(hat, -0.3), B: robe, b: shade(robe, -0.3) }, bevel: 0 });
   g.scale.setScalar(0.22);
   g.userData.name = 'scholar';
+  g.userData.pickId = 'scholar';
+  g.userData.pickLabel = 'Yichen (yes, that one)';
   g.userData.height = 16 * 0.22;
   for (const f of g.userData.frames) f.castShadow = true;
   g.position.copy(old.position);
@@ -94,7 +98,7 @@ export function tickPlayer(dt) {
 
 /** Damage the player. Returns true if it landed. */
 export function hurt(amount, source = '') {
-  if (player.dead || clock.t < player.invulnUntil || modalOpen()) return false;
+  if (!mode.play || player.dead || clock.t < player.invulnUntil || modalOpen()) return false;
   if (player.shield > 0) {
     player.shield--;
     player.invulnUntil = clock.t + HIT_IFRAMES;

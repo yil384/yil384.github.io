@@ -1,9 +1,11 @@
-// Ice Golem, Shadow Mage and Dragon King. Each guards a zone and drops one rune on its first defeat.
+// The CUDA OOM Golem (cold aisle), Reviewer #2 (eucalyptus grove) and the Deadline Dragon (Torrey Pines
+// bluff). Each guards a zone and drops one rune on its first defeat.
 import { S, save } from './state.js';
 import { clock, later } from './clock.js';
 import { emit } from './bus.js';
 import { addTarget, spawnProjectile } from './combat.js';
 import { player, hurt, reward } from './player.js';
+import { mode } from './mode.js';
 import { makeActor, flash, makeRing } from './actors.js';
 import * as fx from './fx.js';
 import { sfx } from './audio.js';
@@ -12,9 +14,9 @@ export const MAX_ROUND = 10;
 const RESPAWN_MS = 20000;
 
 const CONFIG = {
-  ice:    { name: 'Ice Golem',   type: 'Ice',    sprite: 'golem',  scale: 0.34, r: 1.6, hp: 140, hpGrowth: 0.4, reward: { gold: 220, xp: 60 }, aggro: 11, contact: 12, color: '#93c5fd', rune: 'Frost Rune', zone: 'ice' },
-  shadow: { name: 'Shadow Mage', type: 'Ghost',  sprite: 'mage',   scale: 0.32, r: 1.4, hp: 120, hpGrowth: 0.4, reward: { gold: 260, xp: 70 }, aggro: 12, contact: 10, color: '#c084fc', rune: 'Shadow Rune', zone: 'shadow' },
-  dragon: { name: 'Dragon King', type: 'Dragon', sprite: 'dragon', scale: 0.4,  r: 2.2, hp: 260, hpGrowth: 0.5, reward: { gold: 500, xp: 110 }, aggro: 13, contact: 18, color: '#f87171', rune: 'Ember Rune', zone: 'peak' },
+  ice:    { name: 'CUDA OOM Golem',   type: 'Ice',    sprite: 'golem',  scale: 0.34, r: 1.6, hp: 140, hpGrowth: 0.4, reward: { gold: 220, xp: 60 }, aggro: 11, contact: 12, color: '#93c5fd', rune: 'Frost Rune', zone: 'ice' },
+  shadow: { name: 'Reviewer #2', type: 'Ghost',  sprite: 'mage',   scale: 0.32, r: 1.4, hp: 120, hpGrowth: 0.4, reward: { gold: 260, xp: 70 }, aggro: 12, contact: 10, color: '#c084fc', rune: 'Shadow Rune', zone: 'shadow' },
+  dragon: { name: 'Deadline Dragon', type: 'Dragon', sprite: 'dragon', scale: 0.4,  r: 2.2, hp: 260, hpGrowth: 0.5, reward: { gold: 500, xp: 110 }, aggro: 13, contact: 18, color: '#f87171', rune: 'Ember Rune', zone: 'peak' },
 };
 export const bosses = {};
 
@@ -72,7 +74,7 @@ class Boss {
     emit('boss:returned', { id: this.id, name: this.name, round: this.round });
   }
   clearHazards() { for (const z of this.hazards) this.scene.remove(z.m); this.hazards.length = 0; }
-  threat() { return !player.dead && Math.hypot(this.x - player.x, this.z - player.z) < this.cfg.aggro; }
+  threat() { return mode.play && !player.dead && Math.hypot(this.x - player.x, this.z - player.z) < this.cfg.aggro; }
   update(dt) {
     if (!this.alive) { if (clock.t >= this.respawnAt) this.revive(); return; }
     this.anim += dt;

@@ -8,7 +8,7 @@ function defaults() {
   return {
     v: 2,
     island: { v: 1 },
-    settings: { sound: true, music: false, tutorial: false, trackerCollapsed: false },
+    settings: { sound: false, soundTouched: false, music: false, tutorial: false, trackerCollapsed: false },
     player: { level: 1, xp: 0, gold: 0, score: 0, bonusHp: 0, bonusMp: 0 },
     tokens: [],
     npcsMet: [],
@@ -22,6 +22,7 @@ function defaults() {
     runes: { ice: false, shadow: false, dragon: false },
     secret: { unsealed: false, chest: false },
     achievements: {},
+    eggs: {},
     stats: { kills: 0, bossKills: 0, crits: 0, purchases: 0, deaths: 0, superEffective: 0, captures: 0, signatures: 0, playMs: 0, spells: {} },
     best: { typing: 0, memory: 0, snake: 0, breakout: 0 },
     leaderboard: [],

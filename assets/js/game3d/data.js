@@ -23,11 +23,11 @@ export const RARITY_COLOR = { common: '#9aa3b2', rare: '#60a5fa', epic: '#c084fc
 export const itemPower = (it) => (it ? (it.atk || 0) + (it.spell || 0) * 0.8 + (it.def || 0) * 1.4 + (it.regen || 0) * 2.5 : 0);
 
 export const ENEMY_KINDS = {
-  'slime-green': { name: 'Moss Slime',  hp: 30, speed: 3.2, dmg: 8,  type: 'Grass',  xp: 20, gold: 25, sprite: 'slime-green' },
-  'slime-red':   { name: 'Ember Slime', hp: 40, speed: 3.8, dmg: 10, type: 'Fire',   xp: 24, gold: 30, sprite: 'slime-red' },
-  'bat':         { name: 'Cave Bat',    hp: 26, speed: 5.5, dmg: 8,  type: 'Flying', xp: 22, gold: 30, sprite: 'bat', flying: true },
-  'skeleton':    { name: 'Skeleton',    hp: 52, speed: 3.6, dmg: 12, type: 'Ghost',  xp: 30, gold: 40, sprite: 'skeleton' },
-  'slime-dark':  { name: 'Void Slime',  hp: 46, speed: 4.0, dmg: 12, type: 'Dark',   xp: 30, gold: 40, sprite: 'slime-dark' },
+  'slime-green': { name: 'Off-by-one Slime', hp: 30, speed: 3.2, dmg: 8,  type: 'Grass',  xp: 20, gold: 25, sprite: 'slime-green' },
+  'slime-red':   { name: 'NaN Slime', hp: 40, speed: 3.8, dmg: 10, type: 'Fire',   xp: 24, gold: 30, sprite: 'slime-red' },
+  'bat':         { name: 'Seagull',     hp: 26, speed: 5.5, dmg: 8,  type: 'Flying', xp: 22, gold: 30, sprite: 'seagull', flying: true },
+  'skeleton':    { name: 'Legacy Code',  hp: 52, speed: 3.6, dmg: 12, type: 'Ghost',  xp: 30, gold: 40, sprite: 'skeleton' },
+  'slime-dark':  { name: 'Null Pointer', hp: 46, speed: 4.0, dmg: 12, type: 'Dark',   xp: 30, gold: 40, sprite: 'slime-dark' },
 };
 
 export const TYPE_CHART = {
@@ -112,7 +112,7 @@ export const SPECIES = {
   wyrmlet: {
     name: 'Wyrmlet', type: 'Dragon', maxHp: 92, captureRate: 0.2, sprite: 'wyrmlet',
     mount: { name: 'Sky Ribbon', bonus: 1.7 },
-    desc: 'A young serpent dragon. The Dragon King fears its own kind.',
+    desc: 'A young serpent dragon. The Deadline Dragon fears its own kind.',
     moves: [
       { name: 'Dragon Pulse', power: 28, text: 'Wyrmlet released a compressed dragon pulse!' },
       { name: 'Mist Coil', power: 12, heal: 14, text: 'Wyrmlet coiled into mist and recovered.' },

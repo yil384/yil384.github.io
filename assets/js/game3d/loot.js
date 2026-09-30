@@ -6,6 +6,7 @@ import { emit, on } from './bus.js';
 import { ZONES } from './world.js';
 import { ITEMS, RARITY_COLOR, RARITY_ORDER, itemPower } from './data.js';
 import { player, reward, refreshLook } from './player.js';
+import { mode } from './mode.js';
 import { openModal, closeModal, isModalOpen } from './modal.js';
 import { toast, banner } from './notify.js';
 import { h, pick, icon } from './util.js';
@@ -48,7 +49,7 @@ export function updateLoot(dt) {
     t.anim += dt * 2;
     const cx = t.x + t.ox, cz = t.z + t.oz;
     const d = Math.hypot(player.x - cx, player.z - cz);
-    if (d < 3.5) {
+    if (mode.play && d < 3.5) {
       const k = Math.min(1, dt * 8);
       t.ox += (player.x - cx) * k;
       t.oz += (player.z - cz) * k;
@@ -57,7 +58,7 @@ export function updateLoot(dt) {
     }
     t.mesh.position.set(t.x + t.ox, t.y + 1 + Math.sin(t.anim) * 0.2, t.z + t.oz);
     t.mesh.rotation.y = t.anim;
-    if (d < 1.1) collect(t);
+    if (mode.play && d < 1.1) collect(t);
   }
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
@@ -66,7 +67,7 @@ export function updateLoot(dt) {
     d.mesh.position.y = d.y + 0.6 + Math.sin(d.anim) * 0.12;
     d.mesh.rotation.y += dt;
     d.tag.classList.toggle('is-expiring', d.expires - clock.t < 4000);
-    if (Math.hypot(player.x - d.x, player.z - d.z) < 1.4) pickUp(d);
+    if (mode.play && Math.hypot(player.x - d.x, player.z - d.z) < 1.4) pickUp(d);
   }
 }
 

@@ -1,9 +1,9 @@
-/* The island overlay: HUD, labels, modals, battle and mini-game panels. Loaded with the page,
-   only used once the game opens. Shares the page's colour and type tokens. */
+/* The island overlay: toasts and dialogs (always available), plus the play-mode HUD, world labels,
+   battle and mini-game panels. The canvas itself lives in #world (see site.css).
+   Shares the page's colour and type tokens. */
 
-html.g-open { overflow: hidden; }
-.g { position: fixed; inset: 0; z-index: 50; background: #070a12; color: var(--ink); font: 400 15px/1.45 var(--sans); }
-.g[hidden] { display: none; }
+html.is-play { overflow: hidden; }
+.g { position: fixed; inset: 0; z-index: 60; pointer-events: none; color: var(--ink); font: 400 15px/1.45 var(--sans); }
 .g__canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .g .ico { display: inline-block; vertical-align: middle; filter: invert(1); opacity: 0.9; flex: none; }
 .g kbd {
@@ -56,7 +56,8 @@ html.g-open { overflow: hidden; }
 @keyframes g-blink { to { opacity: 0.35; } }
 
 /* ---------------- HUD ---------------- */
-.g__hud { position: absolute; inset: 0; pointer-events: none; }
+.g__hud { position: absolute; inset: 0; pointer-events: none; display: none; }
+html.is-play .g__hud { display: block; }
 .g__hud button { pointer-events: auto; }
 .hud-card {
   position: absolute; pointer-events: auto; padding: 12px 14px; border-radius: 12px;
@@ -148,7 +149,8 @@ html.g-open { overflow: hidden; }
 .hud-help kbd { margin-right: 2px; }
 
 /* toasts, banner, coach */
-.g__toasts { position: absolute; left: 20px; top: 232px; display: grid; gap: 6px; width: 300px; pointer-events: none; }
+.g__toasts { position: absolute; right: 20px; top: 72px; display: grid; gap: 6px; width: 300px; pointer-events: none; }
+html.is-play .g__toasts { right: auto; left: 20px; top: 232px; }
 .toast { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(7, 10, 18, 0.8); border: 1px solid var(--line); font-size: 13px; opacity: 0; transform: translateX(-8px); transition: opacity 0.2s, transform 0.2s; }
 .toast.is-in { opacity: 1; transform: none; }
 .toast.is-out { opacity: 0; }
@@ -334,3 +336,26 @@ html.g-open { overflow: hidden; }
 @media (max-width: 1100px) {
   .hud-tracker { display: none; }
 }
+
+
+/* ---------------- tour mode: world labels, speech bubbles, hover tip ---------------- */
+html:not(.is-play) .g__plate .g__plate-hint { display: none !important; }
+html:not(.is-play) .g__plate--door, html:not(.is-play) .g__plate--chest { display: none !important; }
+.g__tip {
+  position: fixed; left: 0; top: 0; z-index: 5; max-width: 260px; padding: 6px 11px; border-radius: 9px; pointer-events: none;
+  background: rgba(7, 10, 18, 0.86); border: 1px solid var(--line-2); backdrop-filter: blur(8px);
+  font: 500 13px/1.3 var(--sans); color: var(--ink); white-space: nowrap;
+}
+.g__tip[hidden] { display: none; }
+.g__say {
+  position: absolute; left: 0; top: 0; max-width: 250px; padding: 8px 12px 9px; border-radius: 14px; pointer-events: none;
+  background: rgba(244, 246, 252, 0.96); color: #10131c; font: 500 13.5px/1.35 var(--sans); box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  opacity: 0; transition: opacity 0.25s; white-space: normal; width: max-content;
+}
+.g__say.is-in { opacity: 1; }
+.g__say::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 12px; height: 12px; margin-left: -6px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
+.g__say--me { background: #fff3c9; }
+.g__say--bit { background: #d6ecff; font-style: italic; }
+.g__say--npc { background: #eef0ff; }
+#world:not(.is-near) .g__plate { opacity: 0; pointer-events: none; }
+.g__plate { transition: opacity 0.4s, border-color 0.2s; }

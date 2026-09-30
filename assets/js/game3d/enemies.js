@@ -4,6 +4,7 @@ import { clock } from './clock.js';
 import { ENEMY_KINDS } from './data.js';
 import { addTarget } from './combat.js';
 import { player, hurt } from './player.js';
+import { mode } from './mode.js';
 import { makeActor, flash } from './actors.js';
 import * as fx from './fx.js';
 
@@ -76,7 +77,7 @@ class Enemy {
     }
     const d = Math.hypot(player.x - this.x, player.z - this.z);
     const home = Math.hypot(this.hx - this.x, this.hz - this.z);
-    const chase = !player.dead && d < AGGRO && home < LEASH;
+    const chase = mode.play && !player.dead && d < AGGRO && home < LEASH;
     let gx, gz, speed;
     if (chase) { gx = player.x; gz = player.z; speed = this.kind.speed; }
     else {
