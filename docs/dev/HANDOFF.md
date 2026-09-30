@@ -35,15 +35,17 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
   dialog, map) and `site.css` (bar fits at 360 px with icon buttons and the gamepad; one egg toast at a time).
 - No end-of-page auto-enter on touch. Field Notes has Terminal / Controls buttons on touch (the terminal also takes
   `yichen` and `konami`). `#world` keeps 100lvh on phones (browser bars no longer resize/re-aim the view).
+- First paint: `assets/img/world-poster*.jpg` and `og.jpg` are baked from the live hero shot by
+  `tools/dev/poster.mjs` (re-run it whenever the hub or the hero shot changes, and bump the `?v=` in site.css /
+  index.html); the intro is a small push-in from that same shot.
 - Probe: `tools/dev/mplay.mjs [w] [h] [out] [shots]` (real CDP touch: stick, look, jump, map, battle, menu, spell picker).
 
 ## TODO (priority order)
 1. Real-device check on an iPhone and an Android phone (emulation only so far): floating stick feel, pinch zoom, iOS
    Safari bars, audio, frame rate on a mid-range phone. The new hub costs ~+75% sim CPU vs the old one at 4x
-   throttle (still ~2 ms/frame): `ambient.update` / `updateHud` could skip work on coarse pointers if needed.
-2. Stale test harnesses: rb_metabit/timi/hotstar/lark 'quest done' checks and rb_lark's elevator/boss checks fail on
-   main too (quest ids changed); rb_timi/rb_hotstar need to wait for `.talk__choice` after typing.
-3. Two islanders' tour speech bubbles can overlap (clamped on screen now, but not de-overlapped).
+   throttle (still ~2 ms/frame); phones already run `ambient.update` and `updateHud` at 30 Hz.
+2. (done) rb_* harnesses updated to the current regions (all pass).
+3. (done) tour speech bubbles are clamped on screen and step out of each other's way.
 4. Keep polishing "less AI flavour, more game feel and humour" wherever copy reads corporate.
 (Done in round 5: dialog chains (npcs.js), engine helpers for regions (REGIONS_API §9), IM Unsubscribe egg verified.)
 
