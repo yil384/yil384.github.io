@@ -131,8 +131,8 @@ export default {
     // -- 二校门, the Second Gate: white, three bays, the centre one open
     for (let y = 3; y <= 9; y++) for (const x of [-5, -4, -3, -2, 2, 3, 4, 5]) for (const z of [17, 18]) put(Bk, x, y, z, (x + y) % 2 ? '#f1f5f9' : '#e2e8f0');
     for (let y = 10; y <= 11; y++) for (let x = -5; x <= 5; x++) for (const z of [17, 18]) put(S, x, y, z, '#f8fafc');
-    for (let x = -6; x <= 6; x++) for (let z = 16; z <= 19; z++) put(S, x, 12, z, '#475569');
-    for (let x = -5; x <= 5; x++) for (const z of [17, 18]) put(S, x, 13, z, '#334155');
+    for (let x = -6; x <= 6; x++) for (let z = 16; z <= 19; z++) put(S, x, 12, z, (x + z) % 2 ? '#cbd5e1' : '#b6c2d1');
+    for (let x = -5; x <= 5; x++) for (const z of [17, 18]) put(S, x, 13, z, '#94a3b8');
     for (const zf of [16.94, 18.06]) {
       for (let x = -1; x <= 1; x++) for (let y = 10; y <= 11; y++) put(S, x, y, zf, x === 0 && y === 11 ? '#111827' : '#facc15', x === 0 && y === 11 ? 0 : 0.9);
       for (const x of [-4, -3, 3, 4]) for (let y = 4; y <= 6; y++) put(S, x, y, zf, '#1e293b');

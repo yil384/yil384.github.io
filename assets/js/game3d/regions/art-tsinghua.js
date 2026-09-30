@@ -331,9 +331,10 @@ export const THU_ART = {
 
 export const THU_GLOW = {
   'thu-imp': { Y: 1.5 },
-  'thu-ghost': { W: 0.6, e: 0 },
+  'thu-ghost': { W: 0.6 },
+  'thu-midterm': { P: 0.3, R: 1.2 },
   'thu-scroll': { R: 1.2 },
-  'thu-exam': { R: 2.2, Y: 0.8 },
+  'thu-exam': { R: 2.2, Y: 0.8, P: 0.35, L: 0.15 },
   'thu-tomato': { R: 0.5 },
   'thu-egg': { W: 0.6 },
   'thu-frog': { P: 1.2 },
