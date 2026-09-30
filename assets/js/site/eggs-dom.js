@@ -114,20 +114,53 @@ export function initDomEggs(getWorld) {
     });
   }
 
-  // ---- leaving the tab and coming back
+  // ---- leaving the tab and coming back: the tab title narrates a small tragedy
   const title = document.title;
-  let away = 0, flip = 0;
+  const AWAY = [
+    'Yichen Lin · Defeated by Claude',
+    'Yichen Lin · went AFK mid-rebuttal',
+    'Yichen Lin · CUDA out of memory',
+    'Yichen Lin · Reviewer #2 is typing…',
+    'Yichen Lin · Wrong Answer on test 3',
+    'Yichen Lin · Segmentation fault (core dumped)',
+    'Yichen Lin · deadline in 3… 2…',
+    'Yichen Lin · is now idle (like his GPUs)',
+    'Yichen Lin · Game Over? Insert coin',
+  ];
+  const BACK = ['Yichen Lin · Continue? ▶ YES', 'Yichen Lin · respawned', 'Yichen Lin · Welcome back, player 1'];
+  let away = 0, flip = 0, back = 0, n = 0;
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       away = performance.now();
-      document.title = '👀 Come back!';
-      flip = setInterval(() => { document.title = document.title.startsWith('👀') ? title : '👀 Come back!'; }, 1600);
+      clearTimeout(back);
+      document.title = AWAY[n++ % AWAY.length];
+      flip = setInterval(() => { document.title = AWAY[n++ % AWAY.length]; }, 2600);
     } else {
       clearInterval(flip);
-      document.title = title;
-      if (away && performance.now() - away > 4000) found('tabaway');
+      if (away && performance.now() - away > 4000) {
+        document.title = BACK[Math.floor(Math.random() * BACK.length)];
+        back = setTimeout(() => { document.title = title; }, 2200);
+        found('tabaway');
+      } else document.title = title;
     }
   });
+
+  // ---- the nameplate's status line cycles through what the scholar is "doing"
+  const status = document.getElementById('bar-status');
+  if (status) {
+    const LINES = [
+      'Status: compiling…', 'Status: waiting on reviews', 'Status: HP 100 · caffeine 73%', 'Status: fighting a NaN',
+      'Status: Lv 2 Ph.D. student', 'Status: kernel still booting', 'Status: 12 tabs of papers open', 'Status: in La Jolla, probably',
+      'Status: Online · 0 pings', 'Status: debugging in prod',
+    ];
+    let i = 0;
+    setInterval(() => {
+      if (document.hidden) return;
+      status.style.opacity = '0';
+      setTimeout(() => { status.textContent = LINES[++i % LINES.length]; status.style.opacity = '1'; }, 300);
+    }, 6000);
+    status.closest('.bar__brand')?.addEventListener('mouseenter', () => { status.textContent = 'Status: being hovered. Hi!'; });
+  }
 
   // ---- reaching the end, quickly or not
   const born = performance.now();

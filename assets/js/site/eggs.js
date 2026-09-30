@@ -17,7 +17,7 @@ export const EGGS = [
   { id: 'nvidia',   kind: 'page',  name: 'GPU-poor', hint: 'Ask the terminal about graphics cards.', done: 'Eight of them, apparently. All busy.' },
   { id: 'portrait', kind: 'page',  name: 'Say cheese', hint: 'Click the photo. More than once.', done: 'The photo became a little voxel scholar.' },
   { id: 'alias',    kind: 'page',  name: 'Who is yil384?', hint: 'Click the big name a few times.', done: 'A name is just a handle with better fonts.' },
-  { id: 'tabaway',  kind: 'page',  name: 'Come back', hint: 'Leave the tab for a bit. Then return.', done: 'You wandered off. The island waited.' },
+  { id: 'tabaway',  kind: 'page',  name: 'Defeated by Claude', hint: 'Leave the tab for a bit. Watch its title. Then return.', done: 'You wandered off. The tab title had a whole saga without you.' },
   { id: 'bottom',   kind: 'page',  name: 'Camera-ready', hint: 'Reach the very end of the page.', done: 'Submitted with four minutes to spare.' },
   { id: 'skim',     kind: 'page',  name: 'Reviewer #2, is that you?', hint: 'Read faster than anyone should.', done: 'Skimmed the whole page in seconds. Recommend: reject.' },
   { id: 'patient',  kind: 'page',  name: 'Thorough reader', hint: 'Stay a while.', done: 'You read carefully. Reviewer #1 approves.' },
