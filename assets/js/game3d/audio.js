@@ -72,16 +72,14 @@ const SFX = {
   rune: () => seq([[440, 0, 0.2], [554, 0.12, 0.2], [659, 0.24, 0.2], [880, 0.36, 0.6]], { type: 'sine', gain: 0.12 }),
   door: () => seq([[98, 0, 0.8], [147, 0.4, 0.9]], { type: 'triangle', gain: 0.14, slide: 60 }),
   encounter: () => seq([[330, 0, 0.08], [440, 0.08, 0.08], [330, 0.16, 0.08], [554, 0.24, 0.2]], { gain: 0.08 }),
-  // the scroll tour: a new section, a new row, the scholar's feet
-  whoosh: () => { seq([[740, 0, 0.32]], { type: 'sine', gain: 0.045, slide: 300 }); seq([[1047, 0.2, 0.22], [1568, 0.3, 0.34]], { type: 'sine', gain: 0.035 }); },
-  blip: () => seq([[1175, 0, 0.05]], { type: 'triangle', gain: 0.03, slide: 1400 }),
-  step: () => seq([[140 + Math.random() * 40, 0, 0.035]], { type: 'triangle', gain: 0.035 }),
+  // the scroll tour: a low, felt thump when a new section arrives (the wind itself is scrollWind below)
+  thump: () => { seq([[72, 0, 0.42]], { type: 'sine', gain: 0.16, slide: 44 }); seq([[140, 0, 0.09]], { type: 'triangle', gain: 0.05, slide: 60 }); },
   // page UI (the interactive CV)
   stamp: () => seq([[110, 0, 0.06], [70, 0.03, 0.14]], { type: 'square', gain: 0.13 }),
   flip: () => seq([[620, 0, 0.04], [930, 0.035, 0.05]], { type: 'triangle', gain: 0.05 }),
   tick: () => seq([[1500 + Math.random() * 300, 0, 0.012]], { gain: 0.025 }),
   pop: () => seq([[880, 0, 0.05]], { type: 'triangle', gain: 0.07, slide: 1320 }),
-  warp: () => seq([[220, 0, 0.35]], { type: 'sine', gain: 0.08, slide: 1760 }),
+  warp: () => { gust(0.9, 1.1); seq([[90, 0.25, 0.6]], { type: 'sine', gain: 0.12, slide: 50 }); },
   ring: () => seq([[1320, 0, 0.05], [1320, 0.1, 0.05], [1320, 0.2, 0.05]], { gain: 0.05 }),
   squeak: () => seq([[520, 0, 0.05], [780, 0.04, 0.07]], { gain: 0.07 }),
   // round 4: traversal, blades and vehicles
@@ -94,11 +92,56 @@ const SFX = {
   portal: () => seq([[196, 0, 0.5]], { type: 'sine', gain: 0.1, slide: 1568 }),
 };
 
+// ---- wind: filtered noise whose level and brightness follow how fast the page scrolls ----
+let wind = null;
+function windNodes(c) {
+  if (wind) return wind;
+  const buf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
+  const d = buf.getChannelData(0);
+  let b = 0;
+  for (let i = 0; i < d.length; i++) { b = 0.97 * b + 0.03 * (Math.random() * 2 - 1); d[i] = b * 6; }   // soft, brown-ish noise
+  const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+  const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 300; f.Q.value = 0.8;
+  const g = c.createGain(); g.gain.value = 0;
+  src.connect(f).connect(g).connect(master);
+  src.start();
+  wind = { f, g };
+  return wind;
+}
+let speed = 0;
+/** Scroll speed (px/s) from the page: drives the wind, and mutes bright UI blips while you race down. */
+export function scrollWind(pxPerSec) {
+  speed = pxPerSec;
+  if (!S.settings.sound || !ctx || ctx.state !== 'running') return;
+  const w = windNodes(ctx), t = ctx.currentTime;
+  const k = Math.min(1, pxPerSec / 3000);              // 0: still, ~0.1-0.2: reading, 1: flinging
+  w.g.gain.setTargetAtTime(k < 0.02 ? 0 : 0.025 + 0.22 * k ** 1.1, t, k < 0.02 ? 0.25 : 0.08);
+  w.f.frequency.setTargetAtTime(260 + 2600 * k, t, 0.1);
+}
+/** A single gust (the teleport, big arrivals). */
+function gust(level = 0.6, secs = 0.8) {
+  if (!ctx || ctx.state !== 'running') return;
+  const w = windNodes(ctx), t = ctx.currentTime;
+  w.g.gain.cancelScheduledValues(t); w.f.frequency.cancelScheduledValues(t);
+  w.g.gain.setValueAtTime(w.g.gain.value, t); w.g.gain.linearRampToValueAtTime(0.22 * level, t + secs * 0.35); w.g.gain.setTargetAtTime(0, t + secs * 0.35, secs * 0.3);
+  w.f.frequency.setValueAtTime(400, t); w.f.frequency.linearRampToValueAtTime(2400 * level, t + secs * 0.35); w.f.frequency.setTargetAtTime(300, t + secs * 0.35, secs * 0.4);
+}
+const BRIGHT = new Set(['coin', 'tick', 'pop', 'flip', 'buddy', 'ring', 'squeak', 'stamp']);
+let lastThump = 0;
+
 /** True once the browser lets this page make sound (after the first tap / click / key). */
 export const audioReady = () => !!ctx && ctx.state === 'running';
 
 export function sfx(name) {
   if (!S.settings.sound) return;
+  // racing down the page: the wind carries it; no pile-up of blips, and at most one thump per half second
+  if (speed > 1200 && BRIGHT.has(name)) return;
+  if (name === 'thump') {
+    const now = performance.now();
+    if (now - lastThump < 500 || speed > 3500) return;
+    lastThump = now;
+    try { if (matchMedia('(pointer: coarse)').matches) navigator.vibrate?.(14); } catch { /* no vibration */ }
+  }
   try { SFX[name]?.(); } catch { /* audio unavailable */ }
 }
 

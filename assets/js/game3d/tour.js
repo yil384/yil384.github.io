@@ -11,7 +11,6 @@ export function createTour(world) {
   let stuck = 0;
   let dashFx = 0;
   let warp = null;
-  let stepT = 0;     // footstep clock while the scholar walks between shots   // a scripted teleport between two spots (the Education section: Tsinghua -> UCSD)
 
   function canStand(x, z) {
     const hh = world.height(x, z);
@@ -149,8 +148,6 @@ export function createTour(world) {
       }
       player.walking = moved;
       if (moved) {
-        stepT -= dt;
-        if (stepT <= 0) { stepT = 0.2; sfx('step'); }
         stuck = Math.max(0, stuck - dt);
         markAction();
         if (speed > 14) { dashFx -= dt; if (dashFx <= 0) { dashFx = 0.05; fx.burst(player.x, player.y + 0.4, player.z, '#c7d2fe', 1, 1.5, 0.35, 0.5); } }

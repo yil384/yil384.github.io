@@ -3,7 +3,7 @@
 // handed to attachWorld().
 import { S } from '../game3d/state.js';
 import { on, emit } from '../game3d/bus.js';
-import { setSound, audioReady } from '../game3d/audio.js';
+import { setSound, audioReady, scrollWind } from '../game3d/audio.js';
 import { onChange, foundCount, total } from './eggs.js';
 import { openNotes } from './notes.js';
 import { say, observe } from './ui/kit.js';
@@ -52,6 +52,21 @@ export function initChrome() {
     say('bit', 'This island has sound. Tap or click anywhere to wake the speakers (the speaker button mutes it).');
   };
   window.addEventListener('scroll', hint, { passive: true });
+  // the wind: scroll speed, smoothed, drives a filtered-noise gust (audio.js scrollWind); it dies down when you stop
+  let lastY = scrollY, lastT = performance.now(), v = 0, windRaf = 0, tickT = 0;
+  const windTick = (now) => {
+    const dt = Math.min(0.1, (now - (tickT || now)) / 1000); tickT = now;
+    v *= Math.exp(-dt / 0.22);                        // the gust dies down within ~half a second of stopping
+    scrollWind(document.documentElement.classList.contains('is-play') ? 0 : v);
+    if (v > 8) windRaf = requestAnimationFrame(windTick); else { v = 0; scrollWind(0); windRaf = 0; tickT = 0; }
+  };
+  window.addEventListener('scroll', () => {
+    const now = performance.now(), dt = Math.max(12, now - lastT);
+    const inst = Math.min(12000, Math.abs(scrollY - lastY) / dt * 1000);
+    lastY = scrollY; lastT = now;
+    v = dt > 400 ? inst * 0.5 : v + (inst - v) * 0.4;   // a fresh start after a pause ramps in, it never pops
+    if (!windRaf) windRaf = requestAnimationFrame(windTick);
+  }, { passive: true });
   on('ui:sound', renderSound);
 
   // ---- section cards fade in as they arrive (through kit's shared observer)

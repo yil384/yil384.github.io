@@ -132,8 +132,8 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     });
     stage.setFocus(steady ? key : shot.item ?? key);
     const enteredSect = sectKey !== lastSect;
-    // the soundtrack of reading: a whoosh and a chime for a new section, a soft blip for each new row
-    if (!force) { if (enteredSect) sfx('whoosh'); else if (changed) sfx('blip'); }
+    // arriving at a new section: a low thump (and a tiny buzz on phones); the scroll itself is wind (chrome.js)
+    if (!force && enteredSect) sfx('thump');
     lastSect = sectKey;
     if (changed || restand) {
       if (sectKey === 'edu' && enteredSect && !restand) eduWarp();
