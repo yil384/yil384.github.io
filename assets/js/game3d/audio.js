@@ -110,9 +110,12 @@ let wind = null;
 function windNodes(c) {
   if (wind || !bufs.loop) return wind;
   const src = c.createBufferSource(); src.buffer = bufs.loop; src.loop = true;
-  const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700; f.Q.value = 0.5;
+  src.playbackRate.value = 0.85;                    // a little slower = rounder, never a whistle
+  // two gentle low-pass stages: the air stays soft and dark, the hiss never comes through
+  const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 520; f.Q.value = 0.4;
+  const f2 = c.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = 900; f2.Q.value = 0.4;
   const g = c.createGain(); g.gain.value = 0;
-  src.connect(f).connect(g).connect(master);
+  src.connect(f).connect(f2).connect(g).connect(master);
   src.start();
   wind = { src, f, g };
   return wind;
@@ -124,18 +127,18 @@ export function scrollWind(pxPerSec) {
   if (!S.settings.sound || !ctx || ctx.state !== 'running') return;
   if (!bufs.loop) { loadWind(ctx); return; }
   const w = windNodes(ctx), t = ctx.currentTime;
-  const k = Math.min(1, pxPerSec / 3500);              // 0: still, ~0.1: reading, 1: flinging
-  w.g.gain.setTargetAtTime(k < 0.015 ? 0 : 0.035 + 0.2 * k ** 1.5, t, k < 0.015 ? 0.45 : 0.15);
-  w.f.frequency.setTargetAtTime(650 + 2600 * k, t, 0.2);
-  w.src.playbackRate.setTargetAtTime(0.92 + 0.22 * k, t, 0.3);
+  const k = Math.min(1, pxPerSec / 3000);              // 0: still, ~0.1: reading, 1: flinging
+  // reading: barely a breath; flinging: clearly louder, but only a little brighter and never higher
+  w.g.gain.setTargetAtTime(k < 0.015 ? 0 : 0.012 + 0.13 * k ** 1.3, t, k < 0.015 ? 0.5 : 0.18);
+  w.f.frequency.setTargetAtTime(480 + 420 * k, t, 0.3);
 }
 /** The gust recording, once (a new section while reading, the teleport). */
 function gust(level = 0.5) {
   if (!ctx || ctx.state !== 'running') return;
   if (!bufs.gust) { loadWind(ctx); return; }
-  const s = ctx.createBufferSource(); s.buffer = bufs.gust; s.playbackRate.value = 1.25;
-  const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1600;
-  const g = ctx.createGain(); g.gain.value = 0.3 * level;
+  const s = ctx.createBufferSource(); s.buffer = bufs.gust; s.playbackRate.value = 0.9;
+  const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 800; f.Q.value = 0.4;
+  const g = ctx.createGain(); g.gain.value = 0.16 * level;
   s.connect(f).connect(g).connect(master);
   s.start();
 }
