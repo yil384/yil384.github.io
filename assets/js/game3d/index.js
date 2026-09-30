@@ -371,7 +371,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   // ---- loop ----
   let awakeUntil = performance.now() + 2500;   // under reduced motion, render only while something is happening
   let last = performance.now();
-  let lastRaf = last, lastRender = 0, slowT = 0, fastT = 0, frameNo = 0;
+  let lastRaf = last, lastRender = 0, slowT = 0, fastT = 0, frameNo = 0, ambDt = 0;
   // ?perf=1: per-frame probe (simulation ms, render-submit ms, draw calls, triangles) on window.__perf
   const perf = q.get('perf') === '1' ? { n: 0, sim: 0, render: 0, calls: 0, tris: 0, reset() { Object.assign(this, { n: 0, sim: 0, render: 0, calls: 0, tris: 0 }); } } : null;
   if (perf) window.__perf = perf;
@@ -382,7 +382,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     frameNo++;
     if (mode.play) {
       tickPlay(dt, t);
-      updateHud();
+      if (!coarse || frameNo % 2 === 0) updateHud();   // phones: vitals and tracker at 30 Hz
       setHudFlags({ fp: rig.firstPerson, vehicle: player.vehicle });
       if (touch) {
         if (frameNo % 6 === 0) useTag = useReady();
@@ -403,7 +403,9 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     updateWeapon(modalOpen() ? 0 : dt, { vehicle: player.vehicle });
     placeActors(dt);
     rig.update(player, mode.play ? input : null, dt, t, { eye: vehicleEye() });
-    ambient.update(modalOpen() ? 0 : dt, rig.cam);
+    // phones: the campus crowd (walkers, skaters, the shuttle) moves at 30 Hz, half the CPU
+    if (!lowfx) ambient.update(modalOpen() ? 0 : dt, rig.cam);
+    else { ambDt += dt; if (frameNo % 2 === 0) { ambient.update(modalOpen() ? 0 : ambDt, rig.cam); ambDt = 0; } }
     // islander name plates only show when the camera is close enough to read them
     const near = mode.play || rig.cur.dist < 48;
     if (near !== where.near) { where.near = near; worldEl.classList.toggle('is-near', near); }
@@ -708,9 +710,11 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
 
   // ---- the opening fly-in ----
   function intro() {
-    const s = stage.shots.hero;
-    rig.jump({ look: [s.look[0] - 6, s.look[1] + 8, s.look[2]], yaw: s.yaw + 1.5, pitch: 0.62, dist: s.dist * 2.1, fov: 34, shiftX: 0 });
-    rig.tourRate = 0.75;
+    // the loading poster is this very shot (tools/dev/poster.mjs): start on it, a touch further out, and
+    // ease in. No swing: the island the page opened on must not turn into another one.
+    rig.settle();
+    rig.jump({ ...rig.want, look: [rig.want.look.x, rig.want.look.y, rig.want.look.z], dist: rig.want.dist * 1.06 });
+    rig.tourRate = 0.9;
     setTimeout(() => { rig.tourRate = 2.2; }, 3600);
   }
   if (q.get('intro') !== '0' && !reducedMotion.matches) intro();

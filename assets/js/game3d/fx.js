@@ -109,12 +109,13 @@ export function updateFx(dt) {
   const ck = `${e[12].toFixed(3)},${e[13].toFixed(3)},${e[14].toFixed(3)},${e[8].toFixed(4)},${e[9].toFixed(4)},${e[10].toFixed(4)},${size.w},${size.h}`;
   const camMoved = ck !== camKey;
   camKey = ck;
+  const bubbles = [];                  // speech bubbles placed this frame: later ones step up out of the way
   for (const p of pins) {
     if ((p.region && p.region !== where.id) || (p.nearOnly && !where.near)) { showPin(p, false); continue; }
     const w = p.getPos();
     if (!w) { showPin(p, false); continue; }
     const pk = `${w.x.toFixed(2)},${w.y.toFixed(2)},${w.z.toFixed(2)}`;
-    if (!camMoved && p.shown && pk === p.pk) continue;
+    if (!p.clamp && !camMoved && p.shown && pk === p.pk) continue;
     p.pk = pk;
     const s = project(w.x, w.y, w.z);
     if (!s || s.sx < -300 || s.sx > size.w + 300 || s.sy < -300 || s.sy > size.h + 300) { showPin(p, false); continue; }
@@ -128,6 +129,12 @@ export function updateFx(dt) {
       if (tail !== p.tail) { p.tail = tail; p.el.style.setProperty('--tail', `${tail}px`); }
       sx = cx;
       sy = Math.min(Math.max(sy, p.h + 64), size.h - m);
+      for (let i = 0; i < 4; i++) {
+        const hit = bubbles.find((r) => Math.abs(r.x - sx) < (r.w + p.w) / 2 + 6 && sy > r.y - r.h - 6 && sy - p.h < r.y + 6);
+        if (!hit) break;
+        sy = hit.y - hit.h - 8;
+      }
+      bubbles.push({ x: sx, y: sy, w: p.w, h: p.h });
     }
     const tx = `translate(-50%, -100%) translate(${sx.toFixed(0)}px, ${sy.toFixed(0)}px)`;
     if (tx !== p.tx) { p.tx = tx; p.el.style.transform = tx; }
