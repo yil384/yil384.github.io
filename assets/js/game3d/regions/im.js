@@ -126,39 +126,39 @@ export default {
     const bubble = (x, y, z, s) => {
       const sent = hash3(s, 7, 1) < 0.5;
       const c = sent ? (hash3(s, 8, 1) < 0.5 ? '#22c55e' : '#16a34a') : '#e5e7eb';
-      walls.push([x, y, z, y === GY + 3 ? (sent ? '#86efac' : '#f8fafc') : c]);
+      walls.push([x, y, z, y === GY + 2 ? (sent ? '#86efac' : '#f8fafc') : c]);
     };
     for (let i = 0; i <= NX; i++) for (let j = 0; j < NZ; j++) {
       if (!M.V[i][j]) continue;
       const x = X0 + i * CELL, d = isDoor(i, j, true);
-      for (let k = 1; k < CELL; k++) for (let y = GY + 1; y <= GY + 3; y++) {
+      for (let k = 1; k < CELL; k++) for (let y = GY + 1; y <= GY + 2; y++) {
         if (d >= 0) doorCells[d].push([x, y, Z0 + j * CELL + k]); else bubble(x, y, Z0 + j * CELL + k, i * 31 + j);
       }
     }
     for (let i = 0; i < NX; i++) for (let j = 0; j <= NZ; j++) {
       if (!M.W[i][j]) continue;
       const z = Z0 + j * CELL, d = isDoor(i, j, false);
-      for (let k = 1; k < CELL; k++) for (let y = GY + 1; y <= GY + 3; y++) {
+      for (let k = 1; k < CELL; k++) for (let y = GY + 1; y <= GY + 2; y++) {
         if (d >= 0) doorCells[d].push([X0 + i * CELL + k, y, z]); else bubble(X0 + i * CELL + k, y, z, i * 17 + j * 5 + 3);
       }
     }
     for (let i = 0; i <= NX; i++) for (let j = 0; j <= NZ; j++) {
       const x = X0 + i * CELL, z = Z0 + j * CELL;
-      for (let y = GY + 1; y <= GY + 4; y++) posts.push([x, y, z, y === GY + 4 ? '#94a3b8' : '#334155']);
+      for (let y = GY + 1; y <= GY + 3; y++) posts.push([x, y, z, y === GY + 3 ? '#94a3b8' : '#334155']);
     }
     // #general: benches and a notification bell; the lobby: a router and a desk
     for (let x = -14; x <= -12; x++) deco.push([x, GY + 1, -15.5, '#6b21a8']);
     for (let x = 12; x <= 14; x++) deco.push([x, GY + 1, -15.5, '#6b21a8']);
     for (let y = GY + 1; y <= GY + 2; y++) deco.push([-13, y, 22, '#1e293b'], [-12, y, 22, '#1e293b']);
     glow.push([-13, GY + 3, 22, GREEN, 1.8], [-12, GY + 3, 22, '#22d3ee', 1.8]);
-    for (let x = -3; x <= 3; x++) glow.push([x, GY + 5, Z0, x % 2 ? GREEN : '#bbf7d0', 1.2]);        // the #general sign over the exit
+    for (let x = -3; x <= 3; x++) glow.push([x, GY + 4, Z0, x % 2 ? GREEN : '#bbf7d0', 1.2]);        // the #general sign over the exit
     props(ctx, walls, { block: true });
     props(ctx, posts, { block: true });
     props(ctx, deco, { block: true });
     const glowMesh = props(ctx, glow, { shadow: false });
     // doors: one mesh each so they can open
     const doors = doorCells.map((cells, k) => {
-      const mesh = props(ctx, cells.map(([x, y, z]) => [x, y, z, y === GY + 3 ? '#fde047' : (x + y + z) % 2 ? '#a16207' : '#ca8a04', 0.5]));
+      const mesh = props(ctx, cells.map(([x, y, z]) => [x, y, z, y === GY + 2 ? '#fde047' : (x + y + z) % 2 ? '#a16207' : '#ca8a04', 0.5]));
       const setOpen = (on) => { mesh.visible = !on; for (const [x, , z] of cells) (on ? unblock : block)(ctx, x, z); };
       setOpen(!!st.doors[k]);
       const [a, b] = doorWalls[k];
