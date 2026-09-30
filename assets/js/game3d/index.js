@@ -110,11 +110,12 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   const hub = new THREE.Group();               // everything that belongs to the UCSD island
   hub.name = 'hub';
   scene.add(hub);
-  const island = buildWorld(7);
+  const island = buildWorld(7, { lowfx });
   hub.add(island.group);
   const world = createComposite(island);
   addPierDeck(world);
   const stage = buildStage(world, scene, { lowfx, parent: hub });
+  island.bake();
   const rig = createCamera();
   // camera collision: terrain, plus blocked cells (buildings, statues, trunks) as ~9-voxel obstacles
   rig.setGround((x, z) => world.surfaceY(x, z) + (world.isBlocked(x, z) ? 9 : 0), (x, z) => world.surfaceY(x, z));

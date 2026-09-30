@@ -21,8 +21,8 @@ export function createComposite(hub) {
    */
   function addGrid(g) { grids.push(g); return () => { const i = grids.indexOf(g); if (i >= 0) grids.splice(i, 1); }; }
   addGrid({
-    id: 'hub', region: 'hub', x0: -40, z0: -40, x1: 40, z1: 40,
-    height: hub.height, isBlocked: hub.isBlocked, block: hub.block, unblock: hub.unblock, typeAt: hub.typeAt,
+    id: 'hub', region: 'hub', ...(hub.bounds || { x0: -40, z0: -40, x1: 40, z1: 40 }),
+    height: hub.height, colorAt: hub.colorAt, isBlocked: hub.isBlocked, block: hub.block, unblock: hub.unblock, typeAt: hub.typeAt,
     zoneAt: (x, z) => { const k = hub.zoneAt(x, z); return k ? { key: k, label: hub.ZONES?.[k]?.label || k } : null; },
   });
 
