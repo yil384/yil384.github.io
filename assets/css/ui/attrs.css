@@ -1,1 +1,174 @@
-/* ui/attrs.css: owned by SECTIONS-C (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* SKILLS — attributes on the workbench (SPEC §4.4, SECTIONS-C). Only html.is-game changes the look; no-JS,
+   Reviewer mode and print keep the chips of site.css with the tier word ("Python · High"). */
+
+/* ================================================================ the panel */
+html.is-game #projects .toolbox.attrs {
+  position: relative; overflow: clip; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'label label' 'list inv' 'con con'; column-gap: 22px;
+  margin: 16px 0 0; padding: 0 16px 14px; border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.008)), rgba(8, 11, 21, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08); border-top: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 26px rgba(0, 0, 0, 0.26);
+}
+html.is-game #projects .toolbox.attrs:hover, html.is-game #projects .toolbox.attrs:focus-visible,
+html.is-game #projects .toolbox.attrs.is-lit, html.is-game #projects .toolbox.attrs.is-current {
+  background: linear-gradient(180deg, rgba(255, 205, 0, 0.035), rgba(255, 255, 255, 0.008)), rgba(8, 11, 21, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 0 1px var(--gold-a18), 0 10px 26px rgba(0, 0, 0, 0.26);
+}
+html.is-game #projects .toolbox.attrs:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+html.is-game .attrs .toolbox__label {
+  grid-area: label; display: flex; align-items: center; gap: 9px; margin: 0 -16px 12px; padding: 0 16px; height: 32px;
+  font: 400 10px/1 var(--px); letter-spacing: 0.12em; color: var(--ink);
+  background: linear-gradient(90deg, var(--ucsd-navy), rgba(34, 64, 110, 0.35) 60%, transparent);
+  border-top: 2px solid var(--gold-a45); border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+}
+html.is-game .attrs .toolbox__label .game-only { color: var(--gold); }
+.attrs__wrench { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 3px; background: rgba(6, 9, 18, 0.7); box-shadow: 0 0 0 1px var(--gold-a45); }
+.attrs__wrench svg { width: 18px; height: auto; }
+.attrs__how { margin-left: auto; font: 400 8px/1 var(--px); letter-spacing: 0.08em; color: var(--ink-3); }
+
+/* ================================================================ attribute rows */
+html.is-game .attrs__list { grid-area: list; display: grid; gap: 3px; margin: 0; align-content: start; }
+.attr { --c: var(--gold); }
+html.is-game .attrs__list .attr {
+  position: relative; display: grid; grid-template-columns: 18px 92px minmax(0, 1fr) 66px; grid-template-areas: 'ico name bar tier';
+  align-items: center; column-gap: 10px; height: 28px; padding: 0 8px; margin: 0 -8px; border-radius: 4px;
+  font-size: 14px; color: var(--ink); transition: background-color var(--t-ui);
+}
+.attr[data-lang='python'] { --c: #4ADE80; }
+.attr[data-lang='cpp'] { --c: #60A5FA; }
+.attr[data-lang='rust'] { --c: #F97316; }
+.attr[data-lang='go'] { --c: #22D3EE; }
+.attr[data-lang='typescript'] { --c: #818CF8; }
+.attr[data-lang='javascript'] { --c: #FACC15; }
+.attr[data-lang='verilog'] { --c: #F472B6; }
+html.is-game .attrs__list .attr > img { grid-area: ico; width: 18px; height: 18px; opacity: 0.85; }
+html.is-game .attr__name { grid-area: name; white-space: nowrap; }
+html.is-game .attr__tier { grid-area: tier; font: 400 9px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--c); transition: opacity var(--t-ui); }
+html.is-game .attr__tier::before { content: none; }
+.attr__bar, .attr__spark, .attr__ovf, .attr__led { grid-area: bar; }
+html.is-game .attr__bar {
+  position: relative; display: block; height: 10px; overflow: hidden; background: rgba(255, 255, 255, 0.07);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 calc(5% - 2px), transparent 0 5%);
+  mask: repeating-linear-gradient(90deg, #000 0 calc(5% - 2px), transparent 0 5%);
+}
+html.is-game .attr__bar > i {
+  position: absolute; inset: 0; transform-origin: left; transform: scaleX(0);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 45%, color-mix(in srgb, var(--c) 70%, #000));
+  transition: transform 700ms var(--ease) calc(var(--i, 0) * 80ms);
+}
+html.is-game .attrs.is-filled .attr__bar > i, html.is-game.rm .attr__bar > i { transform: scaleX(var(--v)); }
+html.is-game.rm .attr__bar > i { transition: none; }
+/* a one-cell sparkle where the fill stops */
+.attr__spark {
+  justify-self: start; width: 4px; height: 14px; margin-left: calc(var(--v) * 100% - 4px); border-radius: 1px; opacity: 0;
+  background: #fff; box-shadow: 0 0 8px var(--c), 0 0 2px #fff; pointer-events: none;
+}
+html.is-game .attrs.is-filled .attr__spark { animation: attr-spark 520ms steps(4) calc(var(--i, 0) * 80ms + 620ms) both; }
+@keyframes attr-spark { 0% { opacity: 0; transform: scaleY(0.4); } 40% { opacity: 1; transform: scaleY(1.3); } 100% { opacity: 0; transform: scaleY(1); } }
+html.rm .attr__spark { display: none; }
+/* Python overfill: up to three red cells past 100 */
+.attr__ovf { justify-self: end; display: flex; gap: 2px; width: 15%; margin-right: calc(-15% - 2px); height: 10px; pointer-events: none; }
+.attr__ovf i { flex: 1; background: var(--danger); opacity: 0; transform: scaleY(0.2); transition: opacity 120ms, transform 160ms steps(2); box-shadow: 0 0 8px rgba(248, 113, 113, 0.8); }
+.attr__ovf i.is-on { opacity: 1; transform: none; animation: ovf-pulse 480ms steps(2) infinite; }
+@keyframes ovf-pulse { 50% { opacity: 0.45; } }
+html.rm .attr__ovf i.is-on { animation: none; }
+.attr.is-over .attr__tier { opacity: 0; }
+.attr.is-snap .attr__bar > i { animation: attr-snap 420ms var(--ease); }
+@keyframes attr-snap { 0% { transform: scaleX(1); } 40% { transform: scaleX(calc(var(--v) - 0.08)); } }
+/* Verilog: a blinking LED at the end of its bar */
+.attr__led { justify-self: end; width: 6px; height: 6px; margin-right: -12px; border-radius: 1px; background: #3b1024; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.5); }
+.attr.is-led .attr__led { animation: led-blink 1s steps(2) 5; }
+@keyframes led-blink { 0% { background: #F472B6; box-shadow: 0 0 8px #F472B6; } }
+.attr__val { display: none; }
+/* the click target is the whole row */
+.attr__hit { position: absolute; inset: 0; z-index: 1; width: 100%; padding: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+html.is-game .attrs__list .attr:hover, html.is-game .attrs__list .attr:focus-within { background: color-mix(in srgb, var(--c) 8%, transparent); }
+.attr__hit:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+/* tooltip "Python · 90 / 100 · High" */
+html.is-game .attrs__list .attr::after {
+  content: attr(data-tip); position: absolute; z-index: 3; right: 72px; bottom: calc(100% - 2px); pointer-events: none;
+  padding: 4px 7px; border-radius: 3px; white-space: nowrap;
+  font: 400 9px/1 var(--px); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ucsd-navy-3); background: var(--c);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); opacity: 0; transform: translateY(3px); transition: opacity 140ms, transform 160ms var(--ease);
+}
+html.is-game .attrs__list .attr:first-child::after { bottom: auto; top: calc(100% - 2px); }
+html.is-game .attrs__list .attr:hover::after, html.is-game .attrs__list .attr:focus-within::after { opacity: 1; transform: none; }
+.attr.is-shimmer::before {
+  content: ''; position: absolute; inset: 0; border-radius: 4px; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--c) 30%, transparent) 50%, transparent 70%);
+  animation: attr-shimmer 600ms var(--ease) both;
+}
+@keyframes attr-shimmer { from { transform: translateX(-60%); opacity: 1; } to { transform: translateX(60%); opacity: 0; } }
+html.rm .attr.is-shimmer::before { animation: fx-fade 300ms reverse both; }
+
+/* ================================================================ the tool bag */
+html.is-game .attrs .inv {
+  grid-area: inv; display: grid; grid-template-columns: repeat(3, 60px); grid-auto-rows: 56px; gap: 6px; margin: 0; padding: 6px;
+  align-self: start; border-radius: 6px; background: rgba(4, 6, 12, 0.55); box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+html.is-game .attrs .inv__slot {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 4px; font: 400 7.5px/1 var(--px); letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink-2); white-space: nowrap;
+  background: linear-gradient(180deg, rgba(34, 64, 110, 0.55), rgba(15, 29, 51, 0.75));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 205, 0, 0.12);
+  transition: box-shadow var(--t-ui), color var(--t-ui), transform 140ms var(--ease);
+}
+html.is-game .attrs .inv__slot img { width: 20px; height: 20px; opacity: 0.9; }
+html.is-game .attrs .inv__slot::after {
+  content: '×∞'; position: absolute; right: 3px; bottom: 3px; font: 400 6px/1 var(--px-num); color: var(--ink-3); letter-spacing: 0;
+}
+html.is-game .attrs .inv__slot:hover, html.is-game .attrs .inv__slot:focus-within { color: var(--ink); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 0 0 1px var(--gold), 0 0 12px rgba(255, 205, 0, 0.18); transform: translateY(-1px); }
+html.is-game .attrs .inv__slot.is-used::before {
+  content: ''; position: absolute; left: 4px; top: 4px; width: 4px; height: 4px; background: var(--gold); box-shadow: 0 0 6px var(--gold);
+}
+.inv__slot.is-bump { animation: inv-bump 260ms steps(3); }
+@keyframes inv-bump { 50% { transform: translateY(-3px) scale(1.05); } }
+html.rm .inv__slot.is-bump { animation: none; }
+.inv__hit { position: absolute; inset: 0; z-index: 1; width: 100%; padding: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+.inv__hit:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.inv__tex { display: none; }
+html.is-game .inv__slot.is-tex .inv__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html.is-game .inv__slot.is-tex .inv__tex { display: inline; font: 400 11px/1 var(--serif); letter-spacing: 0; text-transform: none; color: var(--ink); }
+.inv__tex sup, .inv__tex sub { font-size: 0.75em; text-transform: uppercase; vertical-align: 0; position: relative; }
+.inv__tex sup { top: -0.25em; margin: 0 -0.3em 0 -0.32em; }
+.inv__tex sub { top: 0.22em; margin: 0 -0.12em 0 -0.16em; }
+html.is-game .attrs.is-vim .inv__slot[data-tool='vim'] { box-shadow: 0 0 0 1px #4ADE80, 0 0 14px rgba(74, 222, 128, 0.35); color: #4ADE80; }
+
+/* ================================================================ the console */
+html.is-game .attrs__console {
+  grid-area: con; margin: 12px 0 0; padding: 7px 12px; height: 70px; overflow: hidden; border-radius: 4px;
+  background: #04060c; border: 1px solid rgba(255, 255, 255, 0.07); box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.7);
+  font: 400 12px/1.5 var(--mono); color: #c9d1e3;
+}
+html.is-game .attrs__console > code { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; font: inherit; white-space: pre; }
+.attrs__console .cl { display: block; min-height: 1.5em; overflow: hidden; text-overflow: ellipsis; }
+.attrs__console .cl--cmd { color: var(--ink); }
+.attrs__console .cl--cmd::before { content: ''; }
+.attrs__console .cl--out { color: #c9d1e3; }
+.attrs__console .cl--ok { color: var(--hp); }
+.attrs__console .cl--warn { color: var(--warn); }
+.attrs__console .cl--err { color: var(--danger); text-shadow: 0 0 8px rgba(248, 113, 113, 0.35); }
+.attrs__console .cl--dim { color: var(--ink-3); }
+.con-cur { display: inline-block; width: 7px; height: 1.1em; margin-left: 2px; vertical-align: -0.2em; background: var(--ink-2); animation: con-blink 1s steps(2) infinite; }
+.con-cur--block { background: var(--hp); }
+@keyframes con-blink { 50% { opacity: 0; } }
+section:not(.is-live) .con-cur { animation-play-state: paused; }
+html.rm .con-cur { animation: none; }
+.attrs__q { grid-area: con; justify-self: end; align-self: end; margin: 0 8px 8px 0; z-index: 2; }
+.ws-dot { display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 12px var(--teal), 0 0 0 2px rgba(0, 198, 215, 0.3); }
+
+/* ================================================================ phones */
+@media (max-width: 720px) {
+  html.is-game #projects .toolbox.attrs { grid-template-columns: 1fr; grid-template-areas: 'label' 'list' 'inv' 'con'; padding: 0 12px 12px; }
+  html.is-game .attrs .toolbox__label { margin: 0 -12px 10px; padding: 0 12px; }
+  .attrs__how { display: none; }
+  html.is-game .attrs__list .attr { grid-template-columns: 18px 84px minmax(0, 1fr) 58px; grid-template-areas: 'ico name bar tier' 'ico name bar val'; height: 34px; column-gap: 8px; }
+  html.is-game .attr__bar { height: 6px; }
+  html.is-game .attr__tier { align-self: end; padding-bottom: 1px; }
+  .attr__val { display: block; grid-area: val; align-self: start; padding-top: 3px; font: 400 7px/1 var(--px-num); color: var(--ink-3); }
+  html.is-game .attrs__list .attr::after { right: auto; left: 30px; }
+  html.is-game .attrs .inv { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: 56px; margin-top: 12px; gap: 4px; padding: 4px; }
+  html.is-game .attrs .inv__slot { font-size: 6.5px; }
+  html.is-game .attrs__console { font-size: 11px; }
+}

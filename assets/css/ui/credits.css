@@ -1,1 +1,109 @@
-/* ui/credits.css: owned by SECTIONS-C (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* FOOTER — credits and results (SPEC §4.9, SECTIONS-C). The whole section is [data-game]: hidden in Reviewer
+   mode, print and without JS (kit.css / site.css). The footer paragraphs below it are untouched. */
+
+.credits {
+  position: relative; pointer-events: auto; display: grid; justify-items: center; gap: 22px;
+  padding: 16vh var(--gutter) 10vh; text-align: center;
+  background: radial-gradient(ellipse 60% 55% at 50% 45%, rgba(7, 10, 18, 0.78), rgba(7, 10, 18, 0.35) 70%, transparent);
+}
+.credits__end {
+  font: 400 clamp(44px, 6vw, 64px)/1 var(--serif); letter-spacing: 0.02em; text-transform: uppercase;
+  background: linear-gradient(180deg, #fff6c9, var(--gold) 55%, #c78f00); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 4px 24px rgba(255, 205, 0, 0.25));
+}
+.credits__end::after { content: ''; display: block; width: 120px; height: 2px; margin: 16px auto 0; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
+
+/* ================================================================ the rolling list */
+.credits__roll {
+  position: relative; width: min(520px, 100%); height: 180px; overflow: hidden;
+  -webkit-mask: linear-gradient(transparent, #000 22%, #000 78%, transparent); mask: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+}
+.credits__list {
+  display: grid; gap: 16px; margin: 0; padding: 0; list-style: none;
+  transform: translateY(180px); animation: credits-roll 40s linear forwards; animation-play-state: paused;
+}
+.credits.is-rolling.is-live .credits__list { animation-play-state: running; }
+@keyframes credits-roll { from { transform: translateY(180px); } to { transform: translateY(-100%); } }
+.credits__list li { font-size: 16px; line-height: 1.45; color: var(--ink-2); }
+.credits__list li b { display: block; margin-bottom: 4px; font: 400 9px/1 var(--px); letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); }
+html.rm .credits__roll { height: auto; -webkit-mask: none; mask: none; }
+html.rm .credits__list { transform: none; animation: none; gap: 10px; }
+
+/* ================================================================ results plate */
+.results {
+  position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 18px; width: min(600px, 100%); margin: 6px 0 0; padding: 18px 20px 18px;
+  text-align: left; border-radius: 8px;
+  background: linear-gradient(180deg, rgba(24, 43, 73, 0.92), rgba(10, 16, 30, 0.94));
+  border: 1px solid var(--gold-a45); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.results:empty { display: none; }
+.results::before {
+  content: 'Results'; position: absolute; left: 50%; top: -11px; transform: translateX(-50%); padding: 5px 12px 4px;
+  font: 400 9px/1 var(--px); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ucsd-navy-3); background: var(--gold); border-radius: 2px;
+}
+.results__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; column-gap: 10px; padding: 8px 2px; border-bottom: 1px dashed rgba(255, 255, 255, 0.09); }
+.results__row dt { font: 400 9px/1.3 var(--px); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.results__row dd { display: contents; }
+.results__v { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.results__v b { font: 400 12px/1 var(--px-num); color: var(--ink); font-weight: 400; }
+.results__v small { font: 400 10px/1 var(--px); letter-spacing: 0.04em; color: var(--ink-3); text-transform: uppercase; }
+.results__row.is-done .results__v b { color: var(--gold); }
+.results__row.is-done dt::after { content: ' ✓'; color: var(--hp); }
+.results__hint { grid-column: 1 / -1; margin-top: 4px; font-size: 12px; line-height: 1.35; color: var(--ink-3); font-style: italic; }
+.results__row--lv .results__v small { text-transform: none; font-family: var(--sans); font-size: 12.5px; letter-spacing: 0; color: var(--ink-2); }
+.results__rank {
+  grid-column: 1 / -1; display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 14px; margin-top: 14px; padding: 12px 14px; border-radius: 6px;
+  background: radial-gradient(circle at 16% 50%, rgba(255, 205, 0, 0.16), transparent 50%), rgba(6, 9, 18, 0.6);
+  border: 1px solid var(--gold-a18);
+}
+.results__rank-k { font: 400 9px/1 var(--px); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+.results__rank-l {
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 4px; font: 400 26px/1 var(--px-num); color: var(--ucsd-navy-3);
+  background: linear-gradient(180deg, #fff3a6, var(--gold) 55%, #c78f00);
+  box-shadow: 0 0 0 2px var(--ucsd-navy-3), 0 0 0 4px var(--gold), 0 0 0 6px var(--ucsd-navy-3), 0 0 24px rgba(255, 205, 0, 0.35);
+}
+.rank--B .results__rank-l, .rank--C .results__rank-l { background: linear-gradient(180deg, #eef2f9, #b9c4d8 55%, #7d8aa3); box-shadow: 0 0 0 2px var(--ucsd-navy-3), 0 0 0 4px #b9c4d8, 0 0 0 6px var(--ucsd-navy-3); }
+.results__rank-t { font: 400 20px/1.1 var(--px-title); color: var(--ink); }
+.credits.is-rolling .results__rank-l { animation: rank-in 420ms steps(4) 900ms both; }
+@keyframes rank-in { from { transform: scale(1.8) rotate(-12deg); opacity: 0; } }
+html.rm .credits.is-rolling .results__rank-l { animation: fx-fade 150ms linear both; }
+
+/* ================================================================ buttons + New Game+ confirm */
+.credits__btns { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.credits__btns .gbtn[data-act='ngplus'] { border-color: var(--gold); }
+.credits__confirm {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border-radius: 6px;
+  font-size: 14px; color: var(--ink); background: rgba(24, 43, 73, 0.9); border: 1px solid var(--gold-a45);
+}
+.credits__confirm[hidden] { display: none; }
+
+/* ================================================================ post-credits: the pier */
+.postcredits { display: grid; justify-items: center; gap: 12px; margin-top: 8px; animation: fx-fade 600ms linear; }
+.postcredits[hidden] { display: none; }
+.pier { position: relative; width: min(360px, 100%); height: 112px; }
+.pier__sea {
+  position: absolute; left: -20px; right: -20px; bottom: 0; height: 46px; border-radius: 2px;
+  background: repeating-linear-gradient(90deg, rgba(125, 211, 252, 0.28) 0 6px, transparent 6px 14px) 0 6px / 28px 2px repeat-x,
+    repeating-linear-gradient(90deg, rgba(125, 211, 252, 0.18) 0 4px, transparent 4px 16px) 10px 22px / 32px 2px repeat-x,
+    linear-gradient(180deg, #13335a, #0b1a33);
+  -webkit-mask: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent); mask: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+.pier__deck { position: absolute; left: 10%; right: 16%; bottom: 44px; height: 8px; background: repeating-linear-gradient(90deg, #8a5a2b 0 14px, #6d4520 14px 16px); box-shadow: 0 2px 0 #3b2410; }
+.pier__legs { position: absolute; left: 13%; right: 18%; bottom: 8px; height: 36px; background: repeating-linear-gradient(90deg, #5a3a1a 0 5px, transparent 5px 44px); }
+.pier__me, .pier__bit { position: absolute; bottom: 50px; line-height: 0; }
+.pier__me { right: 34%; }
+.pier__bit { right: calc(34% - 36px); bottom: 50px; }
+.pier__me img, .pier__bit img { image-rendering: pixelated; }
+.pier__bit img { animation: pier-bob 2s steps(2) infinite; }
+@keyframes pier-bob { 50% { transform: translateY(-2px); } }
+html.rm .pier__bit img { animation: none; }
+.postcredits__t { font: 400 15px/1.3 var(--px-title); color: var(--ink-2); }
+.postcredits__t b { font-weight: 400; color: var(--teal); }
+
+@media (max-width: 720px) {
+  .credits { padding: 12vh var(--gutter) 8vh; gap: 18px; }
+  .results { grid-template-columns: 1fr; padding: 18px 14px 14px; }
+  .results__rank { grid-template-columns: auto 1fr; }
+  .results__rank-k { display: none; }
+  .credits__btns .gbtn { flex: 1 1 140px; }
+}
