@@ -15,13 +15,25 @@ export function buildWater(grid) {
   let v = 0;
   const isWater = (x, z) => inRange(x, z) && inDisc(x, z) && HV[idx(x, z)] !== VOID && !LAND[idx(x, z)];
   const RIM_BOTTOM = -3.6;
+  // shore closeness per cell (1 at the sand, 0 out at sea), averaged onto the corners so the surf
+  // lines follow the coast smoothly instead of stepping cell by cell
+  const cellShore = (x, z) => {
+    if (!inRange(x, z)) return 0;
+    const i = idx(x, z);
+    if (LAND[i]) return 1.12;
+    return Math.max(0, 1 - (seaD[i] - 1) / 7);
+  };
+  const cornerShore = (cx, cz) => (cellShore(cx, cz) + cellShore(cx - 1, cz) + cellShore(cx, cz - 1) + cellShore(cx - 1, cz - 1)) / 4;
   for (let z = -HALF; z < HALF; z++) for (let x = -HALF; x < HALF; x++) {
     if (!isWater(x, z)) continue;
     const i = idx(x, z);
     const shore = Math.max(0, 1 - (seaD[i] - 1) / 7);
-    const ph = ((x * 13 + z * 7) % 17) / 17 * 0.6;
+    const ph = 0;
     // the surface, one quad per cell (neighbouring quads share corner positions, so waves stay seamless)
-    for (const [dx, dz] of [[-0.5, 0.5], [0.5, 0.5], [-0.5, -0.5], [0.5, -0.5]]) { pos.push(x + dx, WATER, z + dz); dat.push(shore, 1, ph, 1); }
+    for (const [dx, dz] of [[-0.5, 0.5], [0.5, 0.5], [-0.5, -0.5], [0.5, -0.5]]) {
+      pos.push(x + dx, WATER, z + dz);
+      dat.push(Math.min(1, cornerShore(x + dx + 0.5, z + dz + 0.5)), 1, Math.sin((x + dx) * 0.37) + Math.cos((z + dz) * 0.29), 1);
+    }
     ind.push(v, v + 1, v + 2, v + 2, v + 1, v + 3);
     v += 4;
     // the rim: a wall of water down to the strata
@@ -55,9 +67,9 @@ export function buildWater(grid) {
   const mat = new THREE.MeshStandardNodeMaterial({ transparent: true, depthWrite: false, roughness: 0.28, metalness: 0.05, side: THREE.DoubleSide });
   mat.positionNode = p.add(vec3(0, wave.mul(moves), 0));
   // surf: lines that roll in toward the shore, and a lapping white edge right at the sand
-  const roll = sin(shore.mul(15).sub(time.mul(1.7)).add(ph.mul(6))).mul(0.5).add(0.5);
+  const roll = sin(shore.mul(15).sub(time.mul(1.7)).add(ph.mul(1.1))).mul(0.5).add(0.5);
   const lines = smoothstep(0.8, 0.97, roll).mul(smoothstep(0.3, 0.85, shore));
-  const lap = smoothstep(0.88, 1.0, shore).mul(sin(time.mul(2.1).add(ph.mul(9))).mul(0.3).add(0.7));
+  const lap = smoothstep(0.88, 1.0, shore).mul(sin(time.mul(2.1).add(ph.mul(2.2))).mul(0.3).add(0.7));
   const foam = lines.max(lap).mul(surface);
   const sea = mix(color('#0c2744'), color('#1f7391'), shore.mul(shore));
   const wall = mix(color('#040b16'), color('#0e2c4c'), smoothstep(float(-3.6), float(0.3), p.y));

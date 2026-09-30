@@ -49,6 +49,8 @@ import { openAchievements, openInventory, openParty, openHelp, openGameOver } fr
 import { initRegions, makeCtx, updateRegions, nearestInteractable, useInteractable, regionName, ensureRegion, REGIONS, dismount } from './regions.js';
 import * as regionsApi from './regions.js';
 import { createTravel, HUB_SPAWN } from './travel.js';
+import { buildDistricts } from './districts.js';
+import { createAmbient } from './ambient.js';
 import { checkQuests, openQuestLog, roadCount, ROAD } from './road.js';
 import { createTouch } from './touch.js';
 import { sfx, startMusic, stopMusic } from './audio.js';
@@ -57,7 +59,9 @@ import { registerEgg, found } from '../site/eggs.js';
 import { initPageLink } from './pagelink.js';
 
 const BG = '#070a12';
-const SKY = { tint: '#c7d2fe', ground: '#0b1024', fog: BG, density: 0.0062, background: BG, sun: 2.2 };
+// the hub's night: a cool sky light with a lifted ground bounce, a warm key (the "sun" is a big warm
+// moon/streetlight wash) and a thin night-blue haze instead of black murk (the island is ~120 wide)
+const SKY = { tint: '#c9d4ff', ground: '#1b2446', fog: '#0f1731', density: 0.0042, background: BG, sun: 2.35, fill: 0.6 };
 
 // engine eggs (the controls themselves): kind 'game', grouped under the island in Field Notes
 const ENGINE_EGGS = [
@@ -95,9 +99,13 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   progress('lighting the island');
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BG);
-  scene.fog = new THREE.FogExp2(BG, 0.0062);
-  const hemi = new THREE.HemisphereLight(SKY.tint, SKY.ground, 1.05);
+  scene.fog = new THREE.FogExp2(SKY.fog, SKY.density);
+  const hemi = new THREE.HemisphereLight(SKY.tint, SKY.ground, 1.12);
   scene.add(hemi);
+  // a cool fill from the opposite side of the key: voxel faces the key misses still read as form
+  const fill = new THREE.DirectionalLight('#8ea2ff', SKY.fill);
+  fill.position.set(40, 26, -34);
+  scene.add(fill);
   const sun = new THREE.DirectionalLight('#ffe7c2', SKY.sun);
   sun.position.set(-30, 46, 24);
   sun.castShadow = !lowfx;
@@ -115,7 +123,9 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   const world = createComposite(island);
   addPierDeck(world);
   const stage = buildStage(world, scene, { lowfx, parent: hub });
+  const campus = buildDistricts(world, hub, { lowfx });
   island.bake();
+  const ambient = createAmbient(world, hub, { lowfx, loop: island.loop });
   const rig = createCamera();
   // camera collision: terrain, plus blocked cells (buildings, statues, trunks) as ~9-voxel obstacles
   rig.setGround((x, z) => world.surfaceY(x, z) + (world.isBlocked(x, z) ? 9 : 0), (x, z) => world.surfaceY(x, z));
@@ -142,7 +152,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
 
   let visY = player.y;           // the scholar mesh's smoothed height (step-ups)
   let glider = null;             // the Torrey Pines paraglider over his head while gliding
-  const hubCtx = makeCtx('hub', { id: 'hub', name: 'UC San Diego', size: 64 }, hub, 0, 0);
+  const hubCtx = makeCtx('hub', { id: 'hub', name: 'UC San Diego', size: 128 }, hub, 0, 0);
   let travelApi = null;
   let director = null;
   initRegions({
@@ -175,6 +185,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     scene.fog.density = s.density;
     scene.background.set(s.background ?? s.fog);
     sun.intensity = s.sun;
+    fill.intensity = s.fill ?? SKY.fill;
   }
 
   const touch = coarse ? createTouch(hudEl, input, {
@@ -344,12 +355,23 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     updateWeapon(modalOpen() ? 0 : dt, { vehicle: player.vehicle });
     placeActors(dt);
     rig.update(player, mode.play ? input : null, dt, t, { eye: vehicleEye() });
+    ambient.update(modalOpen() ? 0 : dt, rig.cam);
     // islander name plates only show when the camera is close enough to read them
     const near = mode.play || rig.cur.dist < 48;
     if (near !== where.near) { where.near = near; worldEl.classList.toggle('is-near', near); }
     const sh = fx.shakeOffset();
     if (sh && !reducedMotion.matches) { rig.cam.position.x += (Math.random() - 0.5) * sh; rig.cam.position.y += (Math.random() - 0.5) * sh; }
     fx.updateFx(modalOpen() ? 0 : dt);
+    // the key light's shadow box (±48) follows what you are looking at, snapped to 4 units
+    {
+      const c = mode.play ? player : rig.cur.look;
+      const sx = Math.round(c.x / 4) * 4, sz = Math.round(c.z / 4) * 4;
+      if (sx !== sun.target.position.x || sz !== sun.target.position.z) {
+        sun.target.position.set(sx, 0, sz);
+        sun.position.set(sx - 30, 46, sz + 24);
+        if (sun.castShadow) sun.shadow.needsUpdate = true;
+      }
+    }
     // shadows: the full map every frame in play; a 1024 map refreshed every other frame in tour
     if (sun.castShadow) {
       sun.shadow.autoUpdate = mode.play;
@@ -663,7 +685,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   }
 
   const api = {
-    world, stage, director, rig, tour, renderer, backend, lowfx, scene,
+    world, stage, campus, ambient, director, rig, tour, renderer, backend, lowfx, scene,
     enterPlay, exitPlay, setPaused,
     get playing() { return mode.play; },
     get paused() { return paused; },

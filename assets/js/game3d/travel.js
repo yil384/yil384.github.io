@@ -21,11 +21,11 @@ import { clearHostileProjectiles } from './combat.js';
 import { clearFoeHazards } from './foes.js';
 
 export const HUB_SPAWN = { x: 1.5, z: 6 };
-const HUB_BOUND = 70;
+const HUB_BOUND = 100;
 
 // Hub landmark -> region. Positions are world coordinates on the island; `walk` doors fire when you
 // pass through (the gate's centre arch), the rest on E.
-function doorList() {
+export function doorList() {
   const M = LAYOUT.monuments, flag = (id) => LAYOUT.flags.find((f) => f.id === id);
   const G = LAYOUT.gate, C = LAYOUT.cse;
   return [
@@ -168,6 +168,9 @@ export function createTravel(env) {
   // the Torrey Pines bluff summit hands out the glider (so does waving at a paraglider from the page)
   const peak = env.world.hub.ZONES.peak;
   trigger(env.hubCtx, { x: peak.x, z: peak.z, r: 3.2, minY: 8, onEnter: () => unlockGlider() });
+  // …and so does the Torrey Pines Gliderport on the mesa (the cliff down to Black's Beach is right there)
+  const GP = LAYOUT.gliderport;
+  trigger(env.hubCtx, { x: GP.x, z: GP.z, r: 6, minY: 9, onEnter: () => unlockGlider() });
   on('egg', (id) => { if (id === 'glider') unlockGlider(); });
   if (S.eggs.glider && !S.world.glider) { S.world.glider = true; save(); }
   // the boat at the end of the Scripps pier
