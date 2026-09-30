@@ -358,3 +358,13 @@ export default {
 
 ## Known limitation
 A dialog choice whose `action` opens another `dialog()` gets closed right after the action runs (npcs.js closes the "dialog" modal). Chain dialogs with `next` instead.
+
+## 9. Engine helpers added in round 5
+
+- `mount(kind)`: put the player in a vehicle (`'sword'`, `'mech'`, `'car'`, or `null` for on foot).
+- Re-exported so region files need only `'../regions.js'`: `heal(n, silent)`, `openModal`, `closeModal`,
+  `dealDamage(target, base, opts)`, `h(tag, attrs, ...children)`, `icon(name, opts)`.
+- Pattern bosses (`spawnBoss`) honour `boss.shield = true` (hits do nothing) and `boss.dmgMult = k` (hits scaled by
+  `k`, at least 1). Prefer these over wrapping `boss.hit`.
+- Dialog chains: a choice's `action` may call `dialog()` (or open any other modal); the new dialog replaces the
+  current one without un-pausing the world. `next` still works as before.

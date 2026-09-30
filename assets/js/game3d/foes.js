@@ -325,9 +325,10 @@ export class PatternBoss {
     return ph;
   }
   get enraged() { return this.hp / this.maxHp < 0.5; }
+  // hooks for region scripts: boss.shield = true ignores hits, boss.dmgMult scales them (no need to wrap hit())
   hit(dmg) {
-    if (!this.alive) return false;
-    this.hp -= dmg;
+    if (!this.alive || this.shield) return false;
+    this.hp -= this.dmgMult == null ? dmg : Math.max(1, Math.round(dmg * this.dmgMult));
     flash(this.mesh);
     if (this.hp <= 0) { this.defeat(); return true; }
     return false;

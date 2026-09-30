@@ -514,6 +514,14 @@ export function unlockGlider() {
   emit('glider');
   return true;
 }
+/** mount('sword' | 'mech' | 'car' | null): put the player in a vehicle (null: on foot). */
+export function mount(kind = 'car') { env.mount?.(kind); }
+// engine pieces region scripts kept importing by hand
+export { heal } from './player.js';
+export { openModal, closeModal } from './modal.js';
+export { dealDamage } from './combat.js';
+export { h, icon } from './util.js';
+
 /** Travel somewhere: travel('hub' | regionId, at?: [x, z]). */
 export function travel(to, at = null) { return env.travel?.(to, at); }
 

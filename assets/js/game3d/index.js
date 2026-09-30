@@ -168,6 +168,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     say: (who, text, ms) => director?.say(who, text, ms),
     setSky: (sky) => applySky(sky),
     cinematic: (pose) => rig.cinematic(pose, pose.seconds),
+    mount: (kind) => vehicles.set(kind || null),
   });
   // a graduate keeps the (game) Dr. title across reloads, wherever they are
   if (S.world.title) import('./regions/finale.js').then((m) => m.installDrTitle()).catch(() => {});
