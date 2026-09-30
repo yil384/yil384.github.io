@@ -482,3 +482,8 @@ body.is-glitch #page { filter: hue-rotate(90deg) saturate(1.6); }
   * { color: #000 !important; }
 }
 html:not(.js) .bar__plain, html:not(.js) .bar__eggs, html:not(.js) #sound-btn { display: none; }
+
+/* long BibTeX lines scroll inside their box instead of widening the page */
+.pub, .pub > div, .ach__body, .pub__more, .pub__more details { min-width: 0; max-width: 100%; }
+.pub pre { max-width: 100%; overflow-x: auto; }
+html, body { overflow-x: clip; }

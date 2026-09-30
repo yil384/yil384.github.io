@@ -63,6 +63,7 @@ const ROWS = [
   [['E'], 'action on the focused item'],
   [['C'], 'copy BibTeX (on a paper)'],
   [['B'], 'bonk the nearest critter'],
+  [['P'], 'walk the page (arrows, Space jumps)'],
   [['R'], 'Reviewer mode (plain CV)'],
   [['W'], 'take control of the scholar'],
   [['`'], 'terminal'],
