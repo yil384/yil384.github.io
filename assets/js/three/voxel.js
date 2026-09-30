@@ -1,7 +1,7 @@
 // Pixel-art ASCII grid -> voxel InstancedMesh (one instance per voxel, per-instance colour
 // and per-instance emissive for selective bloom). Works on WebGPU and the WebGL2 fallback.
 import * as THREE from 'three/webgpu';
-import { instancedBufferAttribute, float, vec3 } from 'three/tsl';
+import { instancedBufferAttribute } from 'three/tsl';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 const _geo = new Map();
