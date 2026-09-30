@@ -215,7 +215,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   const gliders = [];
   for (let i = 0; i < 3; i++) {
     const g = makeActor('paraglider', { scale: 0.42, maxHalf: 1 });
-    g.userData.orbit = { r: 44 + i * 9, a: i * 2.1 + 0.4, y: 14 + i * 7, w: (0.028 + i * 0.006) * (i % 2 ? -1 : 1) };
+    g.userData.orbit = { r: 68 + i * 8, a: i * 2.1 + 0.4, y: 18 + i * 7, w: (0.028 + i * 0.006) * (i % 2 ? -1 : 1) };
     for (const f of g.userData.frames) f.castShadow = false;
     g.userData.pickId = `glider-${i}`;
     pickables.push({ id: `glider-${i}`, root: g, label: 'A paraglider', egg: 'glider' });
@@ -260,7 +260,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   group.add(orbit);
 
   // the moon is a clickable egg; it hangs low behind the island as seen from the opening shot
-  sky.placeMoon(-0.5, 0.3);
+  sky.placeMoon(-0.45, 0.3);
   sky.moonHit.userData.pickId = 'moon';
   pickables.push({ id: 'moon', root: sky.moonHit, label: 'Make a wish', egg: 'moon' });
 
@@ -276,9 +276,12 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   const A = anchors;
   const sub = (a, dy = 0) => [A[a].x, A[a].y + dy, A[a].z];
   const shots = {
-    hero:    { look: [4, A.tower.y + 3, 1], yaw: -0.5, pitch: 0.36, dist: 112, shiftX: 0.13, fov: 34, stand: [2.2, 5.6], face: 0.4 },
+    // the whole island, a diorama in the night sea, Geisel at the heart
+    hero:    { look: [3, A.tower.y + 1, 5], yaw: -0.45, pitch: 0.5, dist: 150, shiftX: 0.13, fov: 34, stand: [2.2, 5.6], face: 0.4 },
     about:   { look: [1.5, A.tower.y + 4.5, 5.5], yaw: -0.3, pitch: 0.34, dist: 40, shiftX: 0.2, fov: 34, stand: [1.5, 6.4], face: 0.2 },
-    edu:     { look: [1.5, A.tower.y + 6, -1], yaw: 0.22, pitch: 0.3, dist: 74, shiftX: 0.14, fov: 36, stand: [4.5, 5.5], face: 0.5 },
+    // one steady shot of both campuses (the scholar beams from the Second Gate to CSE): seen from the
+    // south-west so the two sit close together on screen, in the half the Education card leaves free
+    edu:     { look: [(G.x + C.x) / 2 + 1, A.tower.y + 7, (G.z + C.z) / 2 - 1], yaw: -0.9, pitch: 0.38, dist: 72, shiftX: 0.3, fov: 36, stand: [4.5, 5.5], face: 0.5 },
     cse:     { look: sub('cse', 8), yaw: 0.35, pitch: 0.22, dist: 38, shiftX: 0.2, fov: 34, stand: [C.x - 3, C.z + 6.5], face: 0.2 },
     gate:    { look: sub('gate', 4.5), yaw: 3.45, pitch: 0.3, dist: 34, shiftX: 0.2, fov: 34, stand: [G.x + 2.5, G.z - 4], face: 3.14 },
     library: { item: 'tower', look: [T.x, A.tower.y + 15, T.z], yaw: -0.55, pitch: 0.16, dist: 72, shiftX: 0.2, fov: 36, stand: [0.4, 4.2], face: 0.1 },
@@ -286,19 +289,20 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     'book-reh2o':  { look: sub('book-reh2o'), yaw: 0.2, pitch: 0.14, dist: 34, shiftX: 0.2, fov: 34, stand: [3.5, 5], face: 0.6 },
     trail:   { look: [0.5, A['flag-tencent'].y + 3, A['flag-tencent'].z - 1], yaw: -0.35, pitch: 0.24, dist: 46, shiftX: 0.2, fov: 36, stand: [6.5, -4], face: 0.9 },
     workshop:{ look: [15, A.camp.y + 5, -16], yaw: 3.5, pitch: 0.4, dist: 52, shiftX: 0.2, fov: 36, stand: [camp.unit7.x + 2, camp.unit7.z + 3], face: 3.0 },
-    workbench:{ look: sub('workbench', 1.5), yaw: 3.5, pitch: 0.32, dist: 26, shiftX: 0.2, fov: 34, stand: [camp.bench.x - 3, camp.bench.z + 1.5], face: 1.6 },
+    workbench:{ look: sub('workbench', 1.5), yaw: 3.45, pitch: 0.66, dist: 26, shiftX: 0.2, fov: 34, stand: [camp.bench.x - 3, camp.bench.z + 1.5], face: 1.6 },
     meadow:  { look: [20, A.sungod.y + 3, 8], yaw: 0.85, pitch: 0.3, dist: 64, shiftX: 0.2, fov: 36, stand: [MB.x - 2, MB.z + 1.5], face: 1.5 },
-    sungod:  { look: sub('sungod', 3), yaw: -0.35, pitch: 0.24, dist: 34, shiftX: 0.2, fov: 34, stand: [SG.x - 4, SG.z + 2], face: 1.2 },
-    pier:    { look: [P.x + 14, A.pier.y + 2, P.z], yaw: 0.5, pitch: 0.2, dist: 44, shiftX: 0.2, fov: 34, stand: [P.x - 1.5, P.z + 1.5], face: 1.5 },
+    sungod:  { look: sub('sungod', 3), yaw: 0.3, pitch: 0.26, dist: 34, shiftX: 0.2, fov: 34, stand: [SG.x - 4, SG.z + 2], face: 1.2 },
+    pier:    { look: [P.x + 12, A.pier.y + 2, P.z], yaw: 0.78, pitch: 0.24, dist: 46, shiftX: 0.2, fov: 34, stand: [P.x - 1.5, P.z + 1.5], face: 1.5 },
     mailbox: { look: sub('mailbox', 0), yaw: 0.75, pitch: 0.34, dist: 34, shiftX: 0.2, fov: 34, stand: [MB.x - 2, MB.z + 1], face: 1.5 },
   };
   for (const f of LAYOUT.flags) {
-    shots[f.id] = { look: sub(f.id, -1.5), yaw: -0.4, pitch: 0.3, dist: 30, shiftX: 0.2, fov: 34, stand: [f.x + 1.6, f.z + 2.2], face: 0.3 };
+    shots[f.id] = { look: sub(f.id, -1.5), yaw: -0.25, pitch: 0.32, dist: 30, shiftX: 0.2, fov: 34, stand: [f.x + 1.6, f.z + 2.2], face: 0.3 };
   }
-  shots['mon-starry'] = { look: sub('mon-starry', 1), yaw: 3.3, pitch: 0.2, dist: 40, shiftX: 0.2, fov: 34, stand: [M.starry.x - 0.5, M.starry.z - 4.5], face: 3.14 };
-  shots['mon-im'] = { look: sub('mon-im', 1), yaw: 3.14, pitch: 0.2, dist: 40, shiftX: 0.2, fov: 34, stand: [M.im.x - 1, M.im.z - 4.5], face: 3.14 };
-  shots['mon-oj'] = { look: sub('mon-oj', 1), yaw: 3.0, pitch: 0.2, dist: 40, shiftX: 0.2, fov: 34, stand: [M.oj.x - 1, M.oj.z - 5], face: 3.1 };
-  shots['mon-triton'] = { look: sub('mon-triton', 3), yaw: 2.75, pitch: 0.18, dist: 38, shiftX: 0.2, fov: 34, stand: [M.triton.x - 3, M.triton.z - 4.5], face: 3.14 };
+  // (the Warren Mall buildings stand behind the monuments now: these look down a little more)
+  shots['mon-starry'] = { look: sub('mon-starry', 1), yaw: 3.3, pitch: 0.42, dist: 34, shiftX: 0.2, fov: 34, stand: [M.starry.x - 0.5, M.starry.z - 4.5], face: 3.14 };
+  shots['mon-im'] = { look: sub('mon-im', 1), yaw: 3.14, pitch: 0.42, dist: 34, shiftX: 0.2, fov: 34, stand: [M.im.x - 1, M.im.z - 4.5], face: 3.14 };
+  shots['mon-oj'] = { look: sub('mon-oj', 1), yaw: 3.0, pitch: 0.42, dist: 34, shiftX: 0.2, fov: 34, stand: [M.oj.x - 1, M.oj.z - 5], face: 3.1 };
+  shots['mon-triton'] = { look: sub('mon-triton', 3), yaw: 2.75, pitch: 0.5, dist: 36, shiftX: 0.2, fov: 34, stand: [M.triton.x - 3, M.triton.z - 4.5], face: 3.14 };
 
   // ---------------------------------------------------------------- highlight state
   let focusId = null;

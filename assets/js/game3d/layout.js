@@ -12,8 +12,8 @@ export const LAYOUT = {
     { id: 'pier', cx: 28.5, cz: 7, hx: 2.5, hz: 4, h: 2, type: 'SAND' },
     { id: 'sun',  cx: 18,  cz: 12, hx: 4,  hz: 4,  h: 3, type: 'GRASS' },
     // the outer campus (heights follow the ground: `auto` takes the median of what was there)
-    { id: 'libwalk', cx: -8, cz: 22, hx: 3, hz: 8.5, h: 3, type: 'PAVE', auto: true, ramp: 3 },
-    { id: 'price', cx: -9, cz: 41, hx: 11, hz: 6, h: 3, type: 'PAVE', auto: true, ramp: 3 },
+    { id: 'libwalk', cx: -24, cz: 21, hx: 3, hz: 7, h: 3, type: 'PAVE', auto: true, ramp: 3 },
+    { id: 'price', cx: -20, cz: 40, hx: 10, hz: 6, h: 3, type: 'PAVE', auto: true, ramp: 3 },
     { id: 'rimac', cx: -18, cz: -39, hx: 12, hz: 5, h: 4, type: 'PAVE', auto: true, ramp: 3 },
     { id: 'warren', cx: 13, cz: -42.5, hx: 13, hz: 5.5, h: 4, type: 'PAVE', auto: true, ramp: 3 },
     { id: 'glider', cx: 40, cz: -28, hx: 4, hz: 3, h: 10, type: 'DIRT', ramp: 0 },
@@ -44,8 +44,8 @@ export const LAYOUT = {
   seals: [{ x: 29.5, z: 13.5 }, { x: 30, z: 0.5 }],
 
   // ---- the outer campus (districts.js builds them; world.js shapes the ground) ----
-  libwalk: { x0: -11, x1: -5, z0: 14, z1: 30 },   // Library Walk runs south from the plaza
-  price: { x: -9, z: 41 },                        // Price Center plaza (food stands, tables)
+  libwalk: { x0: -27, x1: -21, z0: 14, z1: 28 },  // Library Walk runs south along the eucalyptus
+  price: { x: -20, z: 40 },                       // Price Center plaza (food stands, tables)
   rimac: { x: -13, z: -40, field: { x: -25, z: -39 } },
   warren: { x: 13, z: -42.5 },                    // Warren Mall, Jacobs School buildings
   mesa: { x0: 34, z1: -20, h: 10 },               // the Torrey Pines mesa (cliffs to Black's Beach)
@@ -53,7 +53,7 @@ export const LAYOUT = {
   gliderport: { x: 40, z: -28 },
   blacks: { x: 46, z: -33 },
   // the campus shuttle loop (closed; Catmull-Rom through these points)
-  loop: [[30, -28], [31, -14], [27, -6], [25, 2], [25, 14], [23, 24], [14, 31], [0, 33], [-14, 33], [-28, 30],
+  loop: [[30, -28], [31, -14], [27, -6], [25, 2], [25, 14], [23, 24], [14, 31], [0, 33], [-12, 31], [-26, 30],
     [-38, 20], [-42, 4], [-40, -12], [-29, -23], [-18, -30], [-4, -31], [12, -32], [24, -32]],
   stops: [{ at: 4, name: 'Scripps Pier' }, { at: 8, name: 'Price Center' }, { at: 15, name: 'RIMAC' }, { at: 17, name: 'Warren' }],
 

@@ -80,8 +80,9 @@ export function createAmbient(world, parent, { lowfx = false, loop } = {}) {
     }
   };
   const LW = LAYOUT.libwalk;
-  lane(16, -8, LW.z0 + 1, -8, LW.z1, 2.2, 1.5);
-  lane(3, -8, LW.z0 + 1, -8, LW.z1, 1.6, 4.2, 'skate');
+  const lwx = (LW.x0 + LW.x1) / 2;
+  lane(16, lwx, LW.z0 + 1, lwx, LW.z1, 2.2, 1.5);
+  lane(3, lwx, LW.z0 + 1, lwx, LW.z1, 1.6, 4.2, 'skate');
   const Wp = LAYOUT.plots.find((p) => p.id === 'warren');
   lane(9, Wp.cx - Wp.hx + 1, -42.5, Wp.cx + Wp.hx - 1, -42.5, 1.6, 1.4);
   lane(2, Wp.cx - Wp.hx + 1, -42.5, Wp.cx + Wp.hx - 1, -42.5, 1.2, 4.5, 'skate');

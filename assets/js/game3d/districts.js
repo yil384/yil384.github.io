@@ -62,13 +62,14 @@ export function buildDistricts(world, parent, { lowfx = false } = {}) {
       }
     }
     // the arch at the plaza end
-    for (const x of [LW.x0, LW.x1]) { for (let yy = 1; yy <= 6; yy++) put(x, y + yy, LW.z0, '#e5e7eb'); hub.block(x, LW.z0); }
-    for (let x = LW.x0; x <= LW.x1; x++) put(x, y + 7, LW.z0, x % 2 ? '#1f3b73' : '#f2c14e', 0.1);
-    sign({ id: 'libwalk', text: 'Library Walk', sub: 'Fiat lux · clubs, flyers, free snacks', colour: '#f2c14e', x: -8, y: y + 5.6, z: LW.z0 + 0.1, yaw: 0, w: 5.2, h: 1.3 });
+    for (const x of [LW.x0, LW.x1]) { for (let yy = 1; yy <= 4; yy++) put(x, y + yy, LW.z0, '#e5e7eb'); hub.block(x, LW.z0); }
+    for (let x = LW.x0; x <= LW.x1; x++) put(x, y + 5, LW.z0, x % 2 ? '#1f3b73' : '#f2c14e', 0.1);
+    sign({ id: 'libwalk', text: 'Library Walk', sub: 'Fiat lux · clubs, flyers, free snacks', colour: '#f2c14e', x: (LW.x0 + LW.x1) / 2, y: y + 3.7, z: LW.z0 + 0.1, yaw: 0, w: 5.2, h: 1.3 });
     // club tables with coloured cloths
     const CLOTH = ['#ef4444', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6', '#ec4899'];
-    [[LW.x0 + 1, LW.z0 + 5], [LW.x1 - 1, LW.z0 + 8], [LW.x0 + 1, LW.z0 + 11], [LW.x1 - 1, LW.z0 + 14]].forEach(([x, z], i) => {
+    [[LW.x0 + 1, LW.z0 + 4], [LW.x1 - 1, LW.z0 + 7], [LW.x0 + 1, LW.z0 + 10], [LW.x1 - 1, LW.z0 + 12]].forEach(([x, z], i) => {
       for (const dz of [0, 1]) put(x, y + 1, z + dz, CLOTH[i % CLOTH.length]);
+      void i;
       put(x, y + 2, z, '#f8fafc', 0.25);
       block(x, x, z, z + 1);
     });
@@ -85,7 +86,7 @@ export function buildDistricts(world, parent, { lowfx = false } = {}) {
     // food stands along the north edge, facing the plaza
     const FOOD = [['Tacos', '#ef4444', 'al pastor · veggie'], ['Boba', '#a855f7', 'milk tea · extra pearls'], ['Coffee', '#b45309', 'fuel for paper deadlines'], ['Noodles', '#f59e0b', 'hot, fast, cheap']];
     FOOD.forEach(([name, colour, sub], i) => {
-      const cx = x0 + 6 + i * 5, zb = z0;
+      const cx = x0 + 5 + i * 4, zb = z0;
       for (let yy = 1; yy <= 3; yy++) {
         for (let x = cx - 1; x <= cx + 1; x++) put(x, y + yy, zb, '#475569');
         for (const x of [cx - 1, cx + 1]) put(x, y + yy, zb + 1, '#64748b');
@@ -144,9 +145,9 @@ export function buildDistricts(world, parent, { lowfx = false } = {}) {
     const Wp = plot('warren'), y = Wp.h;
     const x0 = Math.ceil(Wp.cx - Wp.hx), x1 = Math.floor(Wp.cx + Wp.hx), z0 = Math.ceil(Wp.cz - Wp.hz), z1 = Math.floor(Wp.cz + Wp.hz);
     const CONC = ['#c9cfd8', '#bec5d0', '#d3d8e0'];
-    const t1 = building(x0 + 1, x0 + 11, z0, z0 + 2, y, 4, { wall: CONC, lobby: 's', litP: 0.66 });
+    const t1 = building(x0 + 1, x0 + 11, z0, z0 + 2, y, 3, { wall: CONC, lobby: 's', litP: 0.66 });
     building(x0 + 14, x1 - 1, z0, z0 + 2, y, 3, { wall: ['#b9c0cc', '#aeb6c3'], lobby: 's', litP: 0.6, band: 2 });
-    building(x0 + 16, x1 - 1, z1 - 2, z1, y, 2, { wall: ['#d6c7ae', '#cbbca3'], lobby: 'n', litP: 0.7 });
+    building(x0 + 16, x1 - 1, z1 - 2, z1, y, 1, { wall: ['#d6c7ae', '#cbbca3'], lobby: 'n', litP: 0.7 });
     sign({ id: 'jacobs', text: 'Jacobs School', sub: 'of Engineering', colour: '#0ea5e9', x: x0 + 6, y: t1 - 0.4, z: z0 + 2 + 0.55, yaw: 0, w: 5.5, h: 1.3, back: false });
     // the mall: planters and a post at the west entrance
     for (let x = x0 + 2; x <= x0 + 12; x += 5) for (const z of [z1 - 2, z1 - 1]) { put(x, y + 1, z, '#6b7280'); put(x, y + 2, z, '#3f8f4f'); hub.block(x, z); }

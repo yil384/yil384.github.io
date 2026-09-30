@@ -33,8 +33,8 @@ export const ZONES = {
   door:    { x: -14, z: -14, r: 4,  label: 'Sealed door' },
   chamber: { x: -20, z: -18, r: 4.5, label: 'Secret chamber' },
   // the outer campus
-  libwalk: { x: -8,  z: 22,  r: 7,  label: 'Library Walk' },
-  price:   { x: -9,  z: 41,  r: 9,  label: 'Price Center' },
+  libwalk: { x: -24, z: 21,  r: 7,  label: 'Library Walk' },
+  price:   { x: -20, z: 40,  r: 9,  label: 'Price Center' },
   forest:  { x: -42, z: 2,   r: 17, label: 'Eucalyptus forest' },
   rimac:   { x: -16, z: -39, r: 11, label: 'RIMAC Arena' },
   warren:  { x: 13,  z: -42, r: 11, label: 'Warren Mall · Jacobs School' },
@@ -161,6 +161,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     if (r > DISC - 3.5) on = false;
     else if (z > -15 && z < 27 && x > bayX(z)) on = false;
     else if (mesaSector(x, z)) on = r <= 57;
+    else if (x > 30 && z > -20 && z <= -9) on = r <= 57;              // the beach round the headland to the cove
     else on = r <= coastR(x, z) || (nearPlot(x, z, 3) && r < DISC - 5);
     LAND[idx(x, z)] = on ? 1 : 0;
   }
@@ -201,7 +202,8 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     if (!LAND[i]) continue;
     const r = Math.hypot(x, z);
     let h = 2 + Math.round(2.6 * noise(x * 0.11, z * 0.11) + 1.4 * noise2(x * 0.3, z * 0.3) - 1.2);
-    const k = smooth(28, 42, r);
+    // hills grow toward the north and west; the south (where the tour cameras stand) stays gentle
+    const k = smooth(28, 42, r) * (1 - 0.72 * smooth(-2, 16, z) * (1 - smooth(-40, -28, x)));
     if (k > 0) h += Math.round(k * (noise3(x * 0.055 + 3, z * 0.055 + 7) * 7.5 - 2));
     let type = TYPE.GRASS;
     if (x < -27 + 8 * (noise4(x * 0.1, z * 0.1) - 0.5) && r > 24) type = TYPE.FOREST;
@@ -217,7 +219,8 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     if (dPeak < 3.5) h = 9;
     if (dShadow < ZONES.shadow.r) { h = Math.max(2, h - 1); type = TYPE.SHADOW; }
     if (dChamber < ZONES.chamber.r + 1.5) { h = 3; type = TYPE.STONE; }
-    // the Torrey Pines mesa and Black's Beach below its cliff
+    // the Torrey Pines mesa and Black's Beach below its cliff (a sand strip leads round to the cove)
+    if (x > 30 && z > -16 && z <= -9 && r > 50.5) { h = r > 53 ? 1 : 2; type = TYPE.SAND; FIX[i] = 1; }
     if (mesaSector(x, z)) {
       if (r <= 54 && x >= M.x0 && z <= M.z1) { h = M.h; type = TYPE.DRY; FIX[i] = 1; } else if (r > 54) { h = r > 55.6 ? 1 : 2; type = TYPE.SAND; FIX[i] = 1; }
     }
@@ -357,7 +360,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
   };
   for (const k of ['meadow', 'camp', 'ice', 'shadow', 'peak', 'door']) carve(0, 0, ZONES[k].x, ZONES[k].z);
   carve(ZONES.door.x, ZONES.door.z, ZONES.chamber.x, ZONES.chamber.z);
-  carve(-3, 7, -8, 13.5);                                    // plaza -> Library Walk
+  carve(-6, 8, -24, 13.5);                                   // plaza -> Library Walk
   carve(14, -12, 12, -36);                                   // Jacobs Yard -> Warren Mall
   carve(-2, -8, -12, -33);                                   // plaza -> RIMAC
   carve(-20, 6, -40, 4);                                     // the grove -> the forest
@@ -371,7 +374,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     T[i] = TYPE.FIELD;
     if (Math.abs(x - RF.x) === 4 || Math.abs(z - RF.z) === 4 || x === RF.x) D[i] = 2;
   }
-  for (let z = LAYOUT.libwalk.z0; z <= LAYOUT.libwalk.z1; z++) { const x = -8; if (land(x, z) && T[idx(x, z)] === TYPE.PAVE) D[idx(x, z)] = 3; }
+  for (let z = LAYOUT.libwalk.z0; z <= LAYOUT.libwalk.z1; z++) { const x = (LAYOUT.libwalk.x0 + LAYOUT.libwalk.x1) / 2; if (land(x, z) && T[idx(x, z)] === TYPE.PAVE) D[idx(x, z)] = 3; }
   for (let x = 1; x <= 25; x++) for (const z of [-43, -42]) if (land(x, z) && T[idx(x, z)] === TYPE.PAVE && x % 3) D[idx(x, z)] = 3;
 
   // ---------------------------------------------------------------- the sea floor
@@ -584,7 +587,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     for (let n = 0; n < count && tries < 200; tries++) {
       const a = rand() * Math.PI * 2, r = rMin + rand() * Math.max(0.5, zn.r - 0.5 - rMin);
       const x = Math.round(zn.x + Math.cos(a) * r), z = Math.round(zn.z + Math.sin(a) * r);
-      if (!walkable(x, z) || typeAt(x, z) === TYPE.PATH || typeAt(x, z) === TYPE.ROAD || height(x, z) < 1) continue;
+      if (!walkable(x, z) || typeAt(x, z) === TYPE.PATH || typeAt(x, z) === TYPE.ROAD || height(x, z) < 1 || FIX[idx(x, z)] || nearPlot(x, z, 0.5) && !['meadow', 'camp', 'plaza'].includes(zoneKey)) continue;
       if (placed.some(([px, pz]) => dist2(px, pz, x, z) < minGap)) continue;
       placed.push([x, z]);
       cb(x, z);
@@ -628,14 +631,12 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
       n++;
     }
   };
-  scatter(9, [22, 48, 20, 50], 4, (x, z) => T[idx(x, z)] !== TYPE.SAND, addPine);                        // the bluffs
+  // (the south of the island is where the page's cameras stand: it keeps to lawns, low palms and bushes)
+  scatter(4, [40, 52, 26, 46], 4, (x, z) => T[idx(x, z)] !== TYPE.SAND, addPine);                       // the far bluffs
   scatter(5, [26, 50, -52, -18], 5, (x, z) => T[idx(x, z)] === TYPE.DRY && !(Math.abs(x - 40) < 7 && Math.abs(z + 28) < 6), addPine); // the mesa
-  scatter(6, [-26, 10, 26, 36], 4, () => true, addPalm);                                                 // around the loop in the south
-  scatter(5, [-34, 30, -54, -30], 4, () => true, addJacaranda);                                          // north campus
-  scatter(8, [-40, 30, -30, 40], 4, (x, z) => T[idx(x, z)] === TYPE.GRASS && Math.hypot(x, z) > 30, addEucalyptus);
-  for (const x of [LAYOUT.libwalk.x0 - 2, LAYOUT.libwalk.x1 + 2]) for (let z = LAYOUT.libwalk.z0 + 2; z <= LAYOUT.libwalk.z1 - 1; z += 6) {
-    if (freeFor(x, z, 2)) { placed.push([x, z]); addJacaranda(x, z); }
-  }
+  scatter(4, [-34, -2, -54, -30], 4, () => true, addJacaranda);                                          // north campus
+  scatter(6, [-40, 30, -40, 4], 4, (x, z) => T[idx(x, z)] === TYPE.GRASS && Math.hypot(x, z) > 30, addEucalyptus);
+  scatter(lowfx ? 8 : 14, [-30, 40, 14, 50], 2, (x, z) => T[idx(x, z)] === TYPE.GRASS, (x, z) => addBush(x, z, ['#3f8f4f', '#4fa35a']));
   // chaparral on the mesa, beach grass on the dunes
   scatter(lowfx ? 20 : 40, [30, 56, -54, -18], 1.5, (x, z) => T[idx(x, z)] === TYPE.DRY, (x, z) => addBush(x, z, ['#6f7a3e', '#7f8a45']));
   scatter(lowfx ? 10 : 22, [-60, 60, -60, 60], 2, (x, z) => T[idx(x, z)] === TYPE.GRASS && coastD[idx(x, z)] <= 5, (x, z) => addBush(x, z, ['#4d8f4f', '#5aa25a']));
