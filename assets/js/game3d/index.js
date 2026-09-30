@@ -212,7 +212,12 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   let awakeUntil = performance.now() + 2500;   // under reduced motion, render only while something is happening
   let last = performance.now();
   let slow = 0;
+  // ?perf=1: per-frame probe (simulation ms, render-submit ms, draw calls, triangles) on window.__perf
+  const perf = q.get('perf') === '1' ? { n: 0, sim: 0, render: 0, calls: 0, tris: 0, reset() { Object.assign(this, { n: 0, sim: 0, render: 0, calls: 0, tris: 0 }); } } : null;
+  if (perf) window.__perf = perf;
   function frame(dt, t) {
+    const t0 = perf ? performance.now() : 0;
+    if (perf) { renderer.info.autoReset = false; renderer.info.reset(); }
     if (mode.play) {
       if (!modalOpen()) {
         advance(dt * 1000);
@@ -247,7 +252,9 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     const sh = fx.shakeOffset();
     if (sh) { rig.cam.position.x += (Math.random() - 0.5) * sh; rig.cam.position.y += (Math.random() - 0.5) * sh; }
     fx.updateFx(modalOpen() ? 0 : dt);
+    const t1 = perf ? performance.now() : 0;
     pipeline.render();
+    if (perf) { perf.n++; perf.sim += t1 - t0; perf.render += performance.now() - t1; perf.calls += renderer.info.render.drawCalls; perf.tris += renderer.info.render.triangles; }
   }
   function step() {
     const now = performance.now();

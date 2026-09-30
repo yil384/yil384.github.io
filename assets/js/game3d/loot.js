@@ -12,6 +12,7 @@ import { toast, banner } from './notify.js';
 import { h, pick, icon } from './util.js';
 import { makeActor, makeOrb } from './actors.js';
 import * as fx from './fx.js';
+import { where } from './where.js';
 import { sfx } from './audio.js';
 
 let world = null, scene = null;
@@ -44,7 +45,7 @@ export function initLoot(w, s) {
 export const tokenMarkers = () => tokens.filter((t) => !t.taken).map((t) => ({ x: t.x, z: t.z }));
 
 export function updateLoot(dt) {
-  for (const t of tokens) {
+  if (where.id === 'hub') for (const t of tokens) {
     if (t.taken) continue;
     t.anim += dt * 2;
     const cx = t.x + t.ox, cz = t.z + t.oz;
@@ -62,7 +63,7 @@ export function updateLoot(dt) {
   }
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
-    if (clock.t > d.expires) { remove(d); drops.splice(i, 1); continue; }
+    if (clock.t > d.expires || d.region !== where.id) { remove(d); drops.splice(i, 1); continue; }
     d.anim += dt * 3;
     d.mesh.position.y = d.y + 0.6 + Math.sin(d.anim) * 0.12;
     d.mesh.rotation.y += dt;
@@ -118,8 +119,8 @@ function maybeDrop(target) {
   mesh.position.set(target.x, y + 0.6, target.z);
   scene.add(mesh);
   const tag = h('div', { class: 'g__tag', style: { '--rc': RARITY_COLOR[it.rarity] } }, icon(it.icon, { size: 14 }), it.name);
-  const d = { id, x: target.x, y, z: target.z, mesh, tag, expires: clock.t + 22000, anim: 0 };
-  d.unpin = fx.pin(tag, () => ({ x: d.x, y: d.y + 1.4, z: d.z }));
+  const d = { id, x: target.x, y, z: target.z, mesh, tag, expires: clock.t + 22000, anim: 0, region: where.id };
+  d.unpin = fx.pin(tag, () => ({ x: d.x, y: d.y + 1.4, z: d.z }), { region: where.id });
   drops.push(d);
 }
 

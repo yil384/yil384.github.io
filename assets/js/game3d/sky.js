@@ -94,29 +94,31 @@ export function buildSky(scene, { lowfx = false } = {}) {
   // ---- clouds: small flattened voxel puffs far out, mostly below the island, on a slow drift ----
   const cloudMat = new THREE.MeshStandardNodeMaterial({ color: '#b9c3f0', roughness: 1, emissive: '#3b4285', emissiveIntensity: 0.5 });
   const box = new THREE.BoxGeometry(1, 1, 1);
-  const clouds = [];
+  // every puff of every cloud in ONE instanced mesh (was one draw call per cloud); the ring of clouds
+  // turns slowly as a whole instead of each cloud sliding on its own
   const CLOUDS = lowfx ? 12 : 22;
+  const puffList = [];
+  const cm = new THREE.Matrix4(), pm = new THREE.Matrix4();
   for (let i = 0; i < CLOUDS; i++) {
     const cell = 1.8 + rand() * 1.6;
     const puffs = 5 + Math.floor(rand() * 6);
-    const mesh = new THREE.InstancedMesh(box, cloudMat, puffs);
-    const m = new THREE.Matrix4();
-    for (let k = 0; k < puffs; k++) {
-      const sx = cell * (1.5 + rand() * 1.5), sz = cell * (1.3 + rand() * 1.2), sy = cell * (0.5 + rand() * 0.35);
-      m.compose(new THREE.Vector3((k - puffs / 2) * cell * 1.25 + (rand() - 0.5) * cell, (rand() - 0.5) * cell * 0.4, (rand() - 0.5) * cell * 1.5),
-        new THREE.Quaternion(), new THREE.Vector3(sx, sy, sz));
-      mesh.setMatrixAt(k, m);
-    }
     const a = rand() * Math.PI * 2;
     const r = 105 + rand() * 90;                       // well outside the camera's orbit
     const high = rand() < 0.25;
-    mesh.position.set(Math.cos(a) * r, high ? 24 + rand() * 40 : -34 + rand() * 22, Math.sin(a) * r);
-    mesh.rotation.y = rand() * Math.PI;
-    mesh.userData.speed = (0.4 + rand() * 0.8) * (rand() < 0.5 ? 1 : -1);
-    mesh.frustumCulled = false;
-    group.add(mesh);
-    clouds.push(mesh);
+    cm.compose(new THREE.Vector3(Math.cos(a) * r, high ? 24 + rand() * 40 : -34 + rand() * 22, Math.sin(a) * r),
+      new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rand() * Math.PI), new THREE.Vector3(1, 1, 1));
+    for (let k = 0; k < puffs; k++) {
+      const sx = cell * (1.5 + rand() * 1.5), sz = cell * (1.3 + rand() * 1.2), sy = cell * (0.5 + rand() * 0.35);
+      pm.compose(new THREE.Vector3((k - puffs / 2) * cell * 1.25 + (rand() - 0.5) * cell, (rand() - 0.5) * cell * 0.4, (rand() - 0.5) * cell * 1.5),
+        new THREE.Quaternion(), new THREE.Vector3(sx, sy, sz));
+      puffList.push(pm.clone().premultiply(cm));
+    }
   }
+  const clouds = new THREE.InstancedMesh(box, cloudMat, puffList.length);
+  puffList.forEach((m, i) => clouds.setMatrixAt(i, m));
+  clouds.instanceMatrix.needsUpdate = true;
+  clouds.frustumCulled = false;
+  group.add(clouds);
 
   // ---- shooting stars ----
   const streaks = [];
@@ -156,10 +158,7 @@ export function buildSky(scene, { lowfx = false } = {}) {
     /** A burst of shooting stars (the moon egg). */
     shower(seconds = 6) { shower = seconds; },
     update(dt) {
-      if (!reducedMotion.matches) for (const c of clouds) {
-        c.position.x += c.userData.speed * dt;
-        if (c.position.x > 200) c.position.x = -200; else if (c.position.x < -200) c.position.x = 200;
-      }
+      if (!reducedMotion.matches) clouds.rotation.y += dt * 0.004;
       nextStreak -= dt;
       if (shower > 0) { shower -= dt; if (Math.random() < dt * 9) launch(); }
       else if (nextStreak <= 0) { nextStreak = 9 + rand() * 14; launch(); }

@@ -114,7 +114,7 @@ export function initSecret(w, s) {
     return orb;
   });
   door.plate = h('div', { class: 'g__plate g__plate--door' }, h('b', null, 'Sealed door'), h('span', { class: 'g__plate-hint' }));
-  fx.pin(door.plate, () => ({ x: door.x, y: door.y + 5.6, z: door.z }));
+  fx.pin(door.plate, () => ({ x: door.x, y: door.y + 5.6, z: door.z }), { region: 'hub' });
 
   const zc = ZONES.chamber;
   chest.x = zc.x; chest.z = zc.z; chest.y = world.surfaceY(zc.x, zc.z);
@@ -122,7 +122,7 @@ export function initSecret(w, s) {
   chest.mesh.position.set(chest.x, chest.y, chest.z);
   scene.add(chest.mesh);
   chest.plate = h('div', { class: 'g__plate g__plate--chest' }, h('b', null, 'Chest'), h('span', { class: 'g__plate-hint' }, h('kbd', null, 'E'), ' open'));
-  fx.pin(chest.plate, () => ({ x: chest.x, y: chest.y + 2.6, z: chest.z }));
+  fx.pin(chest.plate, () => ({ x: chest.x, y: chest.y + 2.6, z: chest.z }), { region: 'hub' });
 
   world.sealChamber(!S.secret.unsealed);
   syncDoor();

@@ -11,11 +11,12 @@ import {
 import { player, reward, fullRestore, refreshLook } from './player.js';
 import { openModal, closeModal } from './modal.js';
 import { spriteImg } from './pixelart.js';
-import { makeActor } from './actors.js';
+import { mergeSprites } from './actors.js';
 import { toast, banner } from './notify.js';
 import { h, esc, pick, randInt, clamp } from './util.js';
 import { sfx } from './audio.js';
 import { ZONES } from './world.js';
+import { isLive } from './where.js';
 
 const T = () => S.trainer;
 
@@ -235,6 +236,8 @@ const GRASS_PATCHES = { meadow: [[3, 5], [-5, -1], [6, -2], [-1, 6]], camp: [[3,
 
 export function initMonsters(world, scene) {
   activeId();
+  // every tuft of every patch is one instanced mesh (was one draw call per tuft, ~90 of them)
+  const tufts = [];
   for (const [zone, spots] of Object.entries(GRASS_PATCHES)) {
     for (const [ox, oz] of spots) {
       const zn = ZONES[zone];
@@ -242,19 +245,16 @@ export function initMonsters(world, scene) {
       if (!world.walkable(x, z)) continue;
       for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
         if (!world.walkable(x + dx, z + dz) || world.isBlocked(x + dx, z + dz) || world.typeAt(x + dx, z + dz) === world.TYPE.PATH) continue;
-        const tuft = makeActor('grass', { scale: 0.11, maxHalf: 3 });
-        tuft.position.set(x + dx, world.surfaceY(x + dx, z + dz) - 0.1, z + dz);
-        tuft.rotation.y = Math.random() * 6.28;
-        for (const f of tuft.userData.frames) f.castShadow = false;
-        scene.add(tuft);
+        tufts.push({ x: x + dx, y: world.surfaceY(x + dx, z + dz) - 0.1, z: z + dz, rotY: Math.random() * 6.28, scale: 0.11 });
       }
       grass.push({ x, z, zone, r: 1.9 });
     }
   }
+  if (tufts.length) scene.add(mergeSprites('grass', tufts, { maxHalf: 3 }));
 }
 function grassAt(x, z) { for (const g of grass) if (Math.hypot(x - g.x, z - g.z) < g.r) return g; return null; }
 export function updateGrass() {
-  if (battle || player.dead) return;
+  if (battle || player.dead || !isLive('hub') || player.vehicle || !player.grounded) return;
   const g = grassAt(player.x, player.z);
   if (!g || !player.walking || clock.t < encounterCooldown) { lastStep = { x: player.x, z: player.z }; return; }
   if (Math.hypot(player.x - lastStep.x, player.z - lastStep.z) < 0.9) return;

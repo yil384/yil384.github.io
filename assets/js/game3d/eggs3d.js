@@ -170,12 +170,14 @@ export function initWorldEggs(world) {
       found('sleep');
     } else if (asleep && ++zzz % 6 === 0) director.say('me', rand(['Zzz…', 'zzz… one more epoch…', 'Zzz… accepted… zzz…']), 3800);
   }, 1000);
-  // lying down: a small tilt each frame while asleep (placeActors only sets yaw)
+  // lying down: a small tilt each frame while asleep (placeActors only sets yaw); the loop only runs while asleep
+  let tilting = false;
   const tilt = () => {
-    if (asleep && !reducedMotion.matches) player.mesh.rotation.z += (1.35 - player.mesh.rotation.z) * 0.08;
+    if (!asleep) { tilting = false; return; }
+    if (!reducedMotion.matches) player.mesh.rotation.z += (1.35 - player.mesh.rotation.z) * 0.08;
     requestAnimationFrame(tilt);
   };
-  requestAnimationFrame(tilt);
+  setInterval(() => { if (asleep && !tilting) { tilting = true; requestAnimationFrame(tilt); } }, 1000);
 
   world.eggs = { has };
   if (window.__g) window.__g.eggs = world.eggs;

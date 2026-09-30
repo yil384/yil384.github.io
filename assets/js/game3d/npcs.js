@@ -18,6 +18,7 @@ import * as games from './minigames.js';
 import { SPECIES } from './data.js';
 import { openDossier } from './dossier.js';
 import { found } from '../site/eggs.js';
+import { isLive } from './where.js';
 
 // id -> where they stand (zone + offset), sprite, name, and what they say.
 const NPCS = {
@@ -175,25 +176,35 @@ export function initNpcs(w, scene) {
     const zn = ZONES[cfg.zone];
     let x = zn.x + cfg.dx, z = zn.z + cfg.dz;
     for (let t = 0; t < 30 && (!world.walkable(x, z) || world.isBlocked(x, z)); t++) { x += (Math.random() - 0.5) * 2; z += (Math.random() - 0.5) * 2; }
-    const mesh = makeActor(cfg.sprite, { scale: 0.2 });
-    const y = world.surfaceY(x, z);
-    mesh.position.set(x, y, z);
-    mesh.rotation.y = cfg.face;
-    mesh.userData.pickId = `npc:${id}`;
-    mesh.userData.pickLabel = cfg.name;
-    scene.add(mesh);
-    const npc = { id, cfg, x, y, z, mesh, near: false, anim: Math.random() * 6, h: mesh.userData.height };
-    npc.plate = h('div', { class: 'g__plate' },
-      h('span', { class: 'g__plate-mark', 'aria-hidden': 'true' }, '!'),
-      h('b', null, cfg.name),
-      h('span', { class: 'g__plate-hint' }, h('kbd', null, 'E'), ' talk'),
-    );
-    fx.pin(npc.plate, () => ({ x: npc.x, y: npc.y + npc.h + 0.9, z: npc.z }));
-    npcs.push(npc);
+    addNpc({ id, cfg, x, z, parent: scene, region: 'hub' });
   }
   on('boss:defeated', syncNpcs);
   on('capture', syncNpcs);
   syncNpcs();
+}
+
+/**
+ * Add an islander. cfg = { name, sprite, face, talk: () => node, scale? }; world coordinates.
+ * Region NPCs (regions.js spawnNpc) use this too, so E-to-talk, plates, bubbles and dialogs all work.
+ */
+export function addNpc({ id, cfg, x, z, parent, region = 'hub', mesh = null }) {
+  const m = mesh || makeActor(cfg.sprite, { scale: cfg.scale || 0.2 });
+  const y = world.surfaceY(x, z);
+  m.position.set(x, y, z);
+  m.rotation.y = cfg.face || 0;
+  m.userData.pickId = `npc:${id}`;
+  m.userData.pickLabel = cfg.name;
+  parent.add(m);
+  const npc = { id, cfg, x, y, z, mesh: m, near: false, anim: Math.random() * 6, h: m.userData.height || 3, region };
+  npc.plate = h('div', { class: 'g__plate' },
+    h('span', { class: 'g__plate-mark', 'aria-hidden': 'true' }, '!'),
+    h('b', null, cfg.name),
+    h('span', { class: 'g__plate-hint' }, h('kbd', null, 'E'), ' talk'),
+  );
+  npc.unpin = fx.pin(npc.plate, () => ({ x: npc.x, y: npc.y + npc.h + 0.9, z: npc.z }), { region, nearOnly: true });
+  npcs.push(npc);
+  syncNpcs();
+  return npc;
 }
 
 function hasNews(id) {
@@ -201,11 +212,12 @@ function hasNews(id) {
   return !S.npcsMet.includes(id);
 }
 function syncNpcs() {
-  for (const n of npcs) n.plate.classList.toggle('has-news', hasNews(n.id));
+  for (const n of npcs) n.plate.classList.toggle('has-news', n.cfg.news ? !!n.cfg.news() : hasNews(n.id));
 }
 
 export function updateNpcs(dt) {
   for (const n of npcs) {
+    if (!isLive(n.region)) continue;
     n.anim += dt * 2;
     n.mesh.position.y = n.y + Math.abs(Math.sin(n.anim)) * 0.08;
     const near = Math.hypot(player.x - n.x, player.z - n.z) < 4;
@@ -217,24 +229,25 @@ export function updateNpcs(dt) {
 export function nearestNpc(range = 4) {
   let best = null, bd = range;
   for (const n of npcs) {
+    if (!isLive(n.region)) continue;
     const d = Math.hypot(player.x - n.x, player.z - n.z);
     if (d < bd) { bd = d; best = n; }
   }
   return best;
 }
 
-export const npcMarkers = () => npcs.map((n) => ({ x: n.x, z: n.z, news: hasNews(n.id) }));
+export const npcMarkers = () => npcs.filter((n) => isLive(n.region)).map((n) => ({ x: n.x, z: n.z, news: n.cfg.news ? !!n.cfg.news() : hasNews(n.id) }));
 
 // ---------------------------------------------------------------- dialog
 let typer = 0;
 
 export function talk(npc) {
   if (isModalOpen('dialog')) return;
-  if (!S.npcsMet.includes(npc.id)) {
+  if (npc.region === 'hub' && !S.npcsMet.includes(npc.id)) {
     S.npcsMet.push(npc.id);
     save();
     emit('npc:met', npc.id);
-  }
+  } else if (npc.region !== 'hub') emit('npc:talk', { id: npc.id, region: npc.region });
   syncNpcs();
   sfx('open');
   let state = null;

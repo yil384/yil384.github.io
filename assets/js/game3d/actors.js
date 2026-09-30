@@ -1,6 +1,7 @@
 // Voxel actors: sprite meshes on the island with frame animation, facing and hit flash.
 import * as THREE from 'three/webgpu';
-import { voxelSprite } from '../three/voxel.js';
+import { instancedBufferAttribute } from 'three/tsl';
+import { voxelSprite, voxelize } from '../three/voxel.js';
 import { ART, VARIANTS } from '../three/art.js';
 
 const DEFAULT_GLOW = {
@@ -24,6 +25,41 @@ export function makeActor(name, { scale = 0.2, glow = null, maxHalf = 2 } = {}) 
   g.userData.width = Math.max(...art.frames[0].map((r) => r.length)) * scale;
   for (const f of g.userData.frames) { f.castShadow = true; f.receiveShadow = false; }
   return g;
+}
+
+/**
+ * Many static copies of one sprite in ONE draw call (grass, trees, crates…). Frame 0, no glow unless
+ * given. places: [{ x, y, z, rotY = 0, scale = 0.2 }] in the parent's space; y is the feet.
+ */
+export function mergeSprites(name, places, { glow = null, maxHalf = 2, shadow = false } = {}) {
+  const base = VARIANTS[name] ? VARIANTS[name][0] : name;
+  const art = ART[base];
+  if (!art) throw new Error(`unknown sprite ${name}`);
+  const src = voxelize(art, { overrides: VARIANTS[name] ? VARIANTS[name][1] : null, glow: glow || DEFAULT_GLOW[name] || DEFAULT_GLOW[base] || {}, maxHalf, bevel: 0 });
+  const n = src.count;
+  const mesh = new THREE.InstancedMesh(src.geometry, src.material, Math.max(1, n * places.length));
+  const glowSrc = src.material.emissiveNode?.value?.array || null;
+  const glowArr = glowSrc ? new Float32Array(n * places.length * 3) : null;
+  const vm = new THREE.Matrix4(), pm = new THREE.Matrix4(), c = new THREE.Color();
+  const q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+  places.forEach((pl, k) => {
+    const sc = pl.scale ?? 0.2;
+    pm.compose(p.set(pl.x, pl.y, pl.z), q.setFromAxisAngle(up, pl.rotY || 0), s.set(sc, sc, sc));
+    for (let i = 0; i < n; i++) {
+      src.getMatrixAt(i, vm);
+      mesh.setMatrixAt(k * n + i, vm.premultiply(pm));
+      src.getColorAt(i, c);
+      mesh.setColorAt(k * n + i, c);
+      if (glowArr) for (let j = 0; j < 3; j++) glowArr[(k * n + i) * 3 + j] = glowSrc[i * 3 + j];
+    }
+  });
+  mesh.count = n * places.length;
+  if (glowArr) { const mat = src.material.clone(); mat.emissiveNode = instancedBufferAttribute(new THREE.InstancedBufferAttribute(glowArr, 3), 'vec3'); mesh.material = mat; }
+  mesh.instanceMatrix.needsUpdate = true;
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  mesh.castShadow = shadow;
+  mesh.receiveShadow = false;
+  return mesh;
 }
 
 /** Flash an actor white for a moment (hit feedback). */

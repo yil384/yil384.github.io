@@ -2,6 +2,7 @@
 // and floating combat text (DOM labels projected through the camera).
 import * as THREE from 'three/webgpu';
 import { makeRing } from './actors.js';
+import { where } from './where.js';
 
 let scene, camera, labelRoot, overlay;
 const particles = { mesh: null, alive: [], max: 320, free: [] };
@@ -22,7 +23,8 @@ export function initFx({ scene: s, camera: c, root }) {
   particles.mesh = new THREE.InstancedMesh(geo, mat, particles.max);
   particles.mesh.frustumCulled = false;
   particles.mesh.count = 0;
-  for (let i = 0; i < particles.max; i++) particles.free.push(i);
+  _m.makeScale(0, 0, 0);
+  for (let i = 0; i < particles.max; i++) { particles.free.push(i); particles.mesh.setMatrixAt(i, _m); }
   particles.data = new Array(particles.max).fill(null);
   scene.add(particles.mesh);
 }
@@ -71,32 +73,58 @@ export function text(x, y, z, str, kind = 'dmg') {
   labels.push({ el, x: x + (Math.random() - 0.5) * 0.6, y, z, t: 0, life: kind === 'crit' ? 1.2 : 1.0 });
 }
 
+// The overlay size is cached (read on resize only): reading clientWidth inside the per-frame loop,
+// right after writing transforms, forced a synchronous layout on every frame.
+const size = { w: 1, h: 1 };
+export function setViewSize(w, h) { size.w = w || 1; size.h = h || 1; }
+
 /** Project a world point to overlay pixels. Returns null when it is behind the camera. */
 export function project(x, y, z) {
   _v.set(x, y, z).project(camera);
   if (_v.z > 1) return null;
-  return { sx: (_v.x + 1) / 2 * overlay.clientWidth, sy: (1 - _v.y) / 2 * overlay.clientHeight };
+  return { sx: (_v.x + 1) / 2 * size.w, sy: (1 - _v.y) / 2 * size.h };
 }
 
 // Persistent DOM labels attached to a world point (NPC nameplates, drop tags, door prompt).
+//   region:   only shown while that region is live ('hub' for the island); null = everywhere
+//   nearOnly: hidden (and not re-projected) while the camera is far away (tour overview shots)
 const pins = [];
-export function pin(el, getPos) {
+export function pin(el, getPos, { region = null, nearOnly = false } = {}) {
   labelRoot.append(el);
-  const p = { el, getPos };
+  const p = { el, getPos, region, nearOnly, shown: true, tx: '' };
   pins.push(p);
   return () => { el.remove(); const i = pins.indexOf(p); if (i >= 0) pins.splice(i, 1); };
 }
+function showPin(p, on) {
+  if (p.shown === on) return;
+  p.shown = on;
+  p.el.style.display = on ? '' : 'none';
+}
 
+let camKey = '';
 export function updateFx(dt) {
+  // pins: only touch the DOM when a pin actually moved on screen (≥ 1 px) or changed visibility
+  const e = camera.matrixWorld.elements;
+  const ck = `${e[12].toFixed(3)},${e[13].toFixed(3)},${e[14].toFixed(3)},${e[8].toFixed(4)},${e[9].toFixed(4)},${e[10].toFixed(4)},${size.w},${size.h}`;
+  const camMoved = ck !== camKey;
+  camKey = ck;
   for (const p of pins) {
+    if ((p.region && p.region !== where.id) || (p.nearOnly && !where.near)) { showPin(p, false); continue; }
     const w = p.getPos();
-    const s = w && project(w.x, w.y, w.z);
-    if (!s) { p.el.style.display = 'none'; continue; }
-    p.el.style.display = '';
-    p.el.style.transform = `translate(-50%, -100%) translate(${s.sx.toFixed(0)}px, ${s.sy.toFixed(0)}px)`;
+    if (!w) { showPin(p, false); continue; }
+    const pk = `${w.x.toFixed(2)},${w.y.toFixed(2)},${w.z.toFixed(2)}`;
+    if (!camMoved && p.shown && pk === p.pk) continue;
+    p.pk = pk;
+    const s = project(w.x, w.y, w.z);
+    if (!s || s.sx < -300 || s.sx > size.w + 300 || s.sy < -300 || s.sy > size.h + 300) { showPin(p, false); continue; }
+    const tx = `translate(-50%, -100%) translate(${s.sx.toFixed(0)}px, ${s.sy.toFixed(0)}px)`;
+    if (tx !== p.tx) { p.tx = tx; p.el.style.transform = tx; }
+    showPin(p, true);
   }
-  // particles
+  // particles (the instance buffer is only re-uploaded while some are alive, plus one clearing frame)
   const P = particles;
+  const had = P.alive.length > 0 || P.dirty;
+  P.dirty = P.alive.length > 0;
   for (let i = P.alive.length - 1; i >= 0; i--) {
     const idx = P.alive[i];
     const d = P.data[idx];
@@ -114,8 +142,8 @@ export function updateFx(dt) {
     _m.makeScale(s, s, s).setPosition(d.x, d.y, d.z);
     P.mesh.setMatrixAt(idx, _m);
   }
-  P.mesh.count = P.max;
-  P.mesh.instanceMatrix.needsUpdate = true;
+  if (had) { P.mesh.count = P.max; P.mesh.instanceMatrix.needsUpdate = true; }
+  else if (P.mesh.count) P.mesh.count = 0;
   // rings
   for (let i = rings.length - 1; i >= 0; i--) {
     const r = rings[i];
@@ -133,7 +161,7 @@ export function updateFx(dt) {
     b.m.material.opacity = 0.95 * (1 - k);
   }
   // labels: project to screen
-  const w = overlay.clientWidth, h = overlay.clientHeight;
+  const w = size.w, h = size.h;
   for (let i = labels.length - 1; i >= 0; i--) {
     const l = labels[i];
     l.t += dt;
@@ -144,6 +172,9 @@ export function updateFx(dt) {
     l.el.style.opacity = l.t < l.life * 0.7 ? 1 : 1 - (l.t - l.life * 0.7) / (l.life * 0.3);
   }
 }
+
+/** Anything animating right now (particles, rings, beams, floating text)? The tour loop keeps full rate while true. */
+export const busy = () => particles.alive.length > 0 || rings.length > 0 || beams.length > 0 || labels.length > 0 || performance.now() < shakeUntil;
 
 export function clearFx() {
   for (const r of rings) scene.remove(r.m);
