@@ -317,6 +317,8 @@ export function buildStage(world, scene, { lowfx = false } = {}) {
 
   let hatT = -1;
   let fallT = -1;
+  let fly = null;                     // { t, dur, at(i) -> {x,y,z} }
+  const _fly = new THREE.Vector3();
 
   const stage = {
     group, sky, anchors, shots, pickables, items, hat, sungod, triton, mailbox, judge, tower, cse, seals,
@@ -328,6 +330,9 @@ export function buildStage(world, scene, { lowfx = false } = {}) {
     get collapsing() { return fallT >= 0; },
     /** The striped hat pops onto the tower (and off again). */
     hatTrick() { hat.visible = true; hatT = 0; },
+    /** The paragliders swoop to `at(i)` (a world point per glider, read every frame) for `seconds`, then return to their orbits. */
+    flyby(at, seconds = 7) { if (!fly && typeof at === 'function') fly = { t: 0, dur: Math.max(2, seconds), at }; },
+    get gliderCount() { return gliders.length; },
     find(id) { return pickables.find((p) => p.id === id) || null; },
     /**
      * Ray test against everything pickable plus `extra` roots (actors that carry userData.pickId).
@@ -383,13 +388,26 @@ export function buildStage(world, scene, { lowfx = false } = {}) {
         c.rotation.y += dt * 1.2;
       }
       // paragliders drift around the island, banking into the turn
-      for (const g of gliders) {
+      // (a flyby pulls them off their orbit toward points the caller supplies, then lets them drift back)
+      let flyW = 0;
+      if (fly) {
+        fly.t += dt;
+        const k = fly.t / fly.dur;
+        if (k >= 1) fly = null;
+        else { const e = Math.min(1, k / 0.3, (1 - k) / 0.3); flyW = e * e * (3 - 2 * e) * 0.92; }
+      }
+      gliders.forEach((g, i) => {
         const o = g.userData.orbit;
         if (!calm) o.a += dt * o.w;
         g.position.set(Math.cos(o.a) * o.r, o.y + Math.sin(t * 0.6 + o.a * 3) * 0.8, Math.sin(o.a) * o.r);
         g.rotation.y = -o.a + (o.w > 0 ? 0 : Math.PI) + Math.PI / 2;
         g.rotation.z = (o.w > 0 ? -1 : 1) * 0.22;
-      }
+        const p = flyW > 0 ? fly?.at(i) : null;
+        if (p) {
+          g.position.lerp(_fly.set(p.x, p.y + Math.sin(t * 1.3 + i) * 0.4, p.z), flyW);
+          g.rotation.z *= 1 - flyW;
+        }
+      });
       // sun god sways, seals breathe
       if (!calm) {
         sungod.rotation.z = Math.sin(t * 1.1) * 0.03;

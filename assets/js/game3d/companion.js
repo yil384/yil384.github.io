@@ -12,7 +12,7 @@ import * as fx from './fx.js';
 import { sfx } from './audio.js';
 import { toast } from './notify.js';
 
-export const buddy = { id: null, x: 0, y: 0, z: 0, lastShot: -1e9, sigReadyAt: 0, mesh: null, anim: 0 };
+export const buddy = { id: null, x: 0, y: 0, z: 0, lastShot: -1e9, sigReadyAt: 0, mesh: null, anim: 0, hop: 0 };
 let scene = null;
 let world = null;
 
@@ -61,7 +61,10 @@ export function updateCompanion(dt) {
       friendly: true, damage: power(sp), radius: 0.7, element: sp.type, source: 'buddy', kind: sp.field.proj, trail: TYPE_COLOR[sp.type], size: 0.8,
     });
   }
-  buddy.mesh.position.set(buddy.x, buddy.y + Math.abs(Math.sin(buddy.anim)) * 0.2, buddy.z);
+  // a pet from the page makes Bit hop (buddy.hop counts down from 0.5 s)
+  let hop = 0;
+  if (buddy.hop > 0) { buddy.hop = Math.max(0, buddy.hop - dt); hop = Math.sin((1 - buddy.hop / 0.5) * Math.PI) * 1.4; }
+  buddy.mesh.position.set(buddy.x, buddy.y + Math.abs(Math.sin(buddy.anim)) * 0.2 + hop, buddy.z);
   buddy.mesh.rotation.y = t ? Math.atan2(t.x - buddy.x, t.z - buddy.z) : Math.atan2(player.x - buddy.x, player.z - buddy.z);
   buddy.mesh.userData.setFrame(Math.floor(buddy.anim / 2) % 2);
 }

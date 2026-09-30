@@ -19,6 +19,8 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   const compactMQ = matchMedia('(max-width: 860px)');
 
   let enabled = true;
+  let paused = false;                 // the page asked the world to sleep (Reviewer mode)
+  let pulseTimer = 0;
   let sections = [];
   let focusEls = [];
   let currentEl = null;
@@ -51,6 +53,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   }
   /** A short speech bubble above an actor: 'me' (scholar), 'bit', or an npc id. */
   function say(who, text, ms = 5200) {
+    if (paused) return;                 // nothing would move the bubble while the loop is stopped
     const pos = actorPos(who);
     if (!pos || !text) return;
     bubbles.get(who)?.remove();
@@ -265,7 +268,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   measure();
   queueEval();
 
-  return {
+  const api = {
     say,
     scan,
     walkTo(x, z) { tour.stand(x, z, null); },
@@ -277,9 +280,29 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     },
     setEnabled(on) {
       enabled = on;
-      if (!on) { tip.hidden = true; setLit(null); stage.setHover(null); worldEl.style.cursor = ''; }
+      if (!on) { clearTimeout(pulseTimer); tip.hidden = true; setLit(null); stage.setHover(null); worldEl.style.cursor = ''; }
       else { currentSig = ''; queueEval(); }
     },
+    /** Light a landmark for `ms` as if hovered, then hand hover back to the pointer. A newer pulse replaces the older. */
+    pulse(key, ms = 1500) {
+      if (!enabled || !key) return;
+      clearTimeout(pulseTimer);
+      stage.setHover(key);
+      pulseTimer = setTimeout(() => { if (enabled) stage.setHover(hoverEl?.dataset.focus || null); }, ms);
+    },
+    /** The page went plain: stop reacting, drop bubbles. On resume the shot is re-applied. */
+    setPaused(on) {
+      if (on === paused) return;
+      paused = on;
+      if (on) {
+        for (const b of [...bubbles.values()]) b.remove();
+        api.setEnabled(false);
+      } else {
+        api.setEnabled(true);
+        api.retarget();
+      }
+    },
+    get paused() { return paused; },
     get currentKey() { return currentKey; },
     get pointerIdleMs() { return performance.now() - lastPointer.at; },
     update(dt) {
@@ -293,4 +316,5 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
       if (Math.abs(p - progress) > 0.002) { progress = p; emit('progress', p); }
     },
   };
+  return api;
 }

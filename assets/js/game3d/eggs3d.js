@@ -140,7 +140,7 @@ export function initWorldEggs(world) {
   let lastHint = 0;
   setInterval(() => {
     const idle = performance.now() - lastActive;
-    if (world.playing || document.hidden || asleep || idle < 24000 || performance.now() - lastHint < 45000) return;
+    if (world.playing || world.paused || document.hidden || asleep || idle < 24000 || performance.now() - lastHint < 45000) return;
     const pool = available().filter((e) => e.kind !== 'game' && !has(e.id) && e.id !== 'sleep');
     if (!pool.length) return;
     lastHint = performance.now();
@@ -162,7 +162,7 @@ export function initWorldEggs(world) {
   for (const ev of ['pointerdown', 'keydown', 'wheel', 'scroll', 'touchstart']) window.addEventListener(ev, wake, { passive: true });
   window.addEventListener('pointermove', (e) => { if (Math.abs(e.movementX) + Math.abs(e.movementY) > 2) wake(); }, { passive: true });
   setInterval(() => {
-    if (world.playing || document.hidden) { lastActive = performance.now(); return; }
+    if (world.playing || world.paused || document.hidden) { lastActive = performance.now(); return; }
     if (!asleep && performance.now() - lastActive > 55000 && !world.tour.busy) {
       asleep = true;
       zzz = 0;

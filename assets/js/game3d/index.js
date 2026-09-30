@@ -35,6 +35,7 @@ import { initHud, updateHud, flashSlot } from './hud.js';
 import { openAchievements, openInventory, openParty, openHelp, openGameOver } from './panels.js';
 import { sfx, startMusic, stopMusic } from './audio.js';
 import { h } from './util.js';
+import { initPageLink } from './pagelink.js';
 
 const BG = '#070a12';
 const SPAWN = { x: 1.5, z: 6 };
@@ -396,7 +397,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
 
   // ---- modes ----
   function enterPlay() {
-    if (mode.play) return;
+    if (mode.play || paused) return;
     mode.play = true;
     document.documentElement.classList.add('is-play');
     director.setEnabled(false);
@@ -440,15 +441,38 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   if (q.get('intro') !== '0' && !reducedMotion.matches) intro();
   wake();
 
+  // ---- pause (the page's Reviewer mode): stop rendering and the director, resume where the page is ----
+  let paused = false;
+  function setPaused(on) {
+    on = !!on;
+    if (on === paused) return;
+    if (on) {
+      if (mode.play) exitPlay();
+      paused = true;
+      renderer.setAnimationLoop(null);
+      director.setPaused(true);
+      fx.clearFx();                     // floating labels would otherwise freeze on screen
+    } else {
+      paused = false;
+      director.setPaused(false);
+      last = performance.now();
+      resize(renderer);
+      renderer.setAnimationLoop(step);
+      wake();
+    }
+  }
+
   const api = {
     world, stage, director, rig, tour, renderer, backend, lowfx, scene,
-    enterPlay, exitPlay,
+    enterPlay, exitPlay, setPaused,
     get playing() { return mode.play; },
+    get paused() { return paused; },
     say: (who, text, ms) => director.say(who, text, ms),
     talk, npcs, player, buddy, fx, toast, banner,
     invalidate: wake,
     dispose() { renderer.setAnimationLoop(null); },
   };
   window.__g = { S, player, buddy, clock, world, stage, rig, director, scene, renderer, backend, lowfx, bosses, enemies, npcs, liveTargets, emit, on, modalOpen, teleport, mode, ZONES, ...api };
+  try { initPageLink(api); } catch (err) { console.warn('[pagelink] failed to start:', err); }
   return api;
 }
