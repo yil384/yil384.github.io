@@ -151,6 +151,8 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     setSky: (sky) => applySky(sky),
     cinematic: (pose) => rig.cinematic(pose, pose.seconds),
   });
+  // a graduate keeps the (game) Dr. title across reloads, wherever they are
+  if (S.world.title) import('./regions/finale.js').then((m) => m.installDrTitle()).catch(() => {});
   const mover = createMover({ world, input, rig, onFallOut: () => { found('faceplant'); travelApi.respawnHere('fall'); } });
   const vehicles = createVehicles({ scene, world, input, rig, mover, onOut: () => travelApi.respawnHere('fall') });
   travelApi = createTravel({
