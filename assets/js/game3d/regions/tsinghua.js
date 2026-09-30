@@ -304,7 +304,7 @@ export default {
         endQuestion(true);
         findDiploma();
         if (first) {
-          cinematic(ctx, { x: 0, y: 10, z: -19.5, pitch: 0.3, dist: 22, seconds: 2.6 });
+          cinematic(ctx, { x: 0, y: 14.5, z: -19.5, yaw: 0, pitch: 0.35, dist: 24, seconds: 2.6 });
           setTimeout(() => say('me', 'B.S. in Computer Science & Technology. 2021 to 2025. Worth every Deadline Imp.'), 2700);
         } else say('me', 'Passed. Again.');
       },
@@ -393,7 +393,7 @@ export default {
       onEnter: () => {
         if (!boss.alive || st().examIntroAt > Date.now() - 60000) return;
         st().examIntroAt = Date.now();
-        cinematic(ctx, { x: 0, y: 4, z: -9, pitch: 0.35, dist: 15, seconds: 2 });
+        cinematic(ctx, { x: 0, y: 5, z: -9, yaw: 0, pitch: 0.5, dist: 16, seconds: 2 });
         banner('The Final Exam', 'Closed book. Open sword. When a question appears, stand on the right answer.', 'scroll-text');
       },
     });
@@ -476,7 +476,7 @@ export default {
           choices: [
             { label: 'Can I use a calculator?', next: { text: 'You may use a sword and a small glowing companion. Calculators are considered unfair.', choices: [{ label: 'Understood' }] } },
             { label: 'What if I fail?', next: { text: 'Nothing! You wake up at the Second Gate and try again. It is a very forgiving exam. Unlike some.', choices: [{ label: 'Phew' }] } },
-            { label: 'Show me the exam', action: () => cinematic(ctx, { x: 0, y: 4, z: -9, pitch: 0.35, dist: 16, seconds: 2.2 }) },
+            { label: 'Show me the exam', action: () => cinematic(ctx, { x: 0, y: 5, z: -9, yaw: 0, pitch: 0.5, dist: 16, seconds: 2.2 }) },
             { label: 'Bye' },
           ],
         };
@@ -602,6 +602,13 @@ export default {
       },
     });
     props(ctx, [[17, 13, -19, '#0f172a'], [17, 14, -19, '#22d3ee', 1.4]], { block: true });
+
+    // -- the window that is always lit
+    const findLate = egg('thu-3am', 'Still debugging', 'One window of the CS&T building never goes dark.', 'Someone in CS&T is always debugging at 3 a.m. It is a tradition. (A joke. Mostly.)');
+    interactable(ctx, {
+      x: 22.6, z: -18, r: 2, label: 'A window that is always lit', prompt: 'E · look up', plateY: 7,
+      onInteract: () => { findLate(); say('me', 'Still debugging up there. Good luck. It’s always a missing semicolon, or a race condition.'); },
+    });
 
     // -- the auditorium dome (stacked platforms up its west side)
     platform(ctx, { x: -9, z: -15, w: 2, d: 2, y: 4.5, color: '#b45309' });

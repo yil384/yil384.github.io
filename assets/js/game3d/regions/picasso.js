@@ -9,6 +9,7 @@ import {
   interactable, trigger, pickup, portal, quest, egg, say, banner, toast, sfx, dialog, cinematic,
   onUpdate, onEnter, hash3,
 } from '../regions.js';
+import { heal } from '../player.js';
 import { PIC_ART, PIC_GLOW } from './art-picasso.js';
 
 // ---------------------------------------------------------------- layout (region-local cells)
@@ -147,6 +148,9 @@ export default {
     for (let x = -19; x <= -17; x++) put(Bk, x, 4, -12, '#475569');                            // simulator console
     put(Bk, -18, 5, -12, '#a78bfa', 1.6);
 
+    // -- the coffee machine (voxels)
+    put(Bk, 13, 4, 12, '#1f2937'); put(Bk, 13, 5, 12, '#374151'); put(S, 13, 5, 12.1, '#ef4444', 2); put(S, 13, 4, 12.12, '#78350f');
+
     // -- desks with monitors in the hall
     for (const [x, z] of [[-12, 16], [-12, 19], [11, 16], [11, 19]]) {
       for (let dx = -1; dx <= 1; dx++) put(Bk, x + dx, 4, z, '#57534e');
@@ -190,7 +194,7 @@ export default {
     ];
     const TCOL = ['#64748b', '#0891b2', '#2563eb', '#7c3aed', '#a855f7', '#db2777', '#f59e0b'];
     TIERS.forEach((tr, i) => {
-      platform(ctx, { x: 16, z: tr.z, w: 4, d: 2.6, y: tr.y, color: TCOL[i], glow: 0.25, move: tr.move || null });
+      platform(ctx, { x: 16, z: tr.z, w: 4, d: i === TIERS.length - 1 ? 3 : 2.6, y: tr.y, color: TCOL[i], glow: 0.25, move: tr.move || null });
       interactable(ctx, { x: 16, z: tr.z, r: 0.01, y: tr.move ? tr.y + 1.5 : tr.y, plateY: 1.3, label: tr.name, prompt: '' });
     });
     const findRegs = egg('pic-registers', 'Registers', 'Climb the memory hierarchy to the very top tier.', 'The fastest memory there is, and the smallest. You fit, barely.');
@@ -318,7 +322,7 @@ export default {
       onEnter: () => {
         if (!boss.alive || st().introAt > Date.now() - 60000) return;
         st().introAt = Date.now();
-        cinematic(ctx, { x: 0, y: 5, z: -10, pitch: 0.45, dist: 18, seconds: 2.2 });
+        cinematic(ctx, { x: 0, y: 6.5, z: -12, yaw: 0, pitch: 0.6, dist: 20, seconds: 2.2 });
         banner('Head-of-Line Blocker', 'One slow packet at the front, everyone else waiting. Route every lane to its lamp to break the shield.', 'magic-shield');
       },
     });
@@ -375,7 +379,7 @@ export default {
           choices: [
             { label: 'How do I fix the switch?', next: { text: 'Each memory device has a lamp: that is the GPU it should hear from. The lever next to each device changes which GPU its lane carries. Match every lane to its lamp and the Blocker loses its shield. If the switch updates its firmware mid-fight… well. Updates always happen mid-fight.', choices: [{ label: 'On it' }] } },
             { label: 'Why is there a simulator?', next: { text: 'Before anyone buys real CXL hardware, you simulate it. Somebody here built a CXL system simulator for large-model communication. I was in the simulation. It was very flattering.', choices: [{ label: 'Neat' }] } },
-            { label: 'Show me the switch', action: () => cinematic(ctx, { x: 0, y: 4, z: -6, pitch: 0.55, dist: 20, seconds: 2.4 }) },
+            { label: 'Show me the switch', action: () => cinematic(ctx, { x: 0, y: 7.5, z: -6, yaw: 0.3, pitch: 0.7, dist: 22, seconds: 2.4 }) },
             { label: 'How big are you, exactly?', next: { text: 'Rude. (Large.)', choices: [{ label: 'Sorry' }] } },
           ],
         };
@@ -421,6 +425,20 @@ export default {
     interactable(ctx, {
       x: 7, z: 13.7, r: 1.8, label: 'Wall calendar · 2024', prompt: 'E · read',
       onInteract: () => { findCal(); dialog({ text: '2024. In big letters: “Picasso Lab: Mar 2024 – Feb 2025.” In smaller handwriting, squeezed into the same boxes: “Disney+ Hotstar (Mar–Jun) · TiMi Studio (Jun–Jul) · Metabit (Sep–Nov).” Almost every day has a red mark.', note: 'Free weekends: not found.', choices: [{ label: 'Wow' }] }, { name: 'Calendar', sprite: 'book' }); },
+    });
+
+    // -- the coffee machine
+    const findCoffee = egg('pic-coffee', 'Free coffee', 'Find the lab’s coffee machine.', 'Lab fuel. The real reason anyone does research. (A joke. Mostly.)');
+    interactable(ctx, {
+      x: 13, z: 13.4, r: 1.8, label: 'Coffee machine', prompt: 'E · brew',
+      onInteract: () => dialog({
+        text: 'The lab coffee machine hums. A sticky note: “Free for lab members. Also free for visitors with swords.”',
+        choices: [
+          { label: 'Espresso', icon: 'health-potion', action: () => { findCoffee(); heal(40); sfx('heal'); say('me', 'Deadline mode: on.'); } },
+          { label: 'Decaf', next: { text: 'The machine pretends not to hear you.', choices: [{ label: 'Espresso, then', action: () => { findCoffee(); heal(40); sfx('heal'); } }] } },
+          { label: 'Leave' },
+        ],
+      }, { name: 'Coffee machine', sprite: 'robot' }),
     });
 
     // -- the simulator console
