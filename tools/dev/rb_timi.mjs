@@ -1,10 +1,20 @@
 export default async ({ p, ev, sim, check, shot }) => {
   const O = await ev(() => [window.__g.where.ox, window.__g.where.oz]);
+  // dialog choices only appear once the typewriter finishes: click the text to finish it, then pick
+  const pick = async (n) => {
+    await p.click('.modal.is-open .talk__text', { force: true, timeout: 5000 }).catch(() => {});
+    await p.click(`.modal.is-open .talk__choice >> nth=${n}`, { force: true, timeout: 10000 }).catch((e) => console.log('LOG click fail', e.message));
+  };
   const tp = (x, z) => ev(([x, z, O]) => { window.__g.teleport(x + O[0], z + O[1]); window.__g.player.hp = 999; }, [x, z, O]);
   const voice = async (text) => {
+    // teammates wander off after orders, so E (nearest NPC) is unreliable: E if Pip is close, else talk directly
     await tp(-3, 15.5); await sim(0.3);
-    await p.keyboard.press('KeyE'); await p.waitForTimeout(2500);
-    await p.click('.talk__choice >> nth=0', { force: true }).catch((e) => console.log('LOG click fail', e.message));
+    await p.keyboard.press('KeyE'); await p.waitForTimeout(400);
+    if (!(await ev(() => !!document.querySelector('.modal.is-open .talk__text')))) {
+      await ev(() => { const g = window.__g; g.closeAllModals(); g.talk(g.npcs.find((n) => n.id === 'tm-pip')); });
+      await p.waitForTimeout(400);
+    }
+    await pick(0); // "Give a voice command…"
     await p.waitForTimeout(600);
     const has = await ev(() => !!document.querySelector('.modal.is-open .typing__input'));
     if (!has) { console.log('LOG no voice input'); return false; }
@@ -14,11 +24,13 @@ export default async ({ p, ev, sim, check, shot }) => {
     await sim(0.5);
     return true;
   };
+  // Producer Pan (quest step 'pan')
+  await ev(() => { const g = window.__g; g.talk(g.npcs.find((n) => n.id === 'tm-pan')); });
+  await p.waitForTimeout(400); await pick(3); await ev(() => window.__g.closeAllModals()); // "Bye"
   check('voice modal', await voice('PIP, FOLLOW ME'));
-  await voice('跟上');
-  await voice('dance please');
-  await voice('blorp');
-  await voice('attack!');
+  let n = 0;
+  for (const t of ['跟上', 'dance please', 'blorp', 'attack!']) n += await voice(t) ? 1 : 0;
+  check('all voice commands reach the input', n === 4, n);
   // walk toward snapdrakes; teammates should move/attack
   const m0 = await ev(() => window.__g.npcs.filter((n) => n.region === 'timi').map((n) => [n.id, n.x.toFixed(1), n.z.toFixed(1)]));
   await tp(0, -6); await sim(3);

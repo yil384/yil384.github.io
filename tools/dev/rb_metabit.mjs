@@ -1,4 +1,10 @@
 export default async ({ p, ev, sim, check, shot }) => {
+  // dialog choices only appear once the typewriter finishes: click the text to finish it, then pick
+  const pick = async (n) => {
+    await p.click('.modal.is-open .talk__text', { force: true, timeout: 5000 }).catch(() => {});
+    await p.click(`.modal.is-open .talk__choice >> nth=${n}`, { force: true, timeout: 10000 }).catch((e) => console.log('LOG click fail', e.message));
+    await p.waitForTimeout(300);
+  };
   // candles move
   const c0 = await ev(() => window.__g.world.platforms.filter((q) => q.region === 'metabit').map((q) => q.top.toFixed(2)));
   await sim(1);
@@ -19,10 +25,13 @@ export default async ({ p, ev, sim, check, shot }) => {
   await useAt(-15.5, 16);
   const dlg = await ev(() => document.querySelector('.modal.is-open')?.textContent?.slice(0, 120));
   check('AI platform dialog opens', /AI PLATFORM/.test(dlg || ''), dlg);
-  await p.waitForTimeout(2500); await p.click('.talk__choice >> nth=1', { force: true }).catch((e) => console.log('LOG click fail', e.message)); await p.waitForTimeout(400);
+  await pick(1); // "Stream it, chunk by chunk"
   await ev(() => window.__g.closeAllModals());
   await useAt(7, 16.5); await ev(() => window.__g.closeAllModals());
   await useAt(10, 13); await ev(() => window.__g.closeAllModals());
+  // talk to Hedge (quest step 'hedge')
+  await ev(() => { const g = window.__g; g.talk(g.npcs.find((n) => n.id === 'metabit-hedge')); });
+  await p.waitForTimeout(400); await pick(3); await ev(() => window.__g.closeAllModals());
   // kill rows
   await ev(() => { const g = window.__g; for (const f of g.foes.filter((f) => f.region === 'metabit' && f.kindId === 'metabit-row')) f.hit(9999); for (const f of g.foes.filter((f) => f.region === 'metabit' && f.kindId === 'metabit-blob').slice(0, 1)) f.hit(9999); });
   await sim(0.6);

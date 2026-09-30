@@ -1,5 +1,10 @@
 export default async ({ p, ev, sim, check, shot }) => {
   const O = await ev(() => [window.__g.where.ox, window.__g.where.oz]);
+  // dialog choices only appear once the typewriter finishes: click the text to finish it, then pick
+  const pick = async (n) => {
+    await p.click('.modal.is-open .talk__text', { force: true, timeout: 5000 }).catch(() => {});
+    await p.click(`.modal.is-open .talk__choice >> nth=${n}`, { force: true, timeout: 10000 }).catch((e) => console.log('LOG click fail', e.message));
+  };
   const tp = (x, z) => ev(([x, z, O]) => { window.__g.teleport(x + O[0], z + O[1]); window.__g.player.hp = 999; }, [x, z, O]);
   // big screen spot
   await tp(0, 13); await sim(0.3); await tp(0, 10.5); await sim(0.5);
@@ -19,8 +24,9 @@ export default async ({ p, ev, sim, check, shot }) => {
     await ev(() => window.__g.closeAllModals());
   }
   // new user
-  await tp(-4, 11); await sim(0.3); await p.keyboard.press('KeyE'); await p.waitForTimeout(2500);
-  await p.click('.talk__choice >> nth=1', { force: true }).catch((e) => console.log('LOG click fail', e.message));
+  await tp(-4, 11); await sim(0.3); await p.keyboard.press('KeyE'); await p.waitForTimeout(400);
+  console.log('LOG DBG', JSON.stringify(await ev(() => { const g = window.__g; return [g.modalOpen(), g.player.dead, document.activeElement?.outerHTML?.slice(0, 80), [...document.querySelectorAll('.toast, [class*=toast]')].map((e) => e.textContent).join('|').slice(0, 300), g.player.x, g.player.z, g.player.y, document.querySelector('.modal.is-open')?.textContent?.slice(0, 80), g.foes.filter((f) => f.region === 'hotstar' && f.alive).map((f) => [f.kindId, f.x.toFixed(1), f.z.toFixed(1)])]; })));
+  await pick(1); // "Whatever is trending"
   await p.waitForTimeout(400); await ev(() => window.__g.closeAllModals());
   // boss: overfit damage then racks
   await tp(0, 1); await sim(1.5);
