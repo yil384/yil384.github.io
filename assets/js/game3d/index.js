@@ -317,7 +317,9 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     const m = player.mesh;
     const veh = player.vehicle;
     const inside = veh === 'car' || veh === 'mech';
-    m.visible = !player.dead && !inside;
+    // a wall right behind you can still bring the camera up to the head: then hide the scholar rather than
+    // filling the screen with the inside of a backpack
+    m.visible = !player.dead && !inside && !(mode.play && !rig.firstPerson && rig.tooClose);
     // smooth the step-ups (physics snaps a whole voxel), follow jumps and falls exactly
     visY = player.grounded && Math.abs(player.y - visY) < 1.2 ? visY + (player.y - visY) * Math.min(1, dt * 22 || 1) : player.y;
     const bob = player.walking && player.grounded && !veh ? Math.abs(Math.sin(player.t)) * 0.22 : 0;

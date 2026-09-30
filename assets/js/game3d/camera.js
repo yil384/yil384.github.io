@@ -34,6 +34,9 @@ export function createCamera() {
   let floor = null;               // (x, z) -> bare terrain y (no props), for the minimum camera height
   let occ = null;                 // eased camera distance after occlusion pull-in
   let occHold = 0, lift = 0;
+  let occPitch = 0;               // extra pitch while a wall behind the player leaves no room: look from above instead
+  let near = false;               // the camera ended up very close to the player (index.js hides the model)
+  const TP_MIN = 2.8;             // third person never comes closer than this (the head, the backpack…)
   let frameDt = 0.016;
   const occDt = () => { const d = frameDt; frameDt = 0; return d; }; // consumed once per update
   let lastFov = 0, lastSx = NaN, lastSy = NaN, lastW = 0, lastH = 0;
@@ -60,7 +63,9 @@ export function createCamera() {
     get firstPerson() { return fp; },
     /** Change in pose during the last update (world units + radians); ~0 when the camera is at rest. */
     get motion() { return motion; },
-    get debug() { return { occ, lift, dist: cur.dist, want: want.dist, look: cur.look }; },
+    get debug() { return { occ, lift, occPitch, dist: cur.dist, want: want.dist, look: cur.look }; },
+    /** Third person and the camera sits right behind the head: hide the player model instead of filling the view with it. */
+    get tooClose() { return near; },
     resize(w, h) { size.w = w; size.h = h; },
     setGround(fn, floorFn = null) { ground = fn; floor = floorFn; },
 
@@ -202,35 +207,54 @@ export function createCamera() {
       cam.position.copy(cur.look);
       _dir.set(-Math.sin(yaw) * Math.cos(fpPitch), -Math.sin(fpPitch), -Math.cos(yaw) * Math.cos(fpPitch));
       cam.lookAt(cam.position.x + _dir.x, cam.position.y + _dir.y, cam.position.z + _dir.z);
+      near = false;
     } else {
       if (!play && !reducedMotion.matches) {
         yaw += state.pointer.x * 0.05 + Math.sin(t * 0.11) * 0.025;
         pitch += -state.pointer.y * 0.025 + Math.sin(t * 0.09 + 1) * 0.008;
       }
-      const cp = Math.cos(pitch);
       let dist = cur.dist;
       // keep terrain out from between the camera and the player: march outward, pull in on a hit.
       // A single-cell hit (a lamp, a sign, a bench) is ignored so small props don't yank the camera;
       // the pull-in eases (fast in, slow back out) instead of snapping.
       const pdt = Math.min(occDt(), 0.1);
       if (play && ground) {
-        const sx = Math.sin(yaw) * cp, sy = Math.sin(pitch), sz = Math.cos(yaw) * cp;
-        let want = dist, first = -1;
-        for (let s = 1.5; s < dist; s += 0.75) {
-          const x = cur.look.x + sx * s, y = cur.look.y + sy * s, z = cur.look.z + sz * s;
-          if (ground(x, z) > y - 0.6) {
-            if (first < 0) first = s;
-            else if (s - first >= 1.4) { want = Math.max(1.2, first - 0.8); break; }
-          } else first = -1;
+        // how far back the camera can sit along this pitch before terrain gets in the way
+        const reach = (pt) => {
+          const c = Math.cos(pt), sx = Math.sin(yaw) * c, sy = Math.sin(pt), sz = Math.cos(yaw) * c;
+          let first = -1;
+          for (let s = 1.5; s < dist; s += 0.75) {
+            const x = cur.look.x + sx * s, y = cur.look.y + sy * s, z = cur.look.z + sz * s;
+            if (ground(x, z) > y - 0.6) {
+              if (first < 0) first = s;
+              else if (s - first >= 1.4) return Math.max(1.2, first - 0.8);
+            } else first = -1;
+          }
+          return dist;
+        };
+        let want = reach(pitch);
+        // no room behind (a wall, a cliff, a slope): rather than sliding into the head and backpack, rise
+        // and look down from over the obstacle; only if even that is blocked does the camera come in
+        let lift2 = 0;
+        if (want < Math.min(dist, 6)) {
+          for (const pt of [0.95, 1.15, 1.35]) {
+            if (pt <= pitch) continue;
+            const r = reach(pt);
+            if (r > want + 1) { want = r; lift2 = pt - pitch; }
+            if (r >= Math.min(dist, 6)) break;
+          }
         }
+        occPitch += (lift2 - occPitch) * (1 - Math.exp(-(lift2 > occPitch ? 8 : 2.5) * pdt));
+        want = Math.max(want, Math.min(dist, TP_MIN));
         if (occ == null || occ > dist) occ = dist;
         // hysteresis: once pulled in, hold for a moment before easing back out, so a ray grazing an
         // edge (hit, miss, hit…) doesn't pump the distance every frame
         if (want < occ - 0.05) { occHold = 0.45; occ += (want - occ) * (1 - Math.exp(-10 * pdt)); }
         else if ((occHold -= pdt) <= 0) occ += (want - occ) * (1 - Math.exp(-2.5 * pdt));
         dist = Math.min(dist, occ);
-      } else { occ = null; lift = 0; }
-      pos.set(cur.look.x + Math.sin(yaw) * cp * dist, cur.look.y + Math.sin(pitch) * dist, cur.look.z + Math.cos(yaw) * cp * dist);
+      } else { occ = null; lift = 0; occPitch = 0; }
+      const pt = Math.min(1.45, pitch + occPitch), cq = Math.cos(pt);
+      pos.set(cur.look.x + Math.sin(yaw) * cq * dist, cur.look.y + Math.sin(pt) * dist, cur.look.z + Math.cos(yaw) * cq * dist);
       // stay above the ground, eased: terrain height steps a whole block per cell, and snapping to it
       // made the camera hop up and down while walking over uneven ground
       if (play && ground) {
@@ -242,6 +266,7 @@ export function createCamera() {
       }
       cam.position.copy(pos);
       cam.lookAt(cur.look);
+      near = play && cam.position.distanceTo(cur.look) < TP_MIN + 0.4;
     }
     const dirty = Math.abs(cur.fov - lastFov) > 1e-3 || cur.shiftX !== lastSx || cur.shiftY !== lastSy || size.w !== lastW || size.h !== lastH;
     if (dirty) {
