@@ -160,7 +160,7 @@ export function init({ kit, progress, hud, P }) {
       party.classList.add('is-joined');
       sfx('purchase');
       burst(plate || invite, { n: 8, kind: 'spark' });
-      bubble(partyRow || invite, 'I only join parties that have snacks.', { who: 'zhuo', place: 'below' });
+      bubble(invite, 'I only join parties that have snacks.', { who: 'zhuo', place: 'below' });
       emit('page:open', { key: 'about', what: 'invite' });
       echo();
     });

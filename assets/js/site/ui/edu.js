@@ -157,6 +157,7 @@ export function init({ kit, progress, P }) {
         burst(lock, { n: 14, kind: 'spark' });
         emit('page:sky', { n: 3 });
         found('thesis');
+        bubble(lock, 'Patience is also a skill.', { who: 'me', place: 'below', ms: 3000 });
         clearTimeout(openT);
         openT = setTimeout(() => {
           lock.classList.remove('is-unlocked');

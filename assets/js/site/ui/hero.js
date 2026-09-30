@@ -5,6 +5,7 @@
 // links stay the real, readable HTML.
 import { capabilities, onChange as onEggs } from '../eggs.js';
 import { registerKey } from './keys.js';
+import { save } from './pstate.js';
 
 const CHAPTER = {
   about: ['01', 'Library Walk'], education: ['02', 'Two campuses'], publications: ['03', 'Geisel Library'],
@@ -55,13 +56,13 @@ export function init({ kit, progress, mode, P }) {
     if (!blk || !isGame()) return;
     bump(blk);
     burst(blk, { n: 4, kind: 'spark' });
-    if (aliasOn) return;
+    // every block position counts, whichever alias the name is wearing right now
     const i = +blk.dataset.i;
     const first = !bumped.has(i);
-    bumped.add(i);
+    if (i < 9) bumped.add(i);
     bumps++;
     // the dot of the first "i" hides a token
-    if (i === 1 && first && !P.tokens.t1) {
+    if (!aliasOn && i === 1 && first && !P.tokens.t1) {
       blk.classList.add('is-dotpop');
       setTimeout(() => blk.classList.remove('is-dotpop'), 700);
       progress.token('t1', blk);
@@ -189,13 +190,16 @@ export function init({ kit, progress, mode, P }) {
     cont.addEventListener('click', () => {
       sfx('open');
       document.getElementById(resume)?.scrollIntoView({ behavior: behavior(), block: 'start' });
-      toast('Save file loaded.', `Welcome back, Lv ${progress.level()} ${progress.title()}.`, { kind: 'info', k: 'Continue' });
       found('continue');
+      toast('Save file loaded.', `Welcome back, Lv ${progress.level()} ${progress.title()}.`, { kind: 'info', k: 'Continue' });
     });
   }
+  // remember where the reader actually stayed (not every section a jump flies past)
+  let resumeT = 0;
   onSection((cur) => {
+    clearTimeout(resumeT);
     if (!cur?.id || !CHAPTER[cur.id]) return;
-    P.hero.resume = cur.id;
+    resumeT = setTimeout(() => { if (kit.currentSection()?.id === cur.id) { P.hero.resume = cur.id; save(); } }, 2000);
   });
 
   // Take control (only where the 3D play mode can run)
