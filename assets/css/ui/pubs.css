@@ -1,1 +1,224 @@
-/* ui/pubs.css: owned by SECTIONS-B (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* PUBLICATIONS — the achievements hall (SPEC §4.5, SECTIONS-B). Everything that changes the CV look is
+   scoped under html.is-game; no-JS, Reviewer mode and print keep the plain rows of site.css. JS-built parts
+   carry [data-game] and are hidden outside the game by kit.css. */
+
+/* ================================================================ shelf of spines beside the heading */
+.pshelf { float: right; display: grid; justify-items: end; gap: 0; margin: 4px 0 0 16px; }
+.pshelf__row { display: flex; align-items: flex-end; gap: 3px; padding: 0 6px; height: 40px; }
+.pshelf__book {
+  position: relative; width: 11px; height: 34px; border-radius: 1px 1px 0 0; cursor: pointer;
+  box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.28), inset 2px 0 0 rgba(255, 255, 255, 0.18);
+  transition: transform 160ms var(--ease);
+}
+.pshelf__book::before, .pshelf__book::after { content: ''; position: absolute; left: 2px; right: 2px; height: 2px; background: rgba(15, 29, 51, 0.7); }
+.pshelf__book::before { top: 5px; }
+.pshelf__book::after { bottom: 7px; }
+.pshelf__book--gold { height: 36px; background: linear-gradient(90deg, #ffe45c, var(--gold) 50%, #c79a00); }
+.pshelf__book--silver { height: 31px; background: linear-gradient(90deg, #eef2f9, #b9c4d8 50%, #7d8aa3); }
+.pshelf__book:hover { transform: translateY(-4px); }
+.pshelf__slot {
+  display: grid; place-items: end center; width: 11px; height: 30px; padding-bottom: 2px;
+  border: 1px dashed rgba(255, 255, 255, 0.14); border-bottom: 0; border-radius: 1px 1px 0 0;
+  font: 400 8px/1 var(--px); color: var(--ink-3); opacity: 0.6;
+}
+.pshelf__plank { display: block; width: 100%; height: 5px; border-radius: 1px; background: linear-gradient(180deg, #8a5a2b, #5a3a1a); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35); }
+.pshelf__k { margin-top: 5px; font: 400 9px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+
+/* ================================================================ achievement cards */
+html.is-game #publications .pubs { gap: 14px; clear: both; margin-top: 8px; }
+html.is-game .pubs .pub.ach {
+  --tier: #c9d3e6; --tier-a: rgba(201, 211, 230, 0.2); --tier-d: #7d8aa3;
+  position: relative; grid-template-columns: 100px minmax(0, 1fr); grid-template-rows: auto 1fr;
+  column-gap: 16px; row-gap: 6px; margin: 0; padding: 44px 18px 16px 12px; border-radius: 8px; overflow: hidden;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012) 60%), rgba(9, 13, 25, 0.55);
+  border: 1px solid var(--tier-a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: border-color var(--t-ui), box-shadow var(--t-ui);
+}
+html.is-game .pubs .pub.ach--gold { --tier: var(--gold); --tier-a: rgba(255, 205, 0, 0.3); --tier-d: #b37d00; }
+html.is-game .pubs .pub.ach:hover, html.is-game .pubs .pub.ach:focus-visible, html.is-game .pubs .pub.ach.is-lit, html.is-game .pubs .pub.ach.is-current {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tier) 9%, transparent), transparent 55%), rgba(9, 13, 25, 0.55);
+  border-color: color-mix(in srgb, var(--tier) 60%, transparent);
+  box-shadow: inset 3px 0 0 var(--tier), 0 0 0 1px color-mix(in srgb, var(--tier) 18%, transparent), 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+html.is-game .pubs .pub.ach:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+html.is-game .pubs .pub.ach.is-ping { animation: match-pulse 1.6s var(--ease); }
+
+/* ---- top strip: tier + stage meter, with the unlock banner sliding over it */
+.ach__top {
+  position: absolute; left: 0; right: 0; top: 0; height: 30px; overflow: hidden;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 14px;
+  border-bottom: 1px dashed color-mix(in srgb, var(--tier) 22%, transparent);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tier) 10%, transparent), transparent 70%);
+  font: 400 9px/1 var(--px); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3);
+}
+.ach__tier { display: inline-flex; align-items: center; gap: 7px; color: var(--tier); }
+.ach__gem { width: 8px; height: 8px; background: var(--tier); transform: rotate(45deg); box-shadow: 0 0 8px color-mix(in srgb, var(--tier) 60%, transparent), inset -2px -2px 0 rgba(0, 0, 0, 0.25); }
+.ach__stage { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.ach__segs { display: inline-flex; gap: 2px; }
+.ach__segs i { width: 12px; height: 6px; background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+.ach__segs i.is-done { background: var(--tier); }
+.ach__segs i.is-now { background: var(--tier); animation: seg-blink 1.2s steps(2) infinite; }
+@keyframes seg-blink { 50% { opacity: 0.25; } }
+section:not(.is-live) .ach__segs i.is-now { animation-play-state: paused; }
+.ach__banner {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px;
+  background: linear-gradient(90deg, #b37d00, var(--gold) 20%, #fff0a0 50%, var(--gold) 80%, #b37d00);
+  color: var(--ucsd-navy-3); transform: translateY(-102%); transition: transform 350ms var(--ease);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+.ach--review .ach__banner { background: linear-gradient(90deg, #7d8aa3, #cfd8e6 20%, #ffffff 50%, #cfd8e6 80%, #7d8aa3); }
+.ach__banner b { font: 400 10px/1 var(--px-num); letter-spacing: 0.04em; }
+.ach__banner-star { font-style: normal; font-size: 12px; }
+.ach.is-banner .ach__banner { transform: none; }
+html.rm .ach__banner { transform: none; opacity: 0; transition: opacity 200ms linear; }
+html.rm .ach.is-banner .ach__banner { opacity: 1; }
+
+/* ---- the rail: medallion, ribbon, year */
+html.is-game .pubs .ach__medal { grid-column: 1; grid-row: 1; position: relative; display: grid; justify-items: center; perspective: 300px; padding-top: 4px; }
+html.is-game .pubs .ach__icon {
+  position: relative; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%; overflow: hidden;
+  background: radial-gradient(circle at 34% 28%, #ffffff, #dfe6f1 30%, #aab6cc 70%, #7d8aa3);
+  box-shadow: 0 0 0 2px var(--ucsd-navy-3), 0 0 0 4px var(--tier), 0 0 0 6px var(--ucsd-navy-3), 0 8px 18px rgba(0, 0, 0, 0.5);
+  filter: grayscale(1) brightness(0.5); transition: filter 600ms var(--ease);
+}
+html.is-game .pubs .ach--gold .ach__icon { background: radial-gradient(circle at 34% 28%, #fffbe0, #ffe066 30%, #f2b400 70%, #a57500); }
+html.is-game .pubs .ach.is-unlocked .ach__icon { filter: none; }
+.ach__icon::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; border: 2px dotted rgba(15, 29, 51, 0.28); }
+.ach__icon::after {
+  content: ''; position: absolute; inset: -20%; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.85) 50%, transparent 62%);
+  transform: translateX(-120%);
+}
+.ach:hover .ach__icon::after, .ach:focus-visible .ach__icon::after { transform: translateX(120%); transition: transform 700ms var(--ease); }
+.ach__icon svg { position: relative; z-index: 1; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5)); }
+.ach__icon.is-spin { animation: medal-spin 900ms var(--ease); }
+@keyframes medal-spin { from { transform: rotateY(0); } to { transform: rotateY(360deg); } }
+.ach__hg {
+  position: absolute; top: 0; right: 2px; z-index: 2; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--ucsd-navy); box-shadow: 0 0 0 2px var(--ucsd-navy-3), 0 0 0 3px var(--gold-a45);
+}
+.ach__hg svg { animation: hg-turn 4s steps(4) infinite; }
+@keyframes hg-turn { to { transform: rotate(360deg); } }
+section:not(.is-live) .ach__hg svg { animation-play-state: paused; }
+html.rm .ach__hg svg, html.rm .ach__icon.is-spin { animation: none; }
+html.is-game .pubs .ach__ribbon {
+  position: relative; z-index: 1; margin-top: -9px; padding: 4px 9px 3px; white-space: nowrap; max-width: 104px;
+  font: 700 8px/1 var(--px); letter-spacing: 0.01em; text-transform: uppercase; color: var(--ucsd-navy-3);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--tier) 80%, #fff), var(--tier));
+  clip-path: polygon(0 0, 100% 0, calc(100% - 5px) 50%, 100% 100%, 0 100%, 5px 50%);
+}
+html.is-game .pubs .pub__year {
+  grid-column: 1; grid-row: 2; padding: 6px 0 0; text-align: center;
+  font: 400 10px/1 var(--px-num); color: var(--tier); letter-spacing: 0.02em;
+}
+html.is-game .pubs .ach__body { grid-column: 2; grid-row: 1 / span 2; min-width: 0; }
+
+/* ---- body text */
+html.is-game .pubs .pub__title { font: 400 21px/1.25 var(--serif); letter-spacing: 0.005em; color: var(--ink); }
+html.is-game .pubs .pub__authors { margin-top: 6px; font-size: 15px; }
+html.is-game .pubs .pub__authors b { color: var(--gold); font-weight: 600; }
+html.is-game .pubs .pub__meta { margin-top: 6px; font-size: 14.5px; }
+html.is-game .pubs .pub__status { border-color: var(--tier-a); color: var(--ink); background: rgba(255, 255, 255, 0.03); }
+
+/* micro-eggs: the asterisks, the subscript, the square */
+html.is-game .pub .ast, html.is-game .pub .sub2, html.is-game .pub .sq { cursor: pointer; border-radius: 2px; transition: color var(--t-ui), background-color var(--t-ui); }
+html.is-game .pub .ast:hover, html.is-game .pub .sub2:hover, html.is-game .pub .sq:hover { color: var(--teal); background: rgba(0, 198, 215, 0.12); }
+html.is-game .pub .ast:focus-visible, html.is-game .pub .sub2:focus-visible, html.is-game .pub .sq:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+html.is-game .pub .ast { padding: 0 1px; }
+.pub__au { background: linear-gradient(var(--gold), var(--gold)) 0 100% / 0 2px no-repeat; transition: background-size 380ms var(--ease), color var(--t-ui); }
+.pub__au.is-star { background-size: 100% 2px; color: var(--gold); }
+html.is-game .pub__authors.is-pair .ast { color: var(--gold); text-shadow: 0 0 8px rgba(255, 205, 0, 0.8); }
+html.rm .pub__au { transition: none; }
+.pub__sq2 { color: var(--teal); animation: fx-fade 200ms linear; }
+
+/* ---- Summary / BibTeX as small tabs */
+html.is-game .pubs .pub__more { gap: 8px; margin-top: 12px; }
+html.is-game .pubs .pub__more details[open] { flex-basis: 100%; }
+html.is-game .pubs .pub__more details.more > p { margin-top: 8px; padding: 10px 12px; border-left: 2px solid var(--tier-a); background: rgba(255, 255, 255, 0.025); border-radius: 0 4px 4px 0; font-size: 14.5px; }
+html.is-game .pubs details.more pre {
+  margin-top: 8px; padding: 12px 14px; border-radius: 4px;
+  background: #060912; border: 1px solid rgba(255, 205, 0, 0.14);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.6);
+  font: 400 12px/1.6 var(--mono); color: #c9d1e3; overflow-x: auto; scrollbar-width: thin;
+}
+html.is-game .bib-at { color: var(--r-epic); }
+html.is-game .bib-key { color: var(--teal); }
+html.is-game .bib-f { color: var(--gold); }
+html.is-game .bib-v { color: #d7dde9; }
+html.is-game .pubs .more--code > .gbtn { margin-top: 8px; }
+html.is-game .pubs .more--code > .gbtn.is-ok { border-color: var(--hp); color: var(--hp); }
+html.is-game .pubs .more--code > .token { margin: 4px 0 0 6px; vertical-align: top; }
+.token.is-drop { animation: tok-drop 560ms cubic-bezier(0.3, 1.5, 0.5, 1) both; }
+@keyframes tok-drop { from { transform: translateY(-26px); opacity: 0; } }
+
+/* ---- action row */
+.ach__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.08); }
+.ach__actions .stamp-slot { margin-left: auto; min-width: 84px; min-height: 30px; }
+.gbtn__i { width: auto; height: 14px; image-rendering: pixelated; margin-left: -2px; }
+
+/* ================================================================ Reviewer #2 (simulated) */
+.r2.x-exp > .x-in { padding-top: 12px; }
+.r2__card {
+  position: relative; padding: 12px 14px 12px; border-radius: 6px;
+  background: repeating-linear-gradient(135deg, rgba(248, 113, 113, 0.045) 0 8px, transparent 8px 16px), linear-gradient(180deg, rgba(40, 12, 22, 0.7), rgba(14, 8, 16, 0.7));
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.r2__head { display: flex; align-items: center; gap: 10px; }
+.r2__av { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 4px; background: #1a0d2e; box-shadow: 0 0 0 2px var(--ucsd-navy-3), 0 0 0 3px rgba(181, 140, 255, 0.6); }
+.r2__av img { width: 32px; height: auto; image-rendering: pixelated; }
+.r2__who { min-width: 0; flex: 1; }
+.r2__name { font: 400 16px/1.1 var(--px-title); color: #f5d0fe; }
+.r2__label { margin-top: 3px; font: 400 9px/1.2 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--danger); }
+.r2__refresh { width: 32px; padding: 0; color: var(--ink-2); }
+.r2__refresh svg { transition: transform 500ms var(--ease); }
+.r2__refresh.is-spin svg { transform: rotate(360deg); }
+html.rm .r2__refresh svg { transition: none; }
+.r2__body { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 14px; align-items: center; margin-top: 10px; }
+.r2__dial { display: grid; justify-items: center; }
+.r2__dial-svg { width: 120px; height: 70px; }
+.r2__seg { opacity: 0.85; }
+.r2__needle { transform-box: view-box; transform-origin: 60px 62px; transform: rotate(var(--a, -90deg)); }
+.r2__needle.is-swing { transition: transform 1100ms cubic-bezier(0.34, 1.9, 0.5, 0.85); }
+html.rm .r2__needle.is-swing { transition: none; }
+.r2__score { margin-top: 2px; font: 400 14px/1 var(--px-num); color: var(--ink); }
+.r2__score small { font-size: 8px; color: var(--ink-3); margin-left: 2px; }
+.r2__verdict { margin-top: 5px; font: 400 9px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--warn); }
+.r2__k { font: 400 9px/1 var(--px); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.r2__comment { margin-top: 6px; min-height: 2.6em; font: italic 400 15px/1.45 var(--serif); font-size: 17px; color: #f1e7f7; }
+.r2__log { display: grid; gap: 5px; margin-top: 10px; }
+.r2__log:empty { display: none; }
+.r2__line { font-size: 13.5px; line-height: 1.45; color: var(--ink-2); padding: 6px 9px; border-radius: 3px; background: rgba(0, 0, 0, 0.25); }
+.r2__line b { font: 400 9px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); }
+.r2__line--r2 b { color: #f0abfc; }
+.r2__line--sys { font: 400 10px/1.5 var(--px); letter-spacing: 0.06em; color: var(--warn); background: none; padding: 2px 0; }
+.r2__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.r2__status { font: 400 10px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.r2__status.is-blink { animation: r2-blink 480ms steps(2) 2; }
+@keyframes r2-blink { 50% { color: var(--gold); } }
+.r2__stamp { margin-left: auto; min-height: 28px; }
+
+/* ================================================================ phones */
+@media (max-width: 640px) {
+  .pshelf { display: none; }
+  html.is-game .pubs .pub.ach { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; row-gap: 10px; padding: 40px 14px 14px; }
+  html.is-game .pubs .ach__medal { grid-column: 1; grid-row: 1; display: flex; align-items: center; gap: 10px; padding-top: 0; }
+  html.is-game .pubs .ach__icon { width: 40px; height: 40px; }
+  html.is-game .pubs .ach__icon svg { width: 24px; height: auto; }
+  .ach__icon::before { inset: 3px; }
+  .ach__hg { top: -6px; right: auto; left: 28px; transform: scale(0.8); }
+  html.is-game .pubs .ach__ribbon { margin-top: 0; }
+  html.is-game .pubs .pub__year { grid-column: 2; grid-row: 1; align-self: center; text-align: left; padding: 0; }
+  html.is-game .pubs .ach__body { grid-column: 1 / -1; grid-row: 2; }
+  html.is-game .pubs .pub__title { font-size: 19px; }
+  .ach__top { padding: 0 12px; }
+  .ach__stage { font-size: 0; gap: 0; }
+  .ach__stage .ach__segs { font-size: 9px; }
+  .ach__actions .gbtn { flex: 1 1 auto; min-height: 44px; }
+  .ach__actions .stamp-slot { flex-basis: 100%; margin-left: 0; justify-content: end; min-height: 0; }
+  .ach__actions .stamp-slot:empty { display: none; }
+  .r2__body { grid-template-columns: 1fr; justify-items: center; }
+  .r2__text { justify-self: stretch; }
+  .r2__rebut { min-height: 44px; }
+}

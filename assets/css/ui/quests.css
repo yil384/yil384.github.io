@@ -1,1 +1,134 @@
-/* ui/quests.css: owned by SECTIONS-B (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* EXPERIENCE — the quest log (SPEC §4.6, SECTIONS-B). CV look changes are scoped under html.is-game; no-JS,
+   Reviewer mode and print keep the plain rows of site.css. JS-built parts carry [data-game] / aria-hidden. */
+
+/* ================================================================ gantt ("quest map") */
+.qmap { margin: 4px 0 16px; padding: 10px 12px 8px; border-radius: 6px; background: rgba(6, 9, 18, 0.55); border: 1px solid rgba(255, 255, 255, 0.07); box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35); }
+.qmap__top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 16px; font: 400 9px/1.2 var(--px); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+.qmap__k { color: var(--gold); }
+.qmap__c b { font: 400 9px/1 var(--px-num); color: var(--ink); font-weight: 400; }
+.qmap__read { margin-left: auto; color: var(--ink-2); letter-spacing: 0.06em; text-transform: none; font-family: var(--mono); font-size: 11px; }
+.qmap__chart { position: relative; height: calc(var(--lanes, 5) * 11px + 18px); margin: 0 4px 0 64px; }
+.qmap__year { position: absolute; top: -2px; bottom: 0; width: 0; border-left: 1px dashed rgba(255, 255, 255, 0.12); }
+.qmap__year i { position: absolute; bottom: -1px; left: 4px; font: 400 8px/1 var(--px-num); font-style: normal; color: var(--ink-3); }
+.qmap__peak { position: absolute; z-index: 2; top: -4px; bottom: 14px; min-width: 12px; transform: translateX(-2px); cursor: help; border-radius: 2px;
+  background: repeating-linear-gradient(135deg, rgba(0, 198, 215, 0.18) 0 3px, transparent 3px 6px); transition: background-color var(--t-ui), box-shadow var(--t-ui); }
+.qmap__peak i { position: absolute; left: 50%; top: -12px; transform: translateX(-50%); font: 400 7px/1 var(--px-num); font-style: normal; color: var(--teal); opacity: 0.8; }
+.qmap__peak.is-hot, .qmap__peak:hover { background-color: rgba(0, 198, 215, 0.14); box-shadow: 0 0 0 1px var(--teal); }
+.qmap__bar {
+  position: absolute; height: 6px; min-width: 6px; padding: 0; border: 0; border-radius: 1px; cursor: pointer;
+  background: var(--org); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  opacity: 0.8; transition: opacity var(--t-ui), transform var(--t-ui) var(--ease), box-shadow var(--t-ui);
+}
+.qmap__bar::before { content: ''; position: absolute; inset: -3px -2px; }
+.qmap__bar:hover, .qmap__bar.is-row, .qmap__bar.is-hot { opacity: 1; transform: scaleY(1.5); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 0 10px var(--org); }
+.qmap__name { position: absolute; right: calc(100% + 10px); margin-top: -1px; font: 400 8px/8px var(--px); font-style: normal; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; pointer-events: none; transition: color var(--t-ui); }
+.qmap__name.is-on { color: var(--org); }
+.qmap__flag { position: absolute; left: -1px; top: -7px; width: 2px; height: 10px; background: #d7dde9; }
+.qmap__flag::after { content: ''; position: absolute; left: 2px; top: 0; width: 6px; height: 4px; background: var(--org); clip-path: polygon(0 0, 100% 50%, 0 100%); }
+
+/* ================================================================ quest cards */
+html.is-game #experience .quests { gap: 10px; }
+html.is-game #experience .quest {
+  --org: var(--gold);
+  position: relative; grid-template-columns: 100px minmax(0, 1fr) minmax(100px, auto); grid-template-rows: auto 1fr;
+  grid-template-areas: 'logo main when' 'logo main stamp'; column-gap: 16px; row-gap: 6px;
+  margin: 0; padding: 14px 14px 14px 22px; border-radius: 6px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--org) 11%, transparent), rgba(255, 255, 255, 0.015) 38%), rgba(9, 13, 25, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color var(--t-ui), box-shadow var(--t-ui), background-color var(--t-ui);
+}
+html.is-game #experience .quest::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; border-radius: 6px 0 0 6px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--org) 70%, #fff), var(--org) 30%, color-mix(in srgb, var(--org) 70%, #000));
+  box-shadow: 1px 0 0 rgba(0, 0, 0, 0.4);
+}
+html.is-game #experience .quest:hover, html.is-game #experience .quest:focus-visible, html.is-game #experience .quest.is-lit, html.is-game #experience .quest.is-current {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--org) 18%, transparent), rgba(255, 255, 255, 0.02) 50%), rgba(9, 13, 25, 0.55);
+  border-color: color-mix(in srgb, var(--org) 45%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--org) 15%, transparent), 0 10px 28px rgba(0, 0, 0, 0.3);
+}
+html.is-game #experience .quest:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+html.is-game #experience .quest.is-ping { animation: match-pulse 1.6s var(--ease); }
+html.is-game #experience .quest .row__logo { grid-area: logo; position: relative; align-self: start; padding-top: 18px; }
+html.is-game #experience .quest .row__logo img { max-width: 96px; }
+html.is-game #experience .quest .row__main { grid-area: main; }
+html.is-game #experience .quest .row__when { grid-area: when; justify-self: end; font-size: 12.5px; color: var(--ink-2); padding-top: 0; }
+html.is-game #experience .quest .quest__stamp { grid-area: stamp; justify-self: end; align-self: start; min-height: 30px; margin-top: 4px; }
+html.is-game #experience .quest.is-complete .row__logo img { opacity: 1; }
+
+.quest__k { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 3px; font: 400 9px/1.2 var(--px); letter-spacing: 0.12em; text-transform: uppercase; color: var(--org); }
+.quest__k::before { content: ''; width: 7px; height: 7px; background: var(--org); transform: rotate(45deg); box-shadow: 0 0 6px color-mix(in srgb, var(--org) 60%, transparent); }
+.quest.is-done .quest__k::after { content: '· Turned in ✓'; color: var(--hp); }
+html.is-game #experience .quest .row__title { font-size: 17px; }
+html.is-game #experience .quest .row__role { font-size: 15px; }
+html.is-game #experience .quest .row__desc { font-size: 15px; }
+
+/* ---- Objectives */
+html.is-game .quest__more { margin-top: 10px; }
+html.is-game .quest__more > summary { color: var(--ink); border-color: color-mix(in srgb, var(--org) 45%, transparent); }
+html.is-game .quest__more > summary::after { content: '▾'; font-size: 10px; line-height: 1; transition: transform var(--t-ui); }
+html.is-game .quest__more > summary::before { display: none; }
+html.is-game .quest__more[open] > summary::after { transform: rotate(180deg); }
+html.is-game .quest__n { color: var(--gold); }
+html.is-game .quest__more[open] { margin-top: 10px; padding: 0 0 12px; }
+html.is-game .quest__more > .quest__notes { margin-top: 10px; padding-left: 10px; border-left: 2px solid color-mix(in srgb, var(--org) 50%, transparent); font-family: var(--serif); font-size: 17px; line-height: 1.4; color: var(--ink-2); }
+html.is-game .quest__objs { list-style: none; padding-left: 0; margin-top: 10px; gap: 6px; }
+html.is-game .quest__objs > li { position: relative; padding-left: 26px; font-size: 14.5px; color: var(--ink); }
+html.is-game .quest__objs > li::before {
+  content: ''; position: absolute; left: 2px; top: 4px; width: 14px; height: 14px; border-radius: 1px;
+  background: rgba(0, 0, 0, 0.35); box-shadow: 0 0 0 2px var(--ink-3), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 160ms;
+}
+html.is-game .quest__objs > li.is-on::before { box-shadow: 0 0 0 2px var(--hp), inset 0 0 0 1px rgba(0, 0, 0, 0.5); }
+.quest__tick { display: none; }
+html.is-game .quest__tick { display: block; position: absolute; left: 3px; top: 5px; width: 12px; height: 12px; overflow: visible; }
+html.is-game .quest__tick path { fill: none; stroke: var(--hp); stroke-width: 2.4; stroke-linecap: square; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 180ms var(--ease); }
+html.is-game .quest__objs > li.is-on .quest__tick path { stroke-dashoffset: 0; }
+html.is-game.rm .quest__tick path { transition: none; }
+
+/* ---- rewards */
+html.is-game .quest__rewards { margin-top: 12px; gap: 6px; }
+html.is-game .quest__rewards > .game-only { font: 400 9px/1 var(--px); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-right: 4px; }
+html.is-game .quest__rewards > .game-only::before { content: '◆ '; }
+html.is-game .quest .chip--reward { cursor: pointer; transform: scale(0.6); opacity: 0; transition: transform 260ms cubic-bezier(0.3, 1.6, 0.5, 1), opacity 200ms, border-color var(--t-ui), background-color var(--t-ui); transition-delay: calc(var(--i, 0) * 70ms); }
+html.is-game .quest.is-ticked .chip--reward, html.is-game .quest.is-done .chip--reward { transform: none; opacity: 1; }
+html.is-game .quest .chip--reward:hover, html.is-game .quest .chip--reward:focus-visible { border-style: solid; border-color: var(--gold); background: rgba(255, 205, 0, 0.16); transition-delay: 0s; }
+html.is-game.rm .quest .chip--reward { transition: none; }
+.qfly { display: inline-flex; align-items: center; height: 22px; padding: 0 7px; border: 1px dashed var(--gold); border-radius: 3px; background: rgba(24, 43, 73, 0.95); color: var(--gold); font: 400 10px/1 var(--px); text-transform: uppercase; white-space: nowrap; }
+
+/* ---- buttons inside Objectives */
+html.is-game .quest__more > .gbtn { margin: 12px 8px 0 0; vertical-align: middle; }
+.quest__turnin:disabled { background: rgba(74, 222, 128, 0.12); color: var(--hp); border-color: rgba(74, 222, 128, 0.5); opacity: 1; }
+.quest__mic { color: var(--ink); }
+.quest__mic-i { display: inline-block; width: 14px; height: auto; }
+.quest__mic.is-live { border-color: var(--hp); color: var(--hp); }
+.quest__mic.is-live .quest__mic-i { animation: mic-pulse 400ms steps(2) infinite; }
+@keyframes mic-pulse { 50% { opacity: 0.35; } }
+html.rm .quest__mic.is-live .quest__mic-i { animation: none; }
+
+/* ---- the Lark logo */
+.quest__logo-hit { position: absolute; inset: 12px -6px -6px -6px; z-index: 1; padding: 0; border: 0; border-radius: 4px; background: none; cursor: pointer; }
+.quest__logo-hit:focus-visible { outline: 2px solid var(--gold); outline-offset: 0; }
+html.is-game .row__logo.is-chirp img { animation: chirp 260ms steps(2); }
+@keyframes chirp { 50% { transform: translateY(-3px) rotate(-8deg); } }
+html.is-game .row__logo img.is-flown { opacity: 0.15 !important; transition: opacity 200ms; }
+html.is-game #experience .row__logo > .token { position: absolute; left: -4px; top: 54px; z-index: 2; }
+.qlark { position: fixed; z-index: 80; pointer-events: none; transform: translate(-50%, -50%); }
+.qlark svg { animation: flap 180ms steps(2) infinite; }
+@keyframes flap { 50% { transform: scaleY(0.7) translateY(-2px); } }
+.qlark.is-gone { transition: opacity 500ms; opacity: 0; }
+.qlark--perch { position: absolute; top: -18px; transform: translateX(-50%); }
+.qlark--perch svg { animation: none; }
+html.rm .qlark svg { animation: none; }
+
+/* ================================================================ phones and narrow cards */
+@media (max-width: 860px) {
+  html.is-game #experience .quest { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto; grid-template-areas: 'logo stamp' 'when when' 'main main'; row-gap: 6px; padding: 12px 12px 12px 18px; }
+  html.is-game #experience .quest .row__logo { padding-top: 0; }
+  html.is-game #experience .quest .row__when { justify-self: start; }
+  html.is-game #experience .quest .quest__stamp { margin-top: 0; min-height: 26px; }
+  html.is-game #experience .row__logo > .token { left: auto; right: -52px; top: -8px; }
+  .qmap__read { flex-basis: 100%; margin-left: 0; }
+  .quest__turnin, .quest__mic { min-height: 44px; }
+}
