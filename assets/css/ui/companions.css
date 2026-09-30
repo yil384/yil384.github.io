@@ -1,1 +1,161 @@
-/* ui/companions.css: owned by COMPANIONS (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* COMPANIONS (SPEC §2.6, §2.7, §2.11): Bit on the card edge, the page critters on the ribbon row, and
+   walk mode's scholar. All of it is JS-built, game-only DOM ([data-game] is hidden outside html.is-game),
+   animates transform / opacity only, and never sits over CV text. */
+
+/* ================================================================ Bit */
+html.is-game .bit-host { position: relative; }
+.bit {
+  position: absolute; left: 0; top: 0; z-index: var(--z-bit);
+  display: grid; place-items: end center; width: 44px; height: 42px; padding: 0; margin: 0;
+  border: 0; border-radius: 6px; background: none; cursor: pointer;
+  transition: transform 300ms var(--ease); -webkit-tap-highlight-color: transparent;
+}
+html .hero > .bit.bit { animation: none; } /* the hero's entrance animation would pin its transform */
+.bit::before { /* a soft contact shadow on the card edge */
+  content: ''; position: absolute; left: 50%; bottom: 0; width: 26px; height: 4px; margin-left: -13px;
+  border-radius: 50%; background: rgba(0, 0, 0, 0.5); transition: opacity 200ms;
+}
+.bit:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.bit__hop { display: block; transform-origin: 50% 100%; }
+.bit__bob { display: block; animation: bit-bob 2.4s steps(2) infinite; }
+.bit__img { display: block; width: 36px; height: 36px; image-rendering: pixelated; filter: drop-shadow(0 2px 0 rgba(8, 11, 22, 0.55)); }
+.bit:hover .bit__img { filter: drop-shadow(0 2px 0 rgba(8, 11, 22, 0.55)) drop-shadow(0 0 6px rgba(78, 163, 255, 0.55)); }
+@keyframes bit-bob { 50% { transform: translateY(-2px); } }
+.bit.is-talk .bit__bob { animation: bit-talk 150ms steps(2) 4; }
+@keyframes bit-talk { 50% { transform: translateY(-3px) scaleY(1.04); } }
+.bit.is-doze .bit__bob { animation: none; transform: translateY(2px) scaleY(0.94); }
+.bit.is-gutter::before { opacity: 0; }
+.bit.is-gutter .bit__bob { animation-duration: 1.2s; }
+section:not(.is-live) .bit__bob { animation-play-state: paused; }
+html.rm .bit { transition: none; }
+html.rm .bit__bob, html.rm .bit.is-talk .bit__bob { animation: none; }
+html.is-play .bit, html.is-walking .bit.is-gutter { visibility: hidden; }
+
+/* Bit's speech: a child of Bit, so it rides along when Bit slides */
+.bit-say { pointer-events: none; max-width: 260px; text-align: left; text-shadow: none; cursor: default; }
+.bit-say.bubble--side-l, .bit-say.bubble--side-r { transform-origin: 100% 100%; }
+.bit-say.bubble--side-r { transform-origin: 0 100%; }
+.bit-say.bubble--side-l::after { left: auto; right: -6px; top: var(--ty, 12px); margin-left: 0; border-bottom: 0; border-left: 0; }
+.bit-say.bubble--side-r::after { left: -6px; top: var(--ty, 12px); margin-left: 0; border-top: 0; border-right: 0; }
+.bit-toast { grid-template-columns: 34px 1fr; }
+.bit-toast .bit-toast__av { background: var(--ucsd-navy); box-shadow: 0 0 0 2px var(--gold-a45); }
+.bit-toast .bit-toast__av img { width: 24px; height: auto; image-rendering: pixelated; filter: none; opacity: 1; }
+.bit-toast__t { font: 400 13px/1.35 var(--px-title); }
+@media (max-width: 719px) {
+  .bit-say { max-width: min(260px, calc(100vw - 32px)); }
+}
+
+/* ================================================================ critters (on the ribbon row) */
+html.is-game .critter-floor { position: relative; }
+html.is-game .card--about .prose .aside.critter-perch { position: relative; }
+.critter {
+  position: absolute; bottom: -8px; left: 0; z-index: var(--z-crit);
+  width: 44px; height: 44px; padding: 0; margin: 0; border: 0; background: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.critter:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.critter__walk { position: absolute; inset: 0; display: grid; place-items: end center; padding-bottom: 8px; animation: critter-walk 14s linear var(--delay, 0s) infinite alternate; }
+.critter__shift { display: block; transition: transform 160ms steps(2); }
+.critter__art { position: relative; display: block; }
+.critter__f { display: block; image-rendering: pixelated; filter: drop-shadow(0 1px 0 rgba(8, 11, 22, 0.7)); }
+.critter--fly .critter__f1 { position: absolute; left: 0; top: 0; }
+.critter--fly .critter__f0 { animation: flap-a 0.42s steps(1) infinite; }
+.critter--fly .critter__f1 { animation: flap-b 0.42s steps(1) infinite; }
+@keyframes flap-a { 50% { opacity: 0; } }
+@keyframes flap-b { 0% { opacity: 0; } 50% { opacity: 1; } }
+@keyframes critter-walk { from { transform: translateX(0); } to { transform: translateX(var(--w, 0px)); } }
+/* slimes hop, bats and gulls hover, the skeleton shuffles */
+.critter--offbyone .critter__art, .critter--nan .critter__art { animation: slime-hop 0.9s steps(3) infinite; }
+@keyframes slime-hop { 0%, 100% { transform: none; } 40% { transform: translateY(-3px) scale(0.94, 1.06); } 70% { transform: scale(1.08, 0.92); } }
+.critter--fly .critter__art { animation: hover-bob 1.2s steps(3) infinite; }
+.critter--fly .critter__walk { padding-bottom: 14px; }
+@keyframes hover-bob { 50% { transform: translateY(-4px); } }
+.critter--legacy .critter__art { animation: shuffle 1.6s steps(2) infinite; }
+@keyframes shuffle { 50% { transform: rotate(-3deg); } }
+.critter--legacy .critter__f { padding: 2px; background: rgba(148, 163, 184, 0.14); box-shadow: 0 0 0 2px #475569, inset 0 0 0 1px #0f172a; }
+.critter__todo {
+  position: absolute; left: 100%; top: 2px; margin-left: 5px; white-space: nowrap; pointer-events: none;
+  font: 400 8px/1 var(--mono); color: #94a3b8; opacity: 0.85;
+}
+.critter__q {
+  position: absolute; left: 50%; top: -9px; transform: translateX(-50%);
+  font: 400 8px/1 var(--px-num); color: #e9d5ff; text-shadow: 0 0 6px #a855f7;
+}
+.critter__hat { /* New Game+: a 1-px-outlined party hat */
+  position: absolute; left: 50%; top: -9px; width: 10px; height: 10px; margin-left: -5px;
+  background: repeating-linear-gradient(135deg, #f472b6 0 2px, #fde047 2px 4px);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%); filter: drop-shadow(0 0 0 #0f172a);
+}
+.critter--nan .critter__hat { top: -17px; }
+/* startled (a missed bonk): stop walking */
+.critter.is-hold .critter__walk { animation-play-state: paused; }
+.critter.is-perched .critter__walk { animation: none; }
+.critter.is-hop .critter__art { animation: miss-hop 320ms var(--ease); }
+@keyframes miss-hop { 50% { transform: translateY(-12px); } }
+.critter.is-blink .critter__art { animation: ptr-blink 300ms steps(2); }
+@keyframes ptr-blink { 0%, 60% { opacity: 0.1; } }
+.critter.is-shake .critter__art { animation: crate-shake 300ms steps(4); }
+@keyframes crate-shake { 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+.critter.is-in .critter__f { animation: critter-pop 360ms var(--ease) both; }
+.critter--fly.is-in .critter__f0 { animation: critter-pop 360ms var(--ease) both, flap-a 0.42s steps(1) 360ms infinite; }
+.critter--fly.is-in .critter__f1 { animation: flap-b 0.42s steps(1) 360ms infinite; }
+@keyframes critter-pop { from { transform: translateY(8px) scale(0.4); opacity: 0; } }
+.critter.is-squash .critter__art { animation: squash 190ms steps(3) forwards; transform-origin: 50% 100%; }
+@keyframes squash { 0% { transform: scale(1.2, 0.6); } 55% { transform: scale(0.8, 1.2); } 100% { transform: scale(1.4, 0); opacity: 0; } }
+.critter.is-crumble .critter__art { animation: crumble 500ms steps(5) forwards; }
+@keyframes crumble { 30% { transform: rotate(-8deg); } 100% { transform: translateY(10px) rotate(12deg) scale(0.6); opacity: 0; } }
+.critter.is-poof { pointer-events: none; animation: poof 400ms var(--ease) forwards; }
+@keyframes poof { to { opacity: 0; transform: translateY(-14px) scale(0.6); } }
+.critter.is-dead { pointer-events: none; }
+/* the seagull's heist: it sits in the aside's reserved right padding with a fry */
+.critter.is-perched { left: auto; right: 6px; bottom: -6px; }
+.critter__fry {
+  position: absolute; left: 50%; bottom: -3px; width: 3px; height: 9px; margin-left: 5px;
+  background: linear-gradient(#fde047, #f59e0b); box-shadow: 0 0 0 1px #78350f; transform: rotate(35deg);
+}
+.critter__fry--drop { position: fixed; z-index: 30; margin: 0; animation: fry-drop 800ms cubic-bezier(.5, 0, .9, .6) forwards; }
+@keyframes fry-drop { to { transform: translateY(70px) rotate(420deg); opacity: 0; } }
+/* chapter numerals off by one */
+.tag__n.is-off { color: var(--danger) !important; }
+/* only the chapters on screen animate */
+section:not(.is-live) .critter *, html.rm .critter * { animation-play-state: paused !important; }
+html.rm .critter__walk { animation: none; }
+html.rm .critter.is-in .critter__f { animation: none; }
+html.is-plain .critter { display: none; }
+
+/* ================================================================ walk mode */
+.walk-layer { position: absolute; left: 0; top: 0; width: 0; height: 0; z-index: 27; pointer-events: none; }
+.walker { position: absolute; left: 0; top: 0; width: 36px; height: 48px; will-change: transform; }
+.walker__face { display: block; transform-origin: 50% 100%; }
+.walker__img { display: block; width: 36px; height: 48px; image-rendering: pixelated; filter: drop-shadow(0 2px 0 rgba(8, 11, 22, 0.7)) drop-shadow(0 0 10px rgba(109, 111, 240, 0.35)); }
+.walker__shadow { position: absolute; left: 50%; bottom: -2px; width: 26px; height: 4px; margin-left: -13px; border-radius: 50%; background: rgba(0, 0, 0, 0.5); }
+.walker.is-air .walker__shadow { opacity: 0.25; }
+.walker.is-land .walker__img { animation: land-squash 160ms steps(2); transform-origin: 50% 100%; }
+@keyframes land-squash { 50% { transform: scale(1.12, 0.86); } }
+html.rm .walker.is-land .walker__img { animation: none; }
+/* the row the scholar stands on reads as hovered */
+html.is-game [data-focus].is-walk {
+  background: linear-gradient(90deg, rgba(255, 205, 0, 0.12), rgba(255, 205, 0, 0.03) 60%, transparent);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+/* the bar chip while walking */
+.walk-chip {
+  display: inline-flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 10px; margin-right: 4px; white-space: nowrap; flex: none;
+  font: 400 10px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink);
+  background: rgba(24, 43, 73, 0.9); border: 1px solid var(--teal); border-radius: 4px;
+  box-shadow: 0 0 12px var(--teal-a30);
+}
+.walk-chip__k { color: var(--teal); }
+.walk-chip__h { font: 400 11.5px/1 var(--sans); letter-spacing: 0; text-transform: none; color: var(--ink-2); white-space: nowrap; }
+.walk-chip__x { font: 400 14px/1 var(--sans); opacity: 0.8; }
+.walk-chip:hover { border-color: var(--gold); }
+@media (max-width: 719px) {
+  .walk-chip__h { display: none; }
+  .walk-chip { height: 34px; }
+}
+@media (max-width: 1099px) { .walk-chip__h { display: none; } }
+html:not(.is-game) .walk-chip, html:not(.is-game) .walk-layer { display: none; }
+
+@media print {
+  .bit, .critter, .walk-layer, .walk-chip { display: none !important; }
+}
