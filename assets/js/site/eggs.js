@@ -47,12 +47,70 @@ export const EGGS = [
   { id: 'reviewer2', kind: 'game', name: 'Accept with minor revisions', hint: 'The eucalyptus grove has a reviewer.', done: 'Reviewer #2 is gone. Reviewer #3 is loading.' },
   { id: 'deadline', kind: 'game',  name: 'Made the deadline', hint: 'Something breathes down your neck on the bluff.', done: 'Slain, until next conference.' },
   { id: 'oracle',   kind: 'game',  name: 'The Oracle', hint: 'Three runes, one door.', done: 'The secret chamber gave up its companion.' },
+  // ---- the interactive CV (page game, round 3): all work without WebGL
+  { id: "start", kind: 'page', src: 'cv', name: "Press Start", hint: "The title screen is waiting for a key.", done: "Press Start to continue. You did." },
+  { id: "blocks", kind: 'page', src: 'cv', name: "Load-bearing letters", hint: "The big name looks bumpable.", done: "Every block bumped. No mushrooms, sorry." },
+  { id: "typename", kind: 'page', src: 'cv', name: "Autocomplete", hint: "Type his name anywhere.", done: "yichen, lin and yil384 all resolve." },
+  { id: "continue", kind: 'page', src: 'cv', name: "Save file found", hint: "Come back another day.", done: "Continue? ▶ YES" },
+  { id: "specialist", kind: 'page', src: 'cv', name: "Full respec", hint: "Try every research interest.", done: "Build respec: all four trees. Very Ph.D." },
+  { id: "zhuo", kind: 'page', src: 'cv', name: "Dinner is served", hint: "The best cook in the building has a pan.", done: "Tomato and egg, the Tsinghua classic." },
+  { id: "seagull", kind: 'page', src: 'cv', name: "Apex predator", hint: "Something on Library Walk wants your fries.", done: "Seagull 0, scholar 1." },
+  { id: "zerogap", kind: 'page', src: 'cv', name: "No gap year", hint: "Look between the two campuses.", done: "0 days between the gates." },
+  { id: "thesis", kind: 'page', src: 'cv', name: "Patience", hint: "Some doors open for the persistent.", done: "Patience is also a skill." },
+  { id: "offbyone", kind: 'page', src: 'cv', name: "Off by one", hint: "Bonk the slime near Education. Twice.", done: "i < n, not i <= n." },
+  { id: "overfill", kind: 'page', src: 'cv', name: "CUDA OOM", hint: "Python looks like it could take more.", done: "Tried to allocate 2.00 GiB." },
+  { id: "vimslot", kind: 'page', src: 'cv', name: ":q", hint: "Use Vim on the workbench, then leave.", done: "You escaped. Few do." },
+  { id: "tex", kind: 'page', src: 'cv', name: "Badness 10000", hint: "LaTeX has opinions about boxes.", done: "Overfull \\hbox. Again." },
+  { id: "hotbar", kind: 'page', src: 'cv', name: "Hotbar hero", hint: "Use every tool on the workbench.", done: "Every tool used once. Ship it." },
+  { id: "cite", kind: 'page', src: 'cv', name: "Cite me", hint: "Copy a BibTeX.", done: "Cited. h-index +0.0001." },
+  { id: "rebuttal", kind: 'page', src: 'cv', name: "Rebuttal", hint: "Answer Reviewer #2.", done: "Score unchanged. Classic." },
+  { id: "refresh", kind: 'page', src: 'cv', name: "F5", hint: "Refresh the review status. A lot.", done: "Decisions are out when they are out." },
+  { id: "asterisk", kind: 'page', src: 'cv', name: "Equal contribution", hint: "Stars travel in pairs.", done: "Two names, one star." },
+  { id: "h2o", kind: 'page', src: 'cv', name: "Stay hydrated", hint: "Water has a subscript.", done: "(Re)²H₂O. Drink some water." },
+  { id: "nan", kind: 'page', src: 'cv', name: "NaN !== NaN", hint: "A strange slime in the library.", done: "Your cash was briefly not a number." },
+  { id: "questlog", kind: 'page', src: 'cv', name: "Quest log complete", hint: "Turn in every quest.", done: "Every quest turned in. The trail is complete." },
+  { id: "multithread", kind: 'page', src: 'cv', name: "Parallel quests", hint: "Find where the quests overlap.", done: "Please don't tell the scheduler." },
+  { id: "lark", kind: 'page', src: 'cv', name: "A lark", hint: "The Lark logo looks like it could fly.", done: "It flew toward Library Walk." },
+  { id: "teammate", kind: 'page', src: 'cv', name: "Voice chat", hint: "Talk to a voice-controlled teammate.", done: "…which monster?" },
+  { id: "legacy", kind: 'page', src: 'cv', name: "Legacy code", hint: "Something on the trail should not be touched.", done: "Refactored. Tests still pass (there were none)." },
+  { id: "loadout", kind: 'page', src: 'cv', name: "Full set", hint: "Equip every project.", done: "Full set bonus: +10% chance a reviewer reads the appendix." },
+  { id: "pingpong", kind: 'page', src: 'cv', name: "Keep-alive", hint: "Ping the IM server. Keep going.", done: "Connection upgraded to friendship." },
+  { id: "panic", kind: 'page', src: 'cv', name: "Kernel panic", hint: "Don't interrupt a boot.", done: "not syncing: you clicked too fast." },
+  { id: "jit", kind: 'page', src: 'cv', name: "@triton.jit", hint: "Run TritonGym twice.", done: "Compiled. Eventually." },
+  { id: "segfault", kind: 'page', src: 'cv', name: "Null Pointer", hint: "A bat in the workshop dodges.", done: "Pointer dereferenced safely." },
+  { id: "portalhop", kind: 'page', src: 'cv', name: "Frequent traveller", hint: "Point at every portal on the lawn.", done: "Three portals, zero teleport fees." },
+  { id: "subject", kind: 'page', src: 'cv', name: "Good subject line", hint: "Use a quick subject on the lawn.", done: "Clear subject lines get replies." },
+  { id: "savepoint", kind: 'page', src: 'cv', name: "Save point", hint: "A crystal on the lawn.", done: "Game saved. HP and FOCUS restored." },
+  { id: "lamplighter", kind: 'page', src: 'cv', name: "Lamplighter", hint: "Walk the trail between chapters.", done: "Six lanterns. The trail is lit." },
+  { id: "tokens", kind: 'page', src: 'cv', name: "Token collector", hint: "Twelve Triton tokens are tucked around the page.", done: "Twelve tokens. Redeemable for nothing." },
+  { id: "cleared", kind: 'page', src: 'cv', name: "Cover to cover", hint: "Read every chapter.", done: "Six chapters cleared. Reviewer #1 would be proud." },
+  { id: "exterminator", kind: 'page', src: 'cv', name: "Bug bash", hint: "Bonk all five critters.", done: "Five bugs fixed. Four new ones filed." },
+  { id: "invincible", kind: 'page', src: 'cv', name: "God mode", hint: "Poke your HP.", done: "God mode was on the whole time." },
+  { id: "manual", kind: 'page', src: 'cv', name: "RTFM", hint: "Press ?", done: "Nobody reads the manual. You did." },
+  { id: "vimnav", kind: 'page', src: 'cv', name: "j and k", hint: "Navigate without a mouse.", done: "You navigated a CV with j and k. Unit-7 is proud." },
+  { id: "reviewermode", kind: 'page', src: 'cv', name: "Plain text", hint: "Switch to Reviewer mode.", done: "One column, no nonsense. Recommend: accept." },
+  { id: "phd", kind: 'page', src: 'cv', name: "Dr. (Honorary)", hint: "Keep reading. Keep clicking.", done: "Degree conferred. Not accredited." },
+  { id: "credits", kind: 'page', src: 'cv', name: "Post-credits scene", hint: "Stay until the credits end.", done: "You stayed for the post-credits scene." },
+  { id: "newgame", kind: 'page', src: 'cv', name: "New Game+", hint: "Finish, then start again.", done: "New Game+: same CV, more confident." },
 ];
 
 const byId = Object.fromEntries(EGGS.map((e) => [e.id, e]));
 let worldLive = false;
 let playable = false;
 const listeners = new Set();
+
+/**
+ * Add an egg at runtime (e.g. walk mode's `speedrun`, only when that module ships).
+ * { id, kind = 'page', name, hint, done }. Returns false if the id already exists.
+ */
+export function registerEgg(egg) {
+  if (!egg?.id || byId[egg.id]) return false;
+  const e = { kind: 'page', src: 'cv', ...egg };
+  EGGS.push(e);
+  byId[e.id] = e;
+  listeners.forEach((f) => f());
+  return true;
+}
 
 const svgEgg = () => {
   const ns = 'http://www.w3.org/2000/svg';
@@ -64,14 +122,16 @@ const svgEgg = () => {
 export const eggIcon = svgEgg;
 
 export const has = (id) => !!S.eggs[id];
-/** Eggs the reader can currently reach on this device. */
-export const available = () => EGGS.filter((e) => e.kind === 'page' || (e.kind === 'world' && worldLive) || (e.kind === 'game' && playable));
+/** Eggs the reader can currently reach on this device (plus any already found, e.g. world eggs reached from the page). */
+export const available = () => EGGS.filter((e) => e.kind === 'page' || (e.kind === 'world' && worldLive) || (e.kind === 'game' && playable) || S.eggs[e.id]);
 export const foundCount = () => EGGS.filter((e) => S.eggs[e.id]).length;
 export const total = () => available().length;
+export const byKind = (kind) => EGGS.filter((e) => e.kind === kind);
+export const egg = (id) => byId[id] || null;
 export function setCapabilities({ world, play }) { worldLive = !!world; playable = !!play; listeners.forEach((f) => f()); }
+export const capabilities = () => ({ world: worldLive, play: playable });
 export const onChange = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
 
-let toastRoot = null;
 /**
  * Mark an egg as found. Returns true the first time. `say` overrides the toast subtitle.
  */
@@ -88,20 +148,27 @@ export function found(id, { say } = {}) {
   return true;
 }
 
-function toastEgg(egg, say) {
+let toastRoot = null;
+/** Shared toast stack (top-right under the bar, at most 3). Used by eggs and by kit.toast(). */
+export function pushToast(el, ms = 5200) {
   toastRoot = toastRoot || document.getElementById('egg-toasts');
-  if (!toastRoot) return;
-  while (toastRoot.children.length > 3) toastRoot.firstElementChild.remove();
-  const el = document.createElement('div');
-  el.className = 'egg-toast';
+  if (!toastRoot) return null;
+  while (toastRoot.children.length >= 3) toastRoot.firstElementChild.remove();
+  el.classList.add('egg-toast');
   el.setAttribute('role', 'status');
+  toastRoot.append(el);
+  requestAnimationFrame(() => el.classList.add('is-in'));
+  setTimeout(() => { el.classList.remove('is-in'); el.classList.add('is-out'); setTimeout(() => el.remove(), 400); }, ms);
+  return el;
+}
+
+function toastEgg(egg, say) {
+  const el = document.createElement('div');
   const body = document.createElement('div');
   body.innerHTML = '<div class="egg-toast__k"></div><div class="egg-toast__t"></div><div class="egg-toast__s"></div>';
   body.querySelector('.egg-toast__k').textContent = `Egg found · ${foundCount()} / ${total()}`;
   body.querySelector('.egg-toast__t').textContent = egg.name;
   body.querySelector('.egg-toast__s').textContent = say || egg.done || '';
   el.append(svgEgg(), body);
-  toastRoot.append(el);
-  requestAnimationFrame(() => el.classList.add('is-in'));
-  setTimeout(() => { el.classList.remove('is-in'); el.classList.add('is-out'); setTimeout(() => el.remove(), 400); }, 5200);
+  pushToast(el);
 }

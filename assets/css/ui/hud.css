@@ -1,0 +1,112 @@
+/* The status strip (SPEC §2.4): the second row of header#bar. In no-JS / Reviewer mode only the thin
+   progress line of site.css shows; in the game it becomes a JRPG status bar that never covers a card. */
+
+html.is-game { --hud-h: 28px; }
+
+html.is-game .phud {
+  top: 100%; height: var(--hud-h); margin-top: 0; pointer-events: auto;
+  display: flex; align-items: center; gap: 18px; padding: 0 var(--gutter);
+  background: linear-gradient(180deg, rgba(15, 29, 51, 0.94), rgba(9, 14, 28, 0.9));
+  border-top: 1px solid rgba(255, 205, 0, 0.1); border-bottom: 1px solid var(--gold-a18);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+html.is-game.is-booting .phud { opacity: 0; }
+
+/* shared: label + segmented track */
+html.is-game .phud__m { position: relative; display: flex; align-items: center; gap: 7px; height: 100%; }
+html.is-game .phud__k { font: 400 9px/1 var(--px); letter-spacing: 0.12em; text-transform: uppercase; color: var(--c, var(--ink-2)); }
+html.is-game .phud__track {
+  position: relative; inset: auto; display: block; width: 76px; height: 7px; flex: none;
+  background: rgba(255, 255, 255, 0.07); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  -webkit-mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px); mask: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 8px);
+}
+html.is-game .phud__track i {
+  display: block; width: 100%; height: 100%; transform-origin: left; transform: scaleX(var(--v, 0));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); box-shadow: none;
+  transition: transform 500ms var(--ease);
+}
+html.is-game .phud__m--hp { --c: var(--hp); }
+html.is-game .phud__m--focus { --c: var(--focus); }
+html.is-game .phud__m--prog { --c: var(--gold); flex: 1; min-width: 160px; display: grid; grid-template-columns: auto 1fr auto; column-gap: 9px; }
+html.is-game .phud__m--prog .phud__track { grid-area: 1 / 2; width: 100%; }
+html.is-game .phud__m--prog .phud__track i { transform: scaleX(var(--p, 0)); transition: transform 180ms linear; }
+html.is-game button.phud__m { padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+html.is-game button.phud__m:hover .phud__k { color: var(--ink); }
+
+/* Lv chip */
+.phud__lv {
+  display: grid; grid-template-columns: auto auto; grid-template-rows: 1fr 3px; column-gap: 7px; row-gap: 2px; align-items: center;
+  height: 22px; padding: 0; border: 0; background: none; color: var(--ink); cursor: pointer; flex: none;
+}
+.phud__lvn {
+  grid-row: 1 / 3; align-self: center; padding: 4px 5px 3px; border-radius: 2px;
+  font: 400 9px/1 var(--px-num); color: var(--gold); background: var(--ucsd-navy); border: 1px solid var(--gold-a45);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.3);
+}
+.phud__title { font: 400 10px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); white-space: nowrap; }
+.phud__xp { position: relative; display: block; height: 3px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+.phud__xp i { position: absolute; inset: 0; transform-origin: left; transform: scaleX(var(--v, 0)); background: var(--gold); transition: transform 600ms var(--ease); }
+.phud__lv:hover .phud__lvn { border-color: var(--gold); }
+
+/* chapter pips sit on the progress track */
+.phud__pips { grid-area: 1 / 2; position: relative; height: 100%; pointer-events: none; }
+.phud__pip {
+  position: absolute; left: calc(var(--x, 0) * 100%); top: 50%; width: 11px; height: 11px; padding: 0; pointer-events: auto;
+  transform: translate(-50%, -50%) rotate(45deg); border: 2px solid rgba(255, 205, 0, 0.55); border-radius: 1px;
+  background: var(--ucsd-navy-3); cursor: pointer; transition: background-color var(--t-ui), border-color var(--t-ui);
+}
+.phud__pip::before { content: ''; position: absolute; inset: -9px; }
+.phud__pip.is-current { background: linear-gradient(135deg, var(--gold) 50%, var(--ucsd-navy-3) 50%); border-color: var(--gold); }
+.phud__pip.is-cleared { background: var(--gold); border-color: #fff3a6; box-shadow: 0 0 8px rgba(255, 205, 0, 0.6); }
+.phud__pip:hover { border-color: #fff; }
+.phud__pip:focus-visible { outline-offset: 4px; }
+.phud__status { grid-area: 1 / 3; font: 400 9px/1 var(--px); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; min-width: 92px; text-align: right; cursor: help; }
+
+/* Triton Cash */
+.phud__cash {
+  flex: none; display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 3px;
+  font: 400 9px/1 var(--px-num); color: var(--gold); font-variant-numeric: tabular-nums;
+  background: rgba(255, 205, 0, 0.08); border: 1px solid var(--gold-a18); cursor: pointer;
+}
+.phud__cash:hover { border-color: var(--gold-a45); }
+.phud__cash.is-flash { color: var(--danger); border-color: rgba(248, 113, 113, 0.5); }
+
+/* level-up ribbon: slides out of the Lv chip, inside the strip */
+.phud__ribbon {
+  position: absolute; left: var(--gutter); top: 3px; bottom: 3px; display: flex; align-items: center; padding: 0 24px 0 10px;
+  font: 400 10px/1 var(--px); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap;
+  color: var(--ucsd-navy-3); background: linear-gradient(90deg, #fff0a0, var(--gold));
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+  opacity: 0; transform: translateX(-16px); pointer-events: none; z-index: 2;
+}
+.phud__ribbon.is-on { animation: ribbon 1.9s var(--ease) both; }
+@keyframes ribbon { 0% { opacity: 0; transform: translateX(-16px); } 12%, 84% { opacity: 1; transform: translateX(0); } 100% { opacity: 0; transform: translateX(8px); } }
+html.rm .phud__ribbon.is-on { animation: fx-fade 160ms linear both; opacity: 1; transform: none; }
+
+.phud .is-pulse, .bar__lv.is-pulse { animation: hud-pulse 650ms var(--ease); }
+@keyframes hud-pulse { 30% { transform: scale(1.12); filter: brightness(1.4); } }
+html.rm .phud .is-pulse { animation: none; }
+
+/* phone-size Lv chip in the bar tools */
+.bar__lv .bar__lv-n { font: 400 9px/1 var(--px-num); color: var(--gold); }
+
+@media (max-width: 1279px) {
+  html.is-game .phud__status { display: none; }
+}
+@media (max-width: 1060px) {
+  html.is-game .phud { gap: 12px; }
+  html.is-game .phud__title { display: none; }
+  html.is-game .phud__lv { grid-template-columns: auto; }
+  html.is-game .phud__track { width: 52px; }
+}
+/* phones: the strip collapses to a 4px progress line; Lv moves into the bar, HP / FOCUS / ◈ live in Field Notes */
+@media (max-width: 719px) {
+  html.is-game { --hud-h: 4px; }
+  html.is-game .phud { padding: 0; gap: 0; border: 0; box-shadow: none; background: rgba(9, 14, 28, 0.9); pointer-events: none; }
+  html.is-game .phud > :not(.phud__m--prog):not(.phud__ribbon), html.is-game .phud__m--prog > :not(.phud__track) { display: none; }
+  html.is-game .phud__m--prog { display: block; position: absolute; inset: 0; min-width: 0; }
+  html.is-game .phud__m--prog .phud__track { position: absolute; inset: 0; width: auto; height: 100%; -webkit-mask: none; mask: none; background: rgba(255, 255, 255, 0.06); box-shadow: none; }
+  html.is-game .phud__ribbon { top: calc(-1 * var(--bar-top) + 12px); bottom: auto; height: 28px; left: 12px; }
+  html.is-game .bar__lv { display: inline-flex; height: 34px; padding: 0 9px; position: relative; overflow: hidden; }
+  html.is-game .bar__lv::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--gold); transform-origin: left; transform: scaleX(var(--v, 0)); }
+}

@@ -10,8 +10,23 @@
   <link rel="canonical" href="https://yil384.github.io/">
   <script>
     // Progressive enhancement: reveal animations only when scripts run, and never hold the page back for long.
-    document.documentElement.classList.add('js', 'is-booting');
-    setTimeout(function () { document.documentElement.classList.remove('is-booting'); }, 4500);
+    // Mode classes are set before first paint: is-plain (Reviewer mode: ?plain=1, ?mode=cv or the saved flag)
+    // or is-game (the interactive CV); rm mirrors reduced motion (the OS setting or the saved Field Notes toggle).
+    (function () {
+      var d = document.documentElement, plain = false, rm = false;
+      d.classList.add('js', 'is-booting');
+      try {
+        var q = new URLSearchParams(location.search);
+        var saved = JSON.parse(localStorage.getItem('yl.save.v2') || 'null');
+        var pg = saved && saved.page;
+        plain = q.get('plain') === '1' || q.get('mode') === 'cv' || !!(pg && pg.plain && q.get('plain') !== '0');
+        rm = !!(pg && pg.rm);
+      } catch (e) { /* storage blocked: defaults */ }
+      try { rm = rm || matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { /* old browser */ }
+      d.classList.add(plain ? 'is-plain' : 'is-game');
+      if (rm) d.classList.add('rm');
+      setTimeout(function () { d.classList.remove('is-booting'); }, 4500);
+    })();
   </script>
 
   <meta property="og:type" content="profile">
@@ -29,10 +44,26 @@
 
   <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/silkscreen-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/img/world-poster.jpg" as="image" fetchpriority="high">
   <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/game.css">
+  <link rel="stylesheet" href="assets/css/ui/tokens.css">
+  <link rel="stylesheet" href="assets/css/ui/kit.css">
+  <link rel="stylesheet" href="assets/css/ui/hud.css">
+  <link rel="stylesheet" href="assets/css/ui/plain.css">
+  <link rel="stylesheet" href="assets/css/ui/hero.css">
+  <link rel="stylesheet" href="assets/css/ui/about.css">
+  <link rel="stylesheet" href="assets/css/ui/edu.css">
+  <link rel="stylesheet" href="assets/css/ui/pubs.css">
+  <link rel="stylesheet" href="assets/css/ui/quests.css">
+  <link rel="stylesheet" href="assets/css/ui/equip.css">
+  <link rel="stylesheet" href="assets/css/ui/attrs.css">
+  <link rel="stylesheet" href="assets/css/ui/contact.css">
+  <link rel="stylesheet" href="assets/css/ui/credits.css">
+  <link rel="stylesheet" href="assets/css/ui/trail.css">
+  <link rel="stylesheet" href="assets/css/ui/companions.css">
 
   <script type="importmap">
   {
@@ -91,43 +122,74 @@
     </nav>
     <div class="bar__tools">
       <span class="bar__zone" id="zone" aria-live="polite"><img src="assets/icons/ui/map-pin.svg" alt="" width="14" height="14"><span id="zone-name">Geisel Plaza</span></span>
+      <button type="button" class="bar__btn bar__lv" id="bar-lv" data-game aria-label="Level 1, Prospective Student. Open progress."><span class="bar__lv-n">Lv1</span></button>
       <button type="button" class="bar__btn bar__eggs" id="eggs-btn" title="Field notes: easter eggs you have found">
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M12 2.5c-3.6 0-6.6 5.2-6.6 10.1A6.6 6.6 0 0 0 12 19.2c3.7 0 6.6-2.7 6.6-6.6C18.6 7.700 15.600 2.500 12 2.500Z" fill="currentColor"/><path d="M9 13.400c.4 1.600 1.400 2.600 3 2.900" stroke="#0a0d14" stroke-width="1.400" fill="none" stroke-linecap="round" opacity=".55"/></svg>
         <span id="eggs-count">0</span><span class="bar__of">/<span id="eggs-total">0</span></span>
       </button>
+      <button type="button" class="bar__btn bar__plain" id="plain-btn" aria-pressed="false" title="Reviewer mode: a plain one-column CV (R)"><img src="assets/icons/ui/book-open.svg" alt="" width="16" height="16"><span class="bar__plain-l">Reviewer mode</span></button>
       <button type="button" class="bar__btn" id="sound-btn" aria-pressed="false" title="Sound effects: off"><img src="assets/icons/ui/volume-x.svg" alt="" width="16" height="16"><span class="sr">Sound effects</span></button>
       <button type="button" class="bar__btn bar__play" id="play-btn" hidden><img src="assets/icons/ui/gamepad-2.svg" alt="" width="16" height="16"><span>Take control</span><kbd>W</kbd></button>
     </div>
-    <div class="bar__progress" aria-hidden="true"><i id="progress"></i></div>
+    <div class="phud" id="phud">
+      <button type="button" class="phud__lv" id="phud-lv" data-game><span class="phud__lvn">Lv 1</span><span class="phud__title">Prospective Student</span><span class="phud__xp"><i></i></span></button>
+      <button type="button" class="phud__m phud__m--hp" id="phud-hp" data-game title="HP 100/100. Nothing on this page can hurt you."><span class="phud__k">HP</span><span class="phud__track"><i style="--v:1"></i></span></button>
+      <span class="phud__m phud__m--focus" id="phud-focus" data-game title="Focus fills while you read."><span class="phud__k">Focus</span><span class="phud__track"><i></i></span></span>
+      <div class="phud__m phud__m--prog"><span class="phud__k" data-game>Progress</span><span class="phud__track bar__progress" aria-hidden="true"><i id="progress"></i></span><span class="phud__pips" id="phud-pips" data-game></span><span class="phud__status" id="phud-status" data-game title="Joke status that follows your scroll. The real TritonGym paper is under review at ICML 2026.">Draft</span></div>
+      <button type="button" class="phud__cash" id="phud-cash" data-game aria-label="Triton Cash">◈ <span id="phud-cash-n">0</span></button>
+      <span class="phud__ribbon" id="phud-ribbon" aria-hidden="true" data-game></span>
+    </div>
+    <div class="phud__keys" id="keys-sheet" role="dialog" aria-label="Keyboard controls" hidden data-game></div>
   </header>
 
   <main class="page" id="page">
 
+    <!-- region:hero -->
     <section class="scene scene--hero" id="top" data-shot="hero" data-side="left" data-zone="Geisel Plaza" data-say="me: Hi! Scroll and I will walk you around campus.">
       <div class="hero">
         <p class="eyebrow"><span class="pip" aria-hidden="true"></span>Ph.D. student · UC San Diego · CSE</p>
-        <h1 class="hero__name" id="name">Yichen Lin</h1>
+        <h1 class="hero__name" id="name"><span class="hero__name-t">Yichen Lin</span><span class="hero__blocks" aria-hidden="true" data-game></span></h1>
+        <p class="hero__class game-only" aria-hidden="true"><span class="hero__class-k">Class · Scholar</span> Systems · Compilers · GPU codegen · LLM agents</p>
         <p class="hero__role">Working with <a href="https://cseweb.ucsd.edu/~yufeiding/" rel="noopener" target="_blank">Prof. Yufei Ding</a> on systems, compilers, GPU code generation, and tooling for LLM agents.</p>
         <ul class="hero__links" aria-label="Contact and profiles">
-          <li><a href="mailto:yil384@ucsd.edu"><img src="assets/icons/ui/mail.svg" alt="" width="18" height="18">yil384@ucsd.edu</a></li>
-          <li><a href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener"><img src="assets/icons/brand/googlescholar.svg" alt="" width="18" height="18">Google Scholar</a></li>
-          <li><a href="https://github.com/yil384" target="_blank" rel="noopener"><img src="assets/icons/brand/github.svg" alt="" width="18" height="18">GitHub</a></li>
-          <li><a href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener"><img src="assets/icons/brand/linkedin.svg" alt="" width="18" height="18">LinkedIn</a></li>
+          <li><a href="mailto:yil384@ucsd.edu"><img src="assets/icons/ui/mail.svg" alt="" width="18" height="18">yil384@ucsd.edu<span class="slot-key" data-game aria-hidden="true">1</span></a></li>
+          <li><a href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener"><img src="assets/icons/brand/googlescholar.svg" alt="" width="18" height="18">Google Scholar<span class="slot-key" data-game aria-hidden="true">2</span></a></li>
+          <li><a href="https://github.com/yil384" target="_blank" rel="noopener"><img src="assets/icons/brand/github.svg" alt="" width="18" height="18">GitHub<span class="slot-key" data-game aria-hidden="true">3</span></a></li>
+          <li><a href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener"><img src="assets/icons/brand/linkedin.svg" alt="" width="18" height="18">LinkedIn<span class="slot-key" data-game aria-hidden="true">4</span></a></li>
         </ul>
+        <nav class="title-menu" data-game aria-label="Title menu">
+          <ul>
+            <li><a class="title-menu__i" href="#about" data-act="start">Begin the tour</a></li>
+            <li><button type="button" class="title-menu__i" data-act="continue" hidden>Continue · <span data-slot="continue"></span></button></li>
+            <li><button type="button" class="title-menu__i" data-act="play" hidden>Take control <kbd>W</kbd></button></li>
+            <li><button type="button" class="title-menu__i" data-act="plain">Read plainly · Reviewer mode <kbd>R</kbd></button></li>
+            <li><button type="button" class="title-menu__i" data-act="walk" hidden>Walk the page <kbd>P</kbd></button></li>
+          </ul>
+          <span class="title-menu__cursor" aria-hidden="true"></span>
+        </nav>
         <p class="hero__hint" id="hero-hint">
           <span class="keys" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
           <span class="hero__hint-text"><b>Scroll</b> and the little scholar walks you around a night-time campus, or <b>take the controls</b>. There are eggs hidden everywhere.</span>
         </p>
-        <p class="hero__status" id="boot-status" aria-live="polite">waking up the island…</p>
+        <pre class="hero__boot" id="boot-status" aria-live="polite">waking up the island…</pre>
       </div>
-      <a class="scroll-cue" href="#about" aria-label="Scroll to About"><span></span></a>
+      <a class="scroll-cue" href="#about" aria-label="Scroll to About"><span></span><b class="press-start" data-game aria-hidden="true">Press start</b></a>
     </section>
+    <!-- /region:hero -->
 
+    <div class="trail" data-game data-trail="g1" data-from="hero" data-to="about">
+      <div class="trail__card" aria-hidden="true"><span class="trail__line"></span><p class="trail__zone">Library Walk</p><p class="trail__sub">Chapter 01 · About</p></div>
+      <div class="trail__post"><span class="trail__lantern" aria-hidden="true"></span><button type="button" class="trail__sign" data-go="about">→ Library Walk · 120 m</button></div>
+      <button type="button" class="token" data-token="t7" aria-label="Triton token"></button>
+      <svg class="trail__steps" viewBox="0 0 240 40" aria-hidden="true"><path class="trail__step" d="M19 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M57 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M95 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M133 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M171 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M209 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/></svg>
+    </div>
+
+    <!-- region:about -->
     <section class="scene" id="about" data-shot="about" data-side="right" data-zone="Library Walk" data-say="ash: New here? I map the island. Follow the scholar.">
-      <div class="card card--about">
-        <p class="tag"><span class="tag__n">01</span>Library Walk</p>
-        <div class="about__grid">
-          <div>
+      <div class="card card--about card--wide">
+        <div class="card-head"><p class="tag"><span class="tag__n">01</span><span class="tag__t">Library Walk</span><span class="tag__k game-only" aria-hidden="true">· Party</span></p><span class="seal-slot" data-game data-seal="about" aria-hidden="true"></span></div>
+        <div class="sheet">
+          <div class="sheet__main">
             <h2>About</h2>
             <div class="prose">
               <p>I'm a Ph.D. student at UC San Diego, working with Prof. Yufei Ding. I did my undergraduate degree in Computer Science and Technology at Tsinghua University.</p>
@@ -135,184 +197,459 @@
               <p>I like building things end to end, from a kernel's network stack to a grading platform to the small voxel campus behind this page.</p>
               <p class="aside">My roommate and labmate is <a href="https://scholar.google.com/citations?user=FVCg0C4AAAAJ&amp;hl=en" target="_blank" rel="noopener">Zhuo Chen</a> (Tsinghua Yao Class), who is also the best cook in the building.</p>
             </div>
+            <ul class="affinities" data-game aria-label="Research interests: highlight related items">
+              <li><button type="button" class="chip affinity" data-affinity="systems" aria-pressed="false">Systems</button></li>
+              <li><button type="button" class="chip affinity" data-affinity="compilers" aria-pressed="false">Compilers</button></li>
+              <li><button type="button" class="chip affinity" data-affinity="gpu" aria-pressed="false">GPU code generation</button></li>
+              <li><button type="button" class="chip affinity" data-affinity="agents" aria-pressed="false">LLM agent tooling</button></li>
+            </ul>
+            <p class="affinities__out" data-game aria-live="polite"></p>
+            <div class="party" data-game>
+              <span class="party__sprite" data-sprite="chef" aria-hidden="true"></span>
+              <p class="party__name">Zhuo Chen <span class="party__role">Roommate &amp; labmate · Tsinghua Yao Class · best cook in the building</span></p>
+              <button type="button" class="gbtn gbtn--sm" data-act="pan">Flip the pan</button>
+              <button type="button" class="gbtn gbtn--sm" data-act="invite">Invite to party</button>
+              <button type="button" class="token" data-token="t2" hidden aria-label="Triton token"></button>
+            </div>
           </div>
-          <button type="button" class="portrait" id="portrait" aria-label="Photo of Yichen Lin"><img src="assets/img/portrait.webp" alt="Yichen Lin" width="140" height="140" loading="lazy"></button>
+          <aside class="sheet__side">
+            <button type="button" class="portrait" id="portrait" aria-label="Photo of Yichen Lin"><img src="assets/img/portrait.webp" alt="Yichen Lin" width="140" height="140" loading="lazy"><canvas class="portrait__px" data-game aria-hidden="true"></canvas></button>
+            <p class="sheet__plate game-only" aria-hidden="true"><b>Yichen Lin</b><span>Scholar · party leader</span></p>
+            <dl class="sheet__stats">
+              <div><dt><span class="plain-only">Role</span><span class="game-only" aria-hidden="true">Class</span></dt><dd>Ph.D. student, CSE</dd></div>
+              <div><dt><span class="plain-only">University</span><span class="game-only" aria-hidden="true">Guild</span></dt><dd>UC San Diego</dd></div>
+              <div><dt><span class="plain-only">Advisor</span><span class="game-only" aria-hidden="true">Mentor</span></dt><dd><a href="https://cseweb.ucsd.edu/~yufeiding/" target="_blank" rel="noopener">Prof. Yufei Ding</a></dd></div>
+              <div><dt><span class="plain-only">Undergrad</span><span class="game-only" aria-hidden="true">Origin</span></dt><dd>Tsinghua University, CS&amp;T</dd></div>
+              <div><dt><span class="plain-only">Email</span><span class="game-only" aria-hidden="true">Pigeon</span></dt><dd><a href="mailto:yil384@ucsd.edu">yil384@ucsd.edu</a></dd></div>
+              <div><dt>Phone</dt><dd><a href="tel:+18583197361">(858) 319-7361</a></dd></div>
+            </dl>
+          </aside>
         </div>
       </div>
     </section>
+    <!-- /region:about -->
 
+    <div class="trail" data-game data-trail="g2" data-from="about" data-to="education">
+      <div class="trail__card" aria-hidden="true"><span class="trail__line"></span><p class="trail__zone">Two campuses</p><p class="trail__sub">Chapter 02 · Education</p></div>
+      <div class="trail__post"><span class="trail__lantern" aria-hidden="true"></span><button type="button" class="trail__sign" data-go="education">→ Two gates · ≈10,000 km, mostly ocean</button></div>
+      <button type="button" class="token" data-token="t8" aria-label="Triton token"></button>
+      <svg class="trail__steps" viewBox="0 0 240 40" aria-hidden="true"><path class="trail__step" d="M19 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M57 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M95 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M133 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M171 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M209 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/></svg>
+    </div>
+
+    <!-- region:edu -->
     <section class="scene" id="education" data-shot="edu" data-side="left" data-zone="Geisel Plaza" data-say="ash: Two gates, one path. Tsinghua on the left, UCSD on the right.">
-      <div class="card">
-        <p class="tag"><span class="tag__n">02</span>Two campuses</p>
+      <div class="card card--wide">
+        <div class="card-head"><p class="tag"><span class="tag__n">02</span><span class="tag__t">Two campuses</span><span class="tag__k game-only" aria-hidden="true">· Class path</span></p><span class="seal-slot" data-game data-seal="edu" aria-hidden="true"></span></div>
         <h2>Education</h2>
-        <ul class="rows">
-          <li class="row" data-focus="cse" tabindex="0" data-say="ash: The CSE building. Picasso Lab lives here. Yes, that is a house on the roof.">
-            <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23"></div>
-            <div class="row__main">
-              <p class="row__title">UC San Diego <span class="row__role">Ph.D., Computer Science and Engineering</span></p>
-              <p class="row__desc">Advisor: Prof. Yufei Ding</p>
-            </div>
-            <p class="row__when">2025 – present</p>
-          </li>
-          <li class="row" data-focus="gate" tabindex="0" data-say="me: The Second Gate. Where the undergrad years started.">
-            <div class="row__logo row__logo--mono"><img src="assets/logos/tsinghua-white.png" alt="Tsinghua University" width="120" height="30"></div>
-            <div class="row__main">
-              <p class="row__title">Tsinghua University <span class="row__role">B.S., Computer Science and Technology</span></p>
-            </div>
-            <p class="row__when">2021 – 2025</p>
-          </li>
-        </ul>
+        <div class="path">
+          <ul class="rows path__nodes">
+            <li class="row path__node path__node--ucsd" data-focus="cse" tabindex="0" data-say="ash: The CSE building. Picasso Lab lives here. Yes, that is a house on the roof.">
+              <span class="path__badge" data-game aria-hidden="true"></span>
+              <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23"></div>
+              <div class="row__main">
+                <p class="row__title">UC San Diego <span class="row__role">Ph.D., Computer Science and Engineering</span></p>
+                <p class="row__desc">Advisor: Prof. Yufei Ding</p>
+              </div>
+              <p class="row__when">2025 – present</p>
+              <p class="path__state game-only" aria-hidden="true">Current class</p>
+              <button type="button" class="gbtn gbtn--sm path__inspect" data-game aria-expanded="false" aria-controls="edu-ucsd-back">Inspect</button>
+              <div class="path__back" id="edu-ucsd-back" data-game hidden>
+                <p><i>Fiat lux</i>, "let there be light": the University of California motto.</p>
+                <p>Home base: the CSE building and Picasso Lab. Yes, there is a house on the roof.</p>
+                <button type="button" class="gbtn gbtn--sm" data-act="visit" data-key="cse">Show me on the island</button>
+              </div>
+            </li>
+            <li class="row path__node path__node--thu" data-focus="gate" tabindex="0" data-say="me: The Second Gate. Where the undergrad years started.">
+              <span class="path__badge" data-game aria-hidden="true"></span>
+              <div class="row__logo row__logo--mono"><img src="assets/logos/tsinghua-white.png" alt="Tsinghua University" width="120" height="30"></div>
+              <div class="row__main">
+                <p class="row__title">Tsinghua University <span class="row__role">B.S., Computer Science and Technology</span></p>
+              </div>
+              <p class="row__when">2021 – 2025</p>
+              <p class="path__state game-only" aria-hidden="true">Mastered ✓</p>
+              <button type="button" class="gbtn gbtn--sm path__inspect" data-game aria-expanded="false" aria-controls="edu-thu-back">Inspect</button>
+              <div class="path__back" id="edu-thu-back" data-game hidden>
+                <p lang="zh">自强不息，厚德载物</p><p>"Self-discipline and social commitment": the Tsinghua motto.</p>
+                <button type="button" class="gbtn gbtn--sm" data-act="visit" data-key="gate">Show me the Second Gate</button>
+              </div>
+            </li>
+          </ul>
+          <div class="path__track" data-game>
+            <svg class="path__svg" viewBox="0 0 160 40" aria-hidden="true"><path class="path__line" d="M4 20 C 50 0, 110 40, 156 20"/></svg>
+            <span class="path__walker" aria-hidden="true"></span>
+            <button type="button" class="path__waypoint" aria-label="Waypoint between the two degrees">?</button>
+            <p class="path__banner" aria-hidden="true">Class change · Undergraduate → Ph.D. scholar</p>
+            <button type="button" class="token" data-token="t3" hidden aria-label="Triton token"></button>
+          </div>
+          <button type="button" class="path__locked" data-game aria-label="A locked future node (a joke)"><span aria-hidden="true">???</span><small>Next class: locked</small></button>
+        </div>
       </div>
     </section>
+    <!-- /region:edu -->
 
+    <div class="trail" data-game data-trail="g3" data-from="education" data-to="publications">
+      <div class="trail__card" aria-hidden="true"><span class="trail__line"></span><p class="trail__zone">Geisel Library</p><p class="trail__sub">Chapter 03 · Publications</p></div>
+      <div class="trail__post"><span class="trail__lantern" aria-hidden="true"></span><button type="button" class="trail__sign" data-go="publications">→ Geisel Library · 80 m</button><button type="button" class="trail__house" aria-label="A tiny house on a roof"></button></div>
+      <button type="button" class="token" data-token="t9" aria-label="Triton token"></button>
+      <svg class="trail__steps" viewBox="0 0 240 40" aria-hidden="true"><path class="trail__step" d="M19 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M57 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M95 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M133 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M171 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M209 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/></svg>
+    </div>
+
+    <!-- region:pubs -->
     <section class="scene" id="publications" data-shot="library" data-side="right" data-zone="Geisel Library" data-say="nell: Two shelves so far. The newer one is still under review.">
-      <div class="card">
-        <p class="tag"><span class="tag__n">03</span>The library</p>
+      <div class="card card--wide">
+        <div class="card-head"><p class="tag"><span class="tag__n">03</span><span class="tag__t">The library</span><span class="tag__k game-only" aria-hidden="true">· Achievements</span></p><span class="seal-slot" data-game data-seal="library" aria-hidden="true"></span></div>
         <h2>Publications</h2>
         <ol class="pubs">
-          <li class="pub" data-focus="book-triton" tabindex="0" data-say="nell: TritonGym. Agents writing GPU kernels, graded honestly.">
+          <li class="pub ach ach--review" id="pub-tritongym" data-focus="book-triton" tabindex="0" data-tags="compilers gpu agents" data-say="nell: TritonGym. Agents writing GPU kernels, graded honestly.">
+            <div class="ach__medal" data-game aria-hidden="true"><span class="ach__icon"></span><span class="ach__ribbon">In review</span></div>
             <p class="pub__year">2026</p>
-            <div>
+            <div class="ach__body">
               <p class="pub__title">TritonGym: A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation</p>
-              <p class="pub__authors">Yue Guan*, <b>Yichen Lin</b>*, et al. <span class="pub__note">* equal contribution</span></p>
-              <p class="pub__meta"><span class="pub__status">Under review</span> ICML 2026</p>
+              <p class="pub__authors">Yue Guan<span class="ast">*</span>, <b>Yichen Lin</b><span class="ast">*</span>, et al. <span class="pub__note">* equal contribution</span></p>
+              <p class="pub__meta"><span class="pub__status">Under review</span> ICML 2026 <span class="chip pub__topic">Agentic LLMs</span></p>
+              <div class="pub__more">
+                <details class="more"><summary>Summary</summary><p>Benchmarks tool-augmented LLM workflows on Triton GPU code generation and frames the project around measurable systems behavior rather than demo-only prompting wins.</p></details>
+                <details class="more more--code"><summary>BibTeX</summary><pre><code id="bib-tritongym">@misc{guan2026tritongym,
+  title  = {TritonGym: A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation},
+  author = {Guan, Yue and Lin, Yichen and others},
+  note   = {Under review at ICML 2026},
+  year   = {2026}
+}</code></pre><button type="button" class="gbtn gbtn--sm" data-game data-copy="bib-tritongym">Copy BibTeX</button></details>
+              </div>
+              <div class="ach__actions" data-game>
+                <button type="button" class="gbtn gbtn--sm" data-act="visit" data-key="book-triton">Visit the shelf</button>
+                <button type="button" class="gbtn gbtn--sm" data-act="review" aria-expanded="false" aria-controls="r2">Request review</button>
+                <span class="stamp-slot" data-stamp="cite"></span>
+              </div>
+              <section class="r2" id="r2" data-game hidden aria-label="Simulated peer review, a joke"></section>
             </div>
           </li>
-          <li class="pub" data-focus="book-reh2o" tabindex="0" data-say="nell: Scenario generation for autonomous driving. A classic from the older shelf.">
+          <li class="pub ach ach--gold" id="pub-reh2o" data-focus="book-reh2o" tabindex="0" data-say="nell: Scenario generation for autonomous driving. A classic from the older shelf.">
+            <div class="ach__medal" data-game aria-hidden="true"><span class="ach__icon"></span><span class="ach__ribbon">Unlocked 2023</span></div>
             <p class="pub__year">2023</p>
-            <div>
-              <p class="pub__title">(Re)²H₂O: Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning</p>
+            <div class="ach__body">
+              <p class="pub__title">(Re)<span class="sq">²</span>H<span class="sub2">₂</span>O: Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning</p>
               <p class="pub__authors">Haoyi Niu*, Kun Ren*, <b>Yichen Lin</b>, et al.</p>
-              <p class="pub__meta">IEEE Intelligent Vehicles Symposium (IV), 2023</p>
+              <p class="pub__meta">IEEE Intelligent Vehicles Symposium (IV), 2023 <span class="chip pub__topic">Autonomous Driving</span></p>
+              <div class="pub__more">
+                <details class="more"><summary>Summary</summary><p>Explores scenario generation for autonomous driving with a hybrid offline-and-online reinforcement learning setup, focusing on robustness and controllable scenario construction.</p></details>
+                <details class="more more--code"><summary>BibTeX</summary><pre><code id="bib-reh2o">@inproceedings{niu2023re2h2o,
+  title     = {(Re)$^2$H$_2$O: Autonomous Driving Scenario Generation via Reversely Regularized Hybrid Offline-and-Online Reinforcement Learning},
+  author    = {Niu, Haoyi and Ren, Kun and Lin, Yichen and others},
+  booktitle = {IEEE Intelligent Vehicles Symposium (IV)},
+  year      = {2023}
+}</code></pre><button type="button" class="gbtn gbtn--sm" data-game data-copy="bib-reh2o">Copy BibTeX</button><button type="button" class="token" data-token="t4" hidden aria-label="Triton token"></button></details>
+              </div>
+              <div class="ach__actions" data-game><button type="button" class="gbtn gbtn--sm" data-act="visit" data-key="book-reh2o">Visit the shelf</button><span class="stamp-slot" data-stamp="cite"></span></div>
             </div>
           </li>
         </ol>
       </div>
     </section>
+    <!-- /region:pubs -->
 
+    <div class="trail" data-game data-trail="g4" data-from="publications" data-to="experience">
+      <div class="trail__card" aria-hidden="true"><span class="trail__line"></span><p class="trail__zone">The trail</p><p class="trail__sub">Chapter 04 · Experience</p></div>
+      <div class="trail__post"><span class="trail__lantern" aria-hidden="true"></span><button type="button" class="trail__sign" data-go="experience">→ The trail · downhill</button></div>
+      <button type="button" class="token" data-token="t10" aria-label="Triton token"></button>
+      <svg class="trail__steps" viewBox="0 0 240 40" aria-hidden="true"><path class="trail__step" d="M19 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M57 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M95 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M133 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M171 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M209 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/></svg>
+    </div>
+
+    <!-- region:quests -->
     <section class="scene" id="experience" data-shot="trail" data-side="left" data-zone="The trail" data-say="me: Keep scrolling: every flag is a job, and we walk back in time.">
-      <div class="card">
-        <p class="tag"><span class="tag__n">04</span>The trail · newest first</p>
+      <div class="card card--wide">
+        <div class="card-head"><p class="tag"><span class="tag__n">04</span><span class="tag__t">The trail · newest first</span><span class="tag__k game-only" aria-hidden="true">· Quest log</span></p><span class="seal-slot" data-game data-seal="trail" aria-hidden="true"></span></div>
         <h2>Experience</h2>
-        <ul class="rows">
-          <li class="row" data-focus="flag-picasso" tabindex="0">
+        <div class="qmap" data-game aria-hidden="true"></div>
+        <ul class="rows quests">
+          <li class="row quest" data-focus="flag-picasso" tabindex="0" data-start="2024-03" data-end="2025-02" data-kind="research" data-tags="systems" style="--org:#FFCD00">
             <div class="row__logo row__logo--mono"><img src="assets/logos/ucsd-white.svg" alt="UC San Diego" width="120" height="23"></div>
             <div class="row__main">
+              <p class="quest__k game-only" aria-hidden="true">Research quest</p>
               <p class="row__title">Picasso Lab, UC San Diego CSE <span class="row__role">Research intern</span></p>
               <p class="row__desc">Built a CXL system simulator for large-model communication; set up lab websites and a RAG pipeline for reading papers.</p>
+              <details class="more quest__more">
+                <summary>Objectives <span class="quest__n">(2)</span></summary>
+                <p class="quest__notes">Worked on systems support for large-model infrastructure and research tooling in an academic lab setting.</p>
+                <ul class="quest__objs"><li>Developed a CXL system simulator for large model communication.</li><li>Helped set up lab websites and use RAG to parse academic papers.</li></ul>
+                <p class="quest__rewards"><span class="plain-only">Keywords:</span><span class="game-only" aria-hidden="true">Rewards</span> <span class="chip chip--reward">CXL simulator</span> <span class="chip chip--reward">RAG</span> <span class="chip chip--reward">Lab websites</span></p>
+                <button type="button" class="gbtn gbtn--gold quest__turnin" data-game>Turn in quest</button>
+              </details>
             </div>
             <p class="row__when">Mar 2024 – Feb 2025</p>
+            <span class="stamp-slot quest__stamp" data-game aria-hidden="true"></span>
           </li>
-          <li class="row" data-focus="flag-metabit" tabindex="0">
+          <li class="row quest" data-focus="flag-metabit" tabindex="0" data-start="2024-09" data-end="2024-11" data-kind="industry" style="--org:#00C6D7">
             <div class="row__logo row__logo--mono"><img src="assets/logos/metabit.png" alt="Metabit (乾象投资)" width="120" height="29"></div>
             <div class="row__main">
+              <p class="quest__k game-only" aria-hidden="true">Industry quest</p>
               <p class="row__title">Metabit <span class="row__role">Quantitative developer intern</span></p>
               <p class="row__desc">Sped up data parsing and added streaming reads to the internal AI platform.</p>
+              <details class="more quest__more">
+                <summary>Objectives <span class="quest__n">(1)</span></summary>
+                <p class="quest__notes">Focused on backend-facing performance and streaming improvements for an internal AI platform.</p>
+                <ul class="quest__objs"><li>Optimized data parsing and added streaming read support for AI Platform.</li></ul>
+                <p class="quest__rewards"><span class="plain-only">Keywords:</span><span class="game-only" aria-hidden="true">Rewards</span> <span class="chip chip--reward">Data parsing</span> <span class="chip chip--reward">Streaming reads</span></p>
+                <button type="button" class="gbtn gbtn--gold quest__turnin" data-game>Turn in quest</button>
+              </details>
             </div>
             <p class="row__when">Sep – Nov 2024</p>
+            <span class="stamp-slot quest__stamp" data-game aria-hidden="true"></span>
           </li>
-          <li class="row" data-focus="flag-tencent" tabindex="0">
+          <li class="row quest" data-focus="flag-tencent" tabindex="0" data-start="2024-06" data-end="2024-07" data-kind="industry" style="--org:#5FB3FF">
             <div class="row__logo row__logo--mono"><img src="assets/logos/tencent.svg" alt="Tencent" width="120" height="30"></div>
             <div class="row__main">
+              <p class="quest__k game-only" aria-hidden="true">Industry quest</p>
               <p class="row__title">Tencent, TiMi Studio <span class="row__role">Game developer intern</span></p>
               <p class="row__desc">Client work on the Monster Hunter mobile game, including voice-controlled teammates.</p>
+              <details class="more quest__more">
+                <summary>Objectives <span class="quest__n">(1)</span></summary>
+                <p class="quest__notes">Built gameplay-adjacent client features and explored voice-driven teammate interaction in a production game environment.</p>
+                <ul class="quest__objs"><li>Developed Monster Hunter mobile game client with voice-controlled teammates.</li></ul>
+                <p class="quest__rewards"><span class="plain-only">Keywords:</span><span class="game-only" aria-hidden="true">Rewards</span> <span class="chip chip--reward">Monster Hunter mobile</span> <span class="chip chip--reward">Voice-controlled teammates</span></p>
+                <button type="button" class="quest__mic gbtn gbtn--sm" data-game aria-label="Talk to your voice-controlled teammate (a joke)"><i class="quest__mic-i" aria-hidden="true"></i>Talk</button>
+                <button type="button" class="gbtn gbtn--gold quest__turnin" data-game>Turn in quest</button>
+              </details>
             </div>
             <p class="row__when">Jun – Jul 2024</p>
+            <span class="stamp-slot quest__stamp" data-game aria-hidden="true"></span>
           </li>
-          <li class="row" data-focus="flag-hotstar" tabindex="0">
+          <li class="row quest" data-focus="flag-hotstar" tabindex="0" data-start="2024-03" data-end="2024-06" data-kind="industry" style="--org:#B58CFF">
             <div class="row__logo row__logo--mono"><img src="assets/logos/disney-hotstar.svg" alt="Disney+ Hotstar" width="120" height="28"></div>
             <div class="row__main">
+              <p class="quest__k game-only" aria-hidden="true">Industry quest</p>
               <p class="row__title">Disney+ Hotstar <span class="row__role">Algorithm developer intern</span></p>
               <p class="row__desc">Optimised the search page and fine-tuned the recommendation model for TPUs.</p>
+              <details class="more quest__more">
+                <summary>Objectives <span class="quest__n">(1)</span></summary>
+                <p class="quest__notes">Worked on ranking and search quality, with emphasis on recommendation and serving efficiency.</p>
+                <ul class="quest__objs"><li>Optimized search page, fine-tuned recommendation model for TPUs.</li></ul>
+                <p class="quest__rewards"><span class="plain-only">Keywords:</span><span class="game-only" aria-hidden="true">Rewards</span> <span class="chip chip--reward">Search page</span> <span class="chip chip--reward">Recommendation model</span> <span class="chip chip--reward">TPUs</span></p>
+                <button type="button" class="gbtn gbtn--gold quest__turnin" data-game>Turn in quest</button>
+              </details>
             </div>
             <p class="row__when">Mar – Jun 2024</p>
+            <span class="stamp-slot quest__stamp" data-game aria-hidden="true"></span>
           </li>
-          <li class="row" data-focus="flag-lark" tabindex="0">
-            <div class="row__logo row__logo--icon"><img src="assets/logos/lark.png" alt="Lark" width="30" height="30"><span>Lark</span></div>
+          <li class="row quest" data-focus="flag-lark" tabindex="0" data-start="2023-06" data-end="2023-11" data-kind="industry" data-tags="agents" style="--org:#4ADE80">
+            <div class="row__logo row__logo--icon"><img src="assets/logos/lark.png" alt="Lark" width="30" height="30"><span>Lark</span><button type="button" class="quest__logo-hit" data-game aria-label="The Lark logo"></button></div>
             <div class="row__main">
+              <p class="quest__k game-only" aria-hidden="true">Industry quest</p>
               <p class="row__title">ByteDance, Lark <span class="row__role">Backend developer intern</span></p>
               <p class="row__desc">Built the AskAI assistant for sales-data analysis on Redis and RocketMQ.</p>
+              <details class="more quest__more">
+                <summary>Objectives <span class="quest__n">(1)</span></summary>
+                <p class="quest__notes">Implemented backend support for AskAI workflows using message queues and caching systems in a sales-analysis context.</p>
+                <ul class="quest__objs"><li>Developed AskAI assistant using Redis and RocketMQ for sales data analysis.</li></ul>
+                <p class="quest__rewards"><span class="plain-only">Keywords:</span><span class="game-only" aria-hidden="true">Rewards</span> <span class="chip chip--reward">AskAI</span> <span class="chip chip--reward">Redis</span> <span class="chip chip--reward">RocketMQ</span></p>
+                <button type="button" class="gbtn gbtn--gold quest__turnin" data-game>Turn in quest</button>
+              </details>
+              <button type="button" class="token" data-token="t5" hidden aria-label="Triton token"></button>
             </div>
             <p class="row__when">Jun – Nov 2023</p>
+            <span class="stamp-slot quest__stamp" data-game aria-hidden="true"></span>
           </li>
         </ul>
       </div>
     </section>
+    <!-- /region:quests -->
 
+    <div class="trail" data-game data-trail="g5" data-from="experience" data-to="projects">
+      <div class="trail__card" aria-hidden="true"><span class="trail__line"></span><p class="trail__zone">Jacobs Yard</p><p class="trail__sub">Chapter 05 · Projects</p></div>
+      <div class="trail__post"><span class="trail__lantern" aria-hidden="true"></span><button type="button" class="trail__sign" data-go="projects">→ Jacobs Yard · 0.4 mi</button></div>
+      <button type="button" class="token" data-token="t11" aria-label="Triton token"></button>
+      <svg class="trail__steps" viewBox="0 0 240 40" aria-hidden="true"><path class="trail__step" d="M19 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M57 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M95 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M133 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M171 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M209 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/></svg>
+    </div>
+
+    <!-- region:equip -->
     <section class="scene" id="projects" data-shot="workshop" data-side="right" data-zone="Jacobs Yard" data-say="unit7: Workshop online. Four projects on display. Please do not feed the gear.">
-      <div class="card">
-        <p class="tag"><span class="tag__n">05</span>The workshop</p>
+      <div class="card card--wide card--xl">
+        <div class="card-head"><p class="tag"><span class="tag__n">05</span><span class="tag__t">The workshop</span><span class="tag__k game-only" aria-hidden="true">· Equipment</span></p><span class="seal-slot" data-game data-seal="workshop" aria-hidden="true"></span></div>
         <h2>Projects</h2>
-        <ul class="rows">
-          <li class="row row--project" data-focus="mon-starry" tabindex="0">
-            <div class="row__main">
-              <p class="row__title"><a href="https://github.com/yil384/Starry-Next" target="_blank" rel="noopener">Starry-Next<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
-              <p class="row__desc">Networking stack for a monolithic-kernel operating system. Graduation project.</p>
+        <ul class="rows equip">
+          <li class="row row--project equip__item" data-focus="mon-starry" tabindex="0" data-rarity="epic" data-tags="systems">
+            <div class="equip__card">
+              <div class="equip__front">
+                <p class="equip__rarity game-only" aria-hidden="true">Epic · Weapon</p>
+                <span class="equip__icon" data-game aria-hidden="true" data-icon="sword"></span>
+                <div class="row__main">
+                  <p class="row__title"><a href="https://github.com/yil384/Starry-Next" target="_blank" rel="noopener">Starry-Next<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
+                  <p class="equip__sub">Operating systems · networking · graduation project</p>
+                  <p class="row__desc">Networking stack for a monolithic-kernel operating system. Graduation project.</p>
+                </div>
+                <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
+                <div class="equip__actions" data-game>
+                  <button type="button" class="gbtn gbtn--sm" data-act="inspect" aria-expanded="false" aria-controls="back-starry">Inspect</button>
+                  <button type="button" class="gbtn gbtn--sm" data-act="equip" aria-pressed="false">Equip</button>
+                  <button type="button" class="gbtn gbtn--sm gbtn--gold" data-act="move">Boot</button>
+                </div>
+                <pre class="equip__term" data-game hidden aria-live="polite"></pre>
+              </div>
+              <div class="equip__back" id="back-starry">
+                <p class="equip__k"><span class="plain-only">Details</span><span class="game-only" aria-hidden="true">Focus</span></p>
+                <p>Implemented the networking component for a monolithic kernel OS and treated the project as a systems-oriented graduation deliverable.</p>
+                <p class="equip__type">Systems project</p>
+                <button type="button" class="gbtn gbtn--sm" data-game data-act="back">Back</button>
+              </div>
             </div>
-            <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
           </li>
-          <li class="row row--project" data-focus="mon-im" tabindex="0">
-            <div class="row__main">
-              <p class="row__title"><a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" rel="noopener">IM System<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
-              <p class="row__desc">Real-time chat over WebSocket with a Django backend and a web front end.</p>
+          <li class="row row--project equip__item" data-focus="mon-im" tabindex="0" data-rarity="rare">
+            <div class="equip__card">
+              <div class="equip__front">
+                <p class="equip__rarity game-only" aria-hidden="true">Rare · Shield</p>
+                <span class="equip__icon" data-game aria-hidden="true" data-icon="shield"></span>
+                <div class="row__main">
+                  <p class="row__title"><a href="https://github.com/yil384/Instant-messaging-system-frontend" target="_blank" rel="noopener">IM System<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
+                  <p class="equip__sub">Django · WebSocket · full-stack messaging</p>
+                  <p class="row__desc">Real-time chat over WebSocket with a Django backend and a web front end.</p>
+                </div>
+                <p class="row__tags"><img src="assets/icons/brand/django.svg" alt="Django" width="16" height="16" title="Django"><img src="assets/icons/brand/websocket.svg" alt="WebSocket" width="16" height="16" title="WebSocket"><img src="assets/icons/brand/typescript.svg" alt="TypeScript" width="16" height="16" title="TypeScript"></p>
+                <div class="equip__actions" data-game>
+                  <button type="button" class="gbtn gbtn--sm" data-act="inspect" aria-expanded="false" aria-controls="back-im">Inspect</button>
+                  <button type="button" class="gbtn gbtn--sm" data-act="equip" aria-pressed="false">Equip</button>
+                  <button type="button" class="gbtn gbtn--sm gbtn--gold" data-act="move">Ping</button>
+                </div>
+                <pre class="equip__term" data-game hidden aria-live="polite"></pre>
+              </div>
+              <div class="equip__back" id="back-im">
+                <p class="equip__k"><span class="plain-only">Details</span><span class="game-only" aria-hidden="true">Focus</span></p>
+                <p>Built a real-time chat system around Django and WebSocket flows, with emphasis on reliable message delivery and practical web integration.</p>
+                <p class="equip__type">Full-stack project</p>
+                <button type="button" class="gbtn gbtn--sm" data-game data-act="back">Back</button>
+              </div>
             </div>
-            <p class="row__tags"><img src="assets/icons/brand/django.svg" alt="Django" width="16" height="16" title="Django"><img src="assets/icons/brand/websocket.svg" alt="WebSocket" width="16" height="16" title="WebSocket"><img src="assets/icons/brand/typescript.svg" alt="TypeScript" width="16" height="16" title="TypeScript"></p>
           </li>
-          <li class="row row--project" data-focus="mon-oj" tabindex="0">
-            <div class="row__main">
-              <p class="row__title"><a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" rel="noopener">CST-OJ<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
-              <p class="row__desc">An online judge for data-structure coursework: sandboxed grading and a submission queue.</p>
+          <li class="row row--project equip__item" data-focus="mon-oj" tabindex="0" data-rarity="rare" data-tags="systems">
+            <div class="equip__card">
+              <div class="equip__front">
+                <p class="equip__rarity game-only" aria-hidden="true">Rare · Tome</p>
+                <span class="equip__icon" data-game aria-hidden="true" data-icon="gavel"></span>
+                <div class="row__main">
+                  <p class="row__title"><a href="https://github.com/yil384/CST-OJ-Rust" target="_blank" rel="noopener">CST-OJ<img src="assets/icons/ui/arrow-up-right.svg" alt="" width="14" height="14"></a></p>
+                  <p class="equip__sub">Rust · evaluation platform · teaching infrastructure</p>
+                  <p class="row__desc">An online judge for data-structure coursework: sandboxed grading and a submission queue.</p>
+                </div>
+                <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
+                <div class="equip__actions" data-game>
+                  <button type="button" class="gbtn gbtn--sm" data-act="inspect" aria-expanded="false" aria-controls="back-oj">Inspect</button>
+                  <button type="button" class="gbtn gbtn--sm" data-act="equip" aria-pressed="false">Equip</button>
+                  <button type="button" class="gbtn gbtn--sm gbtn--gold" data-act="move">Submit</button>
+                  <button type="button" class="token" data-token="t6" hidden aria-label="Triton token"></button>
+                </div>
+                <pre class="equip__term" data-game hidden aria-live="polite"></pre>
+              </div>
+              <div class="equip__back" id="back-oj">
+                <p class="equip__k"><span class="plain-only">Details</span><span class="game-only" aria-hidden="true">Focus</span></p>
+                <p>Built a grading and evaluation workflow for coursework submissions, using Rust to keep the platform lightweight and systems-oriented.</p>
+                <p class="equip__type">Systems tooling</p>
+                <button type="button" class="gbtn gbtn--sm" data-game data-act="back">Back</button>
+              </div>
             </div>
-            <p class="row__tags"><img src="assets/icons/brand/rust.svg" alt="Rust" width="16" height="16" title="Rust"></p>
           </li>
-          <li class="row row--project" data-focus="mon-triton" tabindex="0">
-            <div class="row__main">
-              <p class="row__title">TritonGym</p>
-              <p class="row__desc">Benchmark and evaluation harness for LLM agents that write Triton GPU kernels. See the paper above. (Triton the GPU language shares its name with UCSD's mascot; the statue is a happy coincidence.)</p>
+          <li class="row row--project equip__item" data-focus="mon-triton" tabindex="0" data-rarity="legendary" data-tags="compilers gpu agents">
+            <div class="equip__card">
+              <div class="equip__front">
+                <p class="equip__rarity game-only" aria-hidden="true">Legendary · Relic</p>
+                <span class="equip__icon" data-game aria-hidden="true" data-icon="trident"></span>
+                <div class="row__main">
+                  <p class="row__title">TritonGym <span class="equip__paper game-only" aria-hidden="true">Paper-linked</span></p>
+                  <p class="equip__sub">LLM agents · Triton codegen · benchmarking</p>
+                  <p class="row__desc">Benchmark and evaluation harness for LLM agents that write Triton GPU kernels. See the paper above. (Triton the GPU language shares its name with UCSD's mascot; the statue is a happy coincidence.)</p>
+                </div>
+                <p class="row__tags"><img src="assets/icons/brand/python.svg" alt="Python" width="16" height="16" title="Python"></p>
+                <div class="equip__actions" data-game>
+                  <button type="button" class="gbtn gbtn--sm" data-act="inspect" aria-expanded="false" aria-controls="back-triton">Inspect</button>
+                  <button type="button" class="gbtn gbtn--sm" data-act="equip" aria-pressed="false">Equip</button>
+                  <button type="button" class="gbtn gbtn--sm gbtn--gold" data-act="move">Run</button>
+                </div>
+                <pre class="equip__term" data-game hidden aria-live="polite"></pre>
+              </div>
+              <div class="equip__back" id="back-triton">
+                <p class="equip__k"><span class="plain-only">Details</span><span class="game-only" aria-hidden="true">Focus</span></p>
+                <p>Frames GPU code generation as a measurable agentic workflow problem, with benchmarks meant to surface systems behavior rather than prompt-only demos.</p>
+                <p class="equip__type">Research project</p>
+                <button type="button" class="gbtn gbtn--sm" data-game data-act="back">Back</button>
+              </div>
             </div>
-            <p class="row__tags"><img src="assets/icons/brand/python.svg" alt="Python" width="16" height="16" title="Python"></p>
           </li>
         </ul>
-        <div class="toolbox" data-focus="workbench" tabindex="0" data-say="unit7: The workbench. Everything on it was compiled at least once.">
-          <p class="toolbox__label">On the workbench</p>
-          <ul class="tools" aria-label="Languages">
-            <li><img src="assets/icons/brand/python.svg" alt="" width="18" height="18">Python</li>
-            <li><img src="assets/icons/brand/cplusplus.svg" alt="" width="18" height="18">C++</li>
-            <li><img src="assets/icons/brand/rust.svg" alt="" width="18" height="18">Rust</li>
-            <li><img src="assets/icons/brand/go.svg" alt="" width="18" height="18">Go</li>
-            <li><img src="assets/icons/brand/typescript.svg" alt="" width="18" height="18">TypeScript</li>
-            <li><img src="assets/icons/brand/javascript.svg" alt="" width="18" height="18">JavaScript</li>
-            <li><img src="assets/icons/ui/cpu.svg" alt="" width="18" height="18">Verilog</li>
+        <div class="loadout" data-game aria-label="Equipped items"><span class="loadout__k">Equipped</span><span class="loadout__slot" data-slot="mon-starry"></span><span class="loadout__slot" data-slot="mon-im"></span><span class="loadout__slot" data-slot="mon-oj"></span><span class="loadout__slot" data-slot="mon-triton"></span></div>
+        <div class="toolbox attrs" data-focus="workbench" tabindex="0" data-say="unit7: The workbench. Everything on it was compiled at least once.">
+          <p class="toolbox__label">On the workbench <span class="game-only" aria-hidden="true">· Attributes</span></p>
+          <ul class="tools attrs__list" aria-label="Languages">
+            <li class="attr" data-lang="python" data-projects="mon-triton" style="--v:.9"><img src="assets/icons/brand/python.svg" alt="" width="18" height="18"><span class="attr__name">Python</span><span class="attr__bar" data-game role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="90" aria-valuetext="High" aria-label="Python level"><i></i></span><span class="attr__tier">High</span><button type="button" class="attr__hit" data-game aria-label="Python, High. Run hello world."></button></li>
+            <li class="attr" data-lang="cpp" data-projects="" style="--v:.85"><img src="assets/icons/brand/cplusplus.svg" alt="" width="18" height="18"><span class="attr__name">C++</span><span class="attr__bar" data-game role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="85" aria-valuetext="High" aria-label="C++ level"><i></i></span><span class="attr__tier">High</span><button type="button" class="attr__hit" data-game aria-label="C++, High. Run hello world."></button></li>
+            <li class="attr" data-lang="rust" data-projects="mon-starry mon-oj" style="--v:.75"><img src="assets/icons/brand/rust.svg" alt="" width="18" height="18"><span class="attr__name">Rust</span><span class="attr__bar" data-game role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="75" aria-valuetext="Strong" aria-label="Rust level"><i></i></span><span class="attr__tier">Strong</span><button type="button" class="attr__hit" data-game aria-label="Rust, Strong. Run hello world."></button></li>
+            <li class="attr" data-lang="go" data-projects="" style="--v:.7"><img src="assets/icons/brand/go.svg" alt="" width="18" height="18"><span class="attr__name">Go</span><span class="attr__bar" data-game role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="70" aria-valuetext="Strong" aria-label="Go level"><i></i></span><span class="attr__tier">Strong</span><button type="button" class="attr__hit" data-game aria-label="Go, Strong. Run hello world."></button></li>
+            <li class="attr" data-lang="typescript" data-projects="mon-im" style="--v:.65"><img src="assets/icons/brand/typescript.svg" alt="" width="18" height="18"><span class="attr__name">TypeScript</span><span class="attr__bar" data-game role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65" aria-valuetext="Working" aria-label="TypeScript level"><i></i></span><span class="attr__tier">Working</span><button type="button" class="attr__hit" data-game aria-label="TypeScript, Working. Run hello world."></button></li>
+            <li class="attr" data-lang="javascript" data-projects="" style="--v:.6"><img src="assets/icons/brand/javascript.svg" alt="" width="18" height="18"><span class="attr__name">JavaScript</span><span class="attr__bar" data-game role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" aria-valuetext="Working" aria-label="JavaScript level"><i></i></span><span class="attr__tier">Working</span><button type="button" class="attr__hit" data-game aria-label="JavaScript, Working. Run hello world."></button></li>
+            <li class="attr" data-lang="verilog" data-projects="" style="--v:.5"><img src="assets/icons/ui/cpu.svg" alt="" width="18" height="18"><span class="attr__name">Verilog</span><span class="attr__bar" data-game role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="Familiar" aria-label="Verilog level"><i></i></span><span class="attr__tier">Familiar</span><button type="button" class="attr__hit" data-game aria-label="Verilog, Familiar. Run hello world."></button></li>
           </ul>
-          <ul class="tools" aria-label="Tools">
-            <li><img src="assets/icons/brand/linux.svg" alt="" width="18" height="18">Linux</li>
-            <li><img src="assets/icons/brand/vim.svg" alt="" width="18" height="18">Vim</li>
-            <li><img src="assets/icons/brand/latex.svg" alt="" width="18" height="18">LaTeX</li>
-            <li><img src="assets/icons/brand/websocket.svg" alt="" width="18" height="18">WebSocket</li>
-            <li><img src="assets/icons/brand/django.svg" alt="" width="18" height="18">Django</li>
-            <li><img src="assets/icons/brand/mongodb.svg" alt="" width="18" height="18">MongoDB</li>
+          <ul class="tools inv" aria-label="Tools">
+            <li class="inv__slot" data-tool="linux"><img src="assets/icons/brand/linux.svg" alt="" width="18" height="18">Linux<button type="button" class="inv__hit" data-game aria-label="Use Linux"></button></li>
+            <li class="inv__slot" data-tool="vim"><img src="assets/icons/brand/vim.svg" alt="" width="18" height="18">Vim<button type="button" class="inv__hit" data-game aria-label="Use Vim"></button></li>
+            <li class="inv__slot" data-tool="latex"><img src="assets/icons/brand/latex.svg" alt="" width="18" height="18">LaTeX<button type="button" class="inv__hit" data-game aria-label="Use LaTeX"></button></li>
+            <li class="inv__slot" data-tool="websocket"><img src="assets/icons/brand/websocket.svg" alt="" width="18" height="18">WebSocket<button type="button" class="inv__hit" data-game aria-label="Use WebSocket"></button></li>
+            <li class="inv__slot" data-tool="django"><img src="assets/icons/brand/django.svg" alt="" width="18" height="18">Django<button type="button" class="inv__hit" data-game aria-label="Use Django"></button></li>
+            <li class="inv__slot" data-tool="mongodb"><img src="assets/icons/brand/mongodb.svg" alt="" width="18" height="18">MongoDB<button type="button" class="inv__hit" data-game aria-label="Use MongoDB"></button></li>
           </ul>
+          <pre class="attrs__console" data-game aria-live="polite"><code>$ _</code></pre>
         </div>
       </div>
     </section>
+    <!-- /region:equip -->
 
+    <div class="trail" data-game data-trail="g6" data-from="projects" data-to="contact">
+      <div class="trail__card" aria-hidden="true"><span class="trail__line"></span><p class="trail__zone">Sun God Lawn</p><p class="trail__sub">Chapter 06 · Contact</p></div>
+      <div class="trail__post"><span class="trail__lantern" aria-hidden="true"></span><button type="button" class="trail__sign" data-go="contact">→ Sun God Lawn · follow the grin</button></div>
+      <button type="button" class="token" data-token="t12" aria-label="Triton token"></button>
+      <svg class="trail__steps" viewBox="0 0 240 40" aria-hidden="true"><path class="trail__step" d="M19 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M57 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M95 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M133 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M171 25a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/><path class="trail__step" d="M209 15a3 4.5 0 1 0 6 0a3 4.5 0 1 0 -6 0Z"/></svg>
+    </div>
+
+    <!-- region:contact -->
     <section class="scene scene--last" id="contact" data-shot="meadow" data-side="left" data-zone="Sun God Lawn" data-say="fern: Come sit on the lawn. The mailbox is real; the sea lions are not fussy.">
       <div class="card">
-        <p class="tag"><span class="tag__n">06</span>Sun God Lawn · by the pier</p>
+        <div class="card-head"><p class="tag"><span class="tag__n">06</span><span class="tag__t">Sun God Lawn · by the pier</span><span class="tag__k game-only" aria-hidden="true">· Portals</span></p><span class="seal-slot" data-game data-seal="meadow" aria-hidden="true"></span></div>
         <h2>Contact</h2>
         <div class="prose">
-          <p data-focus="mailbox" tabindex="0"><a href="mailto:yil384@ucsd.edu" id="mail-link">yil384@ucsd.edu</a> · <a href="tel:+18583197361">(858) 319-7361</a></p>
+          <p class="mailline" data-focus="mailbox" tabindex="0"><button type="button" class="mailbox" data-game aria-pressed="false" aria-label="Mailbox flag"><span class="mailbox__flag"></span></button><a href="mailto:yil384@ucsd.edu" id="mail-link">yil384@ucsd.edu</a><button type="button" class="gbtn gbtn--sm" data-game data-copy="email">Copy</button> · <a href="tel:+18583197361" class="phone">(858) 319-7361</a></p>
           <p>Computer Science and Engineering, UC San Diego, La Jolla, CA.</p>
           <p class="aside">Questions, collaborations, or an egg I did not know about: please write. The mailbox has a flag for a reason.</p>
         </div>
-        <ul class="hero__links hero__links--card" aria-label="Profiles">
-          <li><a href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener"><img src="assets/icons/brand/googlescholar.svg" alt="" width="18" height="18">Google Scholar</a></li>
-          <li><a href="https://github.com/yil384" target="_blank" rel="noopener"><img src="assets/icons/brand/github.svg" alt="" width="18" height="18">GitHub</a></li>
-          <li><a href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener"><img src="assets/icons/brand/linkedin.svg" alt="" width="18" height="18">LinkedIn</a></li>
+        <ul class="hero__links hero__links--card portals" aria-label="Profiles">
+          <li><a class="portal" data-portal="scholar" href="https://scholar.google.com/citations?user=itFHNzoAAAAJ" target="_blank" rel="noopener"><span class="portal__ring" data-game aria-hidden="true"></span><img src="assets/icons/brand/googlescholar.svg" alt="" width="18" height="18">Google Scholar</a></li>
+          <li><a class="portal" data-portal="github" href="https://github.com/yil384" target="_blank" rel="noopener"><span class="portal__ring" data-game aria-hidden="true"></span><img src="assets/icons/brand/github.svg" alt="" width="18" height="18">GitHub</a></li>
+          <li><a class="portal" data-portal="linkedin" href="https://www.linkedin.com/in/yichen-lin-206293384" target="_blank" rel="noopener"><span class="portal__ring" data-game aria-hidden="true"></span><img src="assets/icons/brand/linkedin.svg" alt="" width="18" height="18">LinkedIn</a></li>
         </ul>
+        <p class="compose" data-game><span class="compose__k">Quick subject</span>
+          <a class="chip" href="mailto:yil384@ucsd.edu?subject=Collaboration">Collaboration</a>
+          <a class="chip" href="mailto:yil384@ucsd.edu?subject=Question%20about%20TritonGym">Question about TritonGym</a>
+          <a class="chip" href="mailto:yil384@ucsd.edu?subject=I%20found%20an%20egg">I found an egg</a></p>
+        <div class="savepoint" data-game><button type="button" class="savepoint__crystal" aria-label="Save point"></button><p class="savepoint__t">Save point · progress lives in this browser</p></div>
+        <span class="sealion" data-game aria-hidden="true"></span>
         <p class="eggline"><button type="button" class="linkish" id="eggs-line">Field notes: <b id="eggs-line-count">0</b> of <b id="eggs-line-total">0</b> eggs found</button></p>
       </div>
     </section>
+    <!-- /region:contact -->
+
+    <!-- region:credits -->
+    <section class="credits" id="credits" data-game aria-label="Credits and run summary">
+      <p class="credits__end">The end?</p>
+      <div class="credits__roll" aria-hidden="true"><ol class="credits__list">
+        <li><b>Starring</b> Yichen Lin as the Scholar</li>
+        <li>Bit as Bit</li>
+        <li>Chef Zhuo as himself (best cook in the building)</li>
+        <li>Archivist Nell · Unit-7 · Mo · Tide · Fern · Ash</li>
+        <li>King Triton (statue) · Sun God (statue) · the sea lions (unpaid)</li>
+        <li>Reviewer #2 (uncredited)</li>
+        <li>Built with three.js · no frameworks · no build step</li>
+      </ol></div>
+      <dl class="results" id="results"></dl>
+      <div class="credits__btns"><button type="button" class="gbtn" data-act="title">Back to title</button><button type="button" class="gbtn" data-act="ngplus">New Game+</button><button type="button" class="gbtn" data-act="notes">Open field notes</button></div>
+      <p class="credits__confirm" hidden>Reset page progress? Eggs are kept. <button type="button" class="gbtn gbtn--sm" data-act="ng-yes">Yes</button> <button type="button" class="gbtn gbtn--sm" data-act="ng-no">No</button></p>
+      <div class="postcredits" hidden aria-live="polite"></div>
+    </section>
+    <!-- /region:credits -->
   </main>
 
   <footer class="foot">

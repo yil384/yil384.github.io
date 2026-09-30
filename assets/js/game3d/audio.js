@@ -60,6 +60,14 @@ const SFX = {
   rune: () => seq([[440, 0, 0.2], [554, 0.12, 0.2], [659, 0.24, 0.2], [880, 0.36, 0.6]], { type: 'sine', gain: 0.12 }),
   door: () => seq([[98, 0, 0.8], [147, 0.4, 0.9]], { type: 'triangle', gain: 0.14, slide: 60 }),
   encounter: () => seq([[330, 0, 0.08], [440, 0.08, 0.08], [330, 0.16, 0.08], [554, 0.24, 0.2]], { gain: 0.08 }),
+  // page UI (the interactive CV)
+  stamp: () => seq([[110, 0, 0.06], [70, 0.03, 0.14]], { type: 'square', gain: 0.13 }),
+  flip: () => seq([[620, 0, 0.04], [930, 0.035, 0.05]], { type: 'triangle', gain: 0.05 }),
+  tick: () => seq([[1500 + Math.random() * 300, 0, 0.012]], { gain: 0.025 }),
+  pop: () => seq([[880, 0, 0.05]], { type: 'triangle', gain: 0.07, slide: 1320 }),
+  warp: () => seq([[220, 0, 0.35]], { type: 'sine', gain: 0.08, slide: 1760 }),
+  ring: () => seq([[1320, 0, 0.05], [1320, 0.1, 0.05], [1320, 0.2, 0.05]], { gain: 0.05 }),
+  squeak: () => seq([[520, 0, 0.05], [780, 0.04, 0.07]], { gain: 0.07 }),
 };
 
 export function sfx(name) {

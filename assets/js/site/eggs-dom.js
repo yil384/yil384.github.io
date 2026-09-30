@@ -7,6 +7,8 @@ import { spriteUrl } from '../game3d/pixelart.js';
 import { toggleTerminal } from './terminal.js';
 import { openNotes } from './notes.js';
 import { isEditable as editable } from '../game3d/util.js';
+import { toast } from './ui/kit.js';
+/* global CustomEvent */
 
 
 export function confetti(n = 90) {
@@ -60,7 +62,12 @@ export function initDomEggs(getWorld) {
     if (document.querySelector('.notes.is-open, .term.is-open') || document.documentElement.classList.contains('modal-open')) return;
     if ('wasd'.includes(k) && k.length === 1 && !e.repeat) {
       const w = getWorld();
-      if (w && matchMedia('(min-width: 900px) and (pointer: fine)').matches && !w.playing) { e.preventDefault(); w.enterPlay(); }
+      if (w && matchMedia('(min-width: 900px) and (pointer: fine)').matches && !w.playing) {
+        e.preventDefault();
+        // Reviewer mode keeps the page still: say how to get the controls instead of taking them
+        if (document.documentElement.classList.contains('is-plain')) { if (k === 'w') toast('Leave Reviewer mode to take the controls', 'Press R, or use the Play mode button in the bar.'); return; }
+        w.enterPlay();
+      }
     }
   });
 
@@ -84,17 +91,26 @@ export function initDomEggs(getWorld) {
     });
   }
 
-  // ---- the name cycles through aliases
+  // ---- the name cycles through aliases. The h1 holds the real text (.hero__name-t) plus the game's letter
+  // blocks: only the text span changes, the h1 gets .is-alias while an alias shows, and 'ui:alias' tells
+  // the hero module (so it can hide or rebuild its blocks).
   const name = document.getElementById('name');
   if (name) {
+    const text = name.querySelector('.hero__name-t') || name;
     const aliases = ['yil384', "Bit's human", 'Reviewer #2 (kidding)', 'Yichen Lin'];
-    const original = name.textContent;
+    const original = text.textContent;
     let n = 0, clicks = 0, last = 0;
     name.addEventListener('click', () => {
       const now = performance.now();
       clicks = now - last < 1200 ? clicks + 1 : 1;
       last = now;
-      if (clicks >= 3) { name.textContent = aliases[n % aliases.length]; if (aliases[n % aliases.length] === 'Yichen Lin') name.textContent = original; n++; found('alias'); clicks = 0; }
+      if (clicks >= 3) {
+        const next = aliases[n % aliases.length];
+        text.textContent = next === 'Yichen Lin' ? original : next;
+        name.classList.toggle('is-alias', text.textContent !== original);
+        name.dispatchEvent(new CustomEvent('ui:alias', { detail: { text: text.textContent, original: text.textContent === original } }));
+        n++; found('alias'); clicks = 0;
+      }
     });
   }
 

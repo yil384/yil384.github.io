@@ -1,4 +1,4 @@
-// Page boot: chrome first (bar, nav, cards, DOM easter eggs), then the 3D world when the device can
+// Page boot: chrome first (bar, nav, cards, DOM easter eggs), the interactive CV, then the 3D world when the device can
 // run it. The page is fully usable, and the poster stays behind it, if the world never starts.
 import { probeGPU } from './three/env.js';
 import { initChrome } from './site/chrome.js';
@@ -8,7 +8,10 @@ import { initDomEggs } from './site/eggs-dom.js';
 const q = new URLSearchParams(location.search);
 const chrome = initChrome();
 let world = null;
+window.__page = { chrome, get world() { return world; } };
 initDomEggs(() => world);
+// the interactive CV (modes, status strip, keys, chapters, then every section module); never awaited
+import('./site/ui/index.js').catch((err) => console.error('[ui] failed to start:', err));
 
 async function mountWorld() {
   const probe = probeGPU();
@@ -37,7 +40,6 @@ async function mountWorld() {
   }
 }
 
-window.__page = { chrome, get world() { return world; } };
 const start = () => mountWorld();
 if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 900 });
 else setTimeout(start, 120);

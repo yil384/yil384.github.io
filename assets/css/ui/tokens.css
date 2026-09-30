@@ -1,0 +1,38 @@
+/* Design tokens for the interactive CV (SPEC §1.1). The site.css tokens (--bg, --ink*, --line*, --accent,
+   --glass*, fonts) stay; these add the UCSD palette, rarities, meters, pixel faces, motion and z-layers.
+   Pixel faces are for chrome only (labels, chips, buttons, HUD, stamps, ribbons), never for CV prose. */
+:root {
+  --ucsd-navy: #182B49;
+  --ucsd-navy-2: #22406e;
+  --ucsd-navy-3: #0f1d33;
+  --gold: #FFCD00;
+  --gold-a45: rgba(255, 205, 0, 0.45);
+  --gold-a18: rgba(255, 205, 0, 0.18);
+  --gold-a08: rgba(255, 205, 0, 0.08);
+  --amber: #f2b84b;
+  --teal: #00C6D7;
+  --teal-a30: rgba(0, 198, 215, 0.3);
+  --hp: #4ADE80;
+  --focus: #818CF8;
+  --xp: #FFCD00;
+  --danger: #F87171;
+  --warn: #FBBF24;
+  --r-common: #9aa4b8;
+  --r-rare: #5FB3FF;
+  --r-epic: #B58CFF;
+  --r-legend: #FFCD00;
+  --ink-glass: rgba(8, 11, 22, 0.80);
+  --paper: #f7f3e8;
+  --px: 'Silkscreen', var(--mono);
+  --px-title: 'Pixelify Sans', var(--sans);
+  --px-num: 'Press Start 2P', var(--mono);
+  --ease: cubic-bezier(0.2, 0.9, 0.2, 1);
+  --t-ui: 240ms;
+  --t-reveal: 600ms;
+  --t-stamp: 220ms;
+  --z-crit: 3;
+  --z-bit: 4;
+  --z-bubble: 6;
+  --z-fx: 25;
+  --z-toast: 90;
+}

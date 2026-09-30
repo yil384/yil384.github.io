@@ -2,10 +2,11 @@
 // and the boot sequence. Talks to the world only through the shared event bus and the api object
 // handed to attachWorld().
 import { S } from '../game3d/state.js';
-import { on } from '../game3d/bus.js';
+import { on, emit } from '../game3d/bus.js';
 import { setSound } from '../game3d/audio.js';
 import { onChange, foundCount, total } from './eggs.js';
 import { openNotes } from './notes.js';
+import { say, observe } from './ui/kit.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -33,18 +34,19 @@ export function initChrome() {
     bar.sound.title = `Sound effects: ${on_ ? 'on' : 'off'}`;
     bar.sound.querySelector('img').src = `assets/icons/ui/${on_ ? 'volume-2' : 'volume-x'}.svg`;
   };
-  bar.sound.addEventListener('click', () => { S.settings.soundTouched = true; setSound(!S.settings.sound); renderSound(); });
+  bar.sound.addEventListener('click', () => {
+    const first = !S.settings.soundTouched;
+    S.settings.soundTouched = true;
+    setSound(!S.settings.sound);
+    renderSound();
+    if (S.settings.sound && first) say('bit', 'Ooh, speakers.');
+  });
   renderSound();
   on('mode', renderSound);
+  on('ui:sound', renderSound);
 
-  // ---- section cards fade in as they arrive
-  const cards = [...document.querySelectorAll('.card')];
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); }
-    }, { threshold: 0.12 });
-    cards.forEach((c) => io.observe(c));
-  } else cards.forEach((c) => c.classList.add('is-in'));
+  // ---- section cards fade in as they arrive (through kit's shared observer)
+  document.querySelectorAll('.card').forEach((c) => observe(c, { threshold: 0.12 }, () => c.classList.add('is-in')));
 
   // ---- nav highlight, zone name, side of the screen the text is on
   const links = [...document.querySelectorAll('.bar__nav a')];
@@ -88,7 +90,7 @@ export function initChrome() {
         for (const a of links) a.classList.toggle('is-active', a.getAttribute('href') === `#${best.id}`);
       }
       const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-      bar.progress.style.setProperty('--p', Math.min(1, scrollY / max).toFixed(4));
+      emit('progress', Math.min(1, scrollY / max));
     };
     addEventListener('scroll', () => { if (!queued) { queued = true; requestAnimationFrame(tick); } }, { passive: true });
     addEventListener('resize', tick);
@@ -96,16 +98,40 @@ export function initChrome() {
   }
 
   // ---- boot: reveal once fonts are ready (never wait longer than a beat)
-  const status = $('boot-status');
   const reveal = () => document.documentElement.classList.remove('is-booting');
   Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise((r) => setTimeout(r, 900))]).then(() => setTimeout(reveal, 60));
 
+  // ---- the boot log under the hero: status() appends a line (the last 3 stay), done() fades it out
+  const status = $('boot-status');
+  const lines = status ? status.textContent.split('\n').filter(Boolean) : [];
+  let fadeT = 0;
+  const log = (msg) => {
+    if (!status || !msg) return;
+    const m = String(msg);
+    if (lines[lines.length - 1] === m) return;
+    // progress updates of the same step replace the previous line instead of stacking ("loading… 40%")
+    const stem = (x) => x.replace(/[\d.%/]+|…|\.\.\./g, '').trim();
+    if (lines.length && stem(lines[lines.length - 1]) === stem(m)) lines[lines.length - 1] = m;
+    else lines.push(m);
+    while (lines.length > 3) lines.shift();
+    status.textContent = lines.join('\n');
+    status.hidden = false;
+    status.classList.remove('is-done');
+  };
+  const done = (last) => {
+    log(last);
+    log('ready.');
+    clearTimeout(fadeT);
+    fadeT = setTimeout(() => status?.classList.add('is-done'), 3000);
+  };
+
   return {
-    status: (msg) => { if (status) { status.textContent = msg; status.hidden = !msg; } },
+    status: log,
     attachWorld(api) {
       world = api;
-      if (status) { status.textContent = ''; status.hidden = true; }
+      done('waking the islanders… 9/9');
       body.classList.add('world-live');
+      if (document.documentElement.classList.contains('is-plain')) { try { api.setPaused?.(true); } catch { /* older world */ } }
       const canPlay = matchMedia('(min-width: 900px) and (pointer: fine)').matches;
       if (canPlay) bar.play.hidden = false;
       bar.play.addEventListener('click', () => api.enterPlay());
@@ -113,7 +139,7 @@ export function initChrome() {
     },
     worldFailed(reason) {
       body.classList.add('no-world');
-      if (status) { status.textContent = ''; status.hidden = true; }
+      done('island asleep (no WebGL): poster mode');
       console.info('[world] not started:', reason);
       startSpy();
     },
