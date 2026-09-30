@@ -316,7 +316,7 @@ export default {
         const res = search(q);
         if (!res.length) {
           findDidYouMean();
-          out.replaceChildren(h('p', null, `No results for “${q}”. `, h('b', null, 'Did you mean: Yichen Lin?')), chip('yichen lin'));
+          out.replaceChildren(h('p', null, `No results for “${q}”. `, h('b', null, 'Did you mean: Yichen Lin?')), h('div', { style: { display: 'flex' } }, chip('yichen lin')));
           return;
         }
         out.replaceChildren(h('p', { class: 'game__hint' }, `${res.length} result${res.length > 1 ? 's' : ''}, ranked by the (fine-tuned) model:`),
