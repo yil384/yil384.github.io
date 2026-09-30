@@ -319,7 +319,9 @@ function loadEnemy(i) {
 
 export function startWild(biome) {
   if (battle) return;
-  const id = pick(WILD_TABLES[biome] || WILD_TABLES.meadow);
+  // never a mirror match against your own active buddy (or the one-of-a-kind Bit)
+  const table = (WILD_TABLES[biome] || WILD_TABLES.meadow).filter((x) => x !== 'bit' && x !== activeId());
+  const id = pick(table.length ? table : ['sparkit', 'emberling'].filter((x) => x !== activeId()));
   startBattle({ mode: 'wild', biome, roster: [id], intro: `A wild ${SPECIES[id].name} jumped out of the grass!` });
 }
 

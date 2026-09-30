@@ -33,8 +33,9 @@ export function createCamera() {
   let ground = null;              // (x, z) -> surface y, for camera collision
   let floor = null;               // (x, z) -> bare terrain y (no props), for the minimum camera height
   let occ = null;                 // eased camera distance after occlusion pull-in
-  let occT = 0;
-  const occDt = () => { const n = performance.now(), d = occT ? (n - occT) / 1000 : 0.016; occT = n; return d; };
+  let occHold = 0, lift = 0;
+  let frameDt = 0.016;
+  const occDt = () => { const d = frameDt; frameDt = 0; return d; }; // consumed once per update
   let lastFov = 0, lastSx = NaN, lastSy = NaN, lastW = 0, lastH = 0;
   let motion = 0;                 // how much the pose changed last update (for the tour frame cap)
   let lookIdle = 99;              // seconds since the last manual look input (auto-follow waits for it)
@@ -59,6 +60,7 @@ export function createCamera() {
     get firstPerson() { return fp; },
     /** Change in pose during the last update (world units + radians); ~0 when the camera is at rest. */
     get motion() { return motion; },
+    get debug() { return { occ, lift, dist: cur.dist, want: want.dist, look: cur.look }; },
     resize(w, h) { size.w = w; size.h = h; },
     setGround(fn, floorFn = null) { ground = fn; floor = floorFn; },
 
@@ -128,6 +130,7 @@ export function createCamera() {
      * @param opts   { eye?: {x,y,z} override for first person (vehicles), sens }
      */
     update(p, input, dt, t = 0, opts = {}) {
+      frameDt = dt;
       prev.x = cam.position.x; prev.y = cam.position.y; prev.z = cam.position.z;
       prev.yaw = cur.yaw; prev.pitch = cur.pitch; prev.fov = cur.fov;
       if (play && cine) {
@@ -209,6 +212,7 @@ export function createCamera() {
       // keep terrain out from between the camera and the player: march outward, pull in on a hit.
       // A single-cell hit (a lamp, a sign, a bench) is ignored so small props don't yank the camera;
       // the pull-in eases (fast in, slow back out) instead of snapping.
+      const pdt = Math.min(occDt(), 0.1);
       if (play && ground) {
         const sx = Math.sin(yaw) * cp, sy = Math.sin(pitch), sz = Math.cos(yaw) * cp;
         let want = dist, first = -1;
@@ -220,11 +224,22 @@ export function createCamera() {
           } else first = -1;
         }
         if (occ == null || occ > dist) occ = dist;
-        occ += (want - occ) * (1 - Math.exp(-(want < occ ? 18 : 3.5) * Math.min(occDt(), 0.1)));
+        // hysteresis: once pulled in, hold for a moment before easing back out, so a ray grazing an
+        // edge (hit, miss, hit…) doesn't pump the distance every frame
+        if (want < occ - 0.05) { occHold = 0.45; occ += (want - occ) * (1 - Math.exp(-10 * pdt)); }
+        else if ((occHold -= pdt) <= 0) occ += (want - occ) * (1 - Math.exp(-2.5 * pdt));
         dist = Math.min(dist, occ);
-      } else occ = null;
+      } else { occ = null; lift = 0; }
       pos.set(cur.look.x + Math.sin(yaw) * cp * dist, cur.look.y + Math.sin(pitch) * dist, cur.look.z + Math.cos(yaw) * cp * dist);
-      if (play && ground) { const gy = (floor || ground)(pos.x, pos.z); if (pos.y < gy + 0.8) pos.y = gy + 0.8; }
+      // stay above the ground, eased: terrain height steps a whole block per cell, and snapping to it
+      // made the camera hop up and down while walking over uneven ground
+      if (play && ground) {
+        const gy = (floor || ground)(pos.x, pos.z);
+        const need = Math.max(0, gy + 0.9 - pos.y);
+        lift += (need - lift) * (1 - Math.exp(-(need > lift ? 12 : 4) * pdt));
+        pos.y += lift;
+        if (pos.y < gy + 0.3) pos.y = gy + 0.3; // never inside the ground
+      }
       cam.position.copy(pos);
       cam.lookAt(cur.look);
     }

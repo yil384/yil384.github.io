@@ -131,8 +131,9 @@ export const SPECIES = {
 };
 
 export const WILD_TABLES = {
-  meadow: ['sparkit', 'bit', 'sparkit', 'emberling'],
-  camp: ['emberling', 'bit', 'tidefin'],
+  // Bit is Yichen's one-of-a-kind companion, never a wild monster (it used to fight itself)
+  meadow: ['sparkit', 'emberling', 'sparkit', 'tidefin'],
+  camp: ['emberling', 'tidefin', 'sparkit'],
   shadow: ['tidefin', 'wyrmlet', 'sparkit'],
   peak: ['wyrmlet', 'emberling', 'wyrmlet'],
 };
