@@ -22,10 +22,11 @@ export default async ({ p, ev, sim, check, shot }) => {
     check('did you mean', /Did you mean/.test(r2));
     await shot('search', 1500);
     await ev(() => window.__g.closeAllModals());
+    // the closing modal stays in the DOM for 160 ms with focus in its <input>, which swallows the next E
+    await p.waitForTimeout(400);
   }
   // new user
   await tp(-4, 11); await sim(0.3); await p.keyboard.press('KeyE'); await p.waitForTimeout(400);
-  console.log('LOG DBG', JSON.stringify(await ev(() => { const g = window.__g; return [g.modalOpen(), g.player.dead, document.activeElement?.outerHTML?.slice(0, 80), [...document.querySelectorAll('.toast, [class*=toast]')].map((e) => e.textContent).join('|').slice(0, 300), g.player.x, g.player.z, g.player.y, document.querySelector('.modal.is-open')?.textContent?.slice(0, 80), g.foes.filter((f) => f.region === 'hotstar' && f.alive).map((f) => [f.kindId, f.x.toFixed(1), f.z.toFixed(1)])]; })));
   await pick(1); // "Whatever is trending"
   await p.waitForTimeout(400); await ev(() => window.__g.closeAllModals());
   // boss: overfit damage then racks
