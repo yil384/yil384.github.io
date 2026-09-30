@@ -30,8 +30,29 @@ const CLASS = [11, 21, 3, 11];            // Yao Class classroom (open-air, low 
 const LAWN = [-10, 10, -14, -3];          // the exam hall
 const PATIO = [-14, -7, 14, 19];          // Zhuo's kitchen patio
 
+// Small solid things are terrain columns rather than blocked props: the camera then treats them at
+// their real height, and the low ones (walls, desks, the stove) are hop-able ledges.
+const SOLID = new Map();
+const solid = (x, z, h, t) => SOLID.set(`${x},${z}`, { h, t });
+for (const x of [-5, -4, -3, -2, 2, 3, 4, 5]) for (const z of [17, 18]) solid(x, z, 9, 'gate');   // 二校门's walls
+for (let x = -9; x <= -7; x++) solid(x, 14, 4, 'mstone');                                          // the motto stone
+for (const x of [-6, -4, -2, 2, 4, 6]) solid(x, -15, 7, 'marble');                                 // portico columns
+solid(0, -20, 15, 'gold');                                                                         // the dome's pinnacle
+for (const [x, z] of [[-15, -4], [-13, -4], [-15, -2], [-13, -2]]) solid(x, z, 5, 'lacquer');       // pavilion pillars
+for (let x = -11; x <= -9; x++) solid(x, 16, 3, 'stove');                                          // Zhuo's stove
+for (let x = -13; x <= -12; x++) for (let z = 17; z <= 18; z++) solid(x, z, 3, 'table');
+for (let x = 11; x <= 21; x++) for (let z = 3; z <= 11; z++) {                                     // classroom walls
+  if (x !== 11 && x !== 21 && z !== 3 && z !== 11) continue;
+  if ((x === 11 && z >= 6 && z <= 8) || (z === 11 && x >= 15 && x <= 17)) continue;               // doors
+  solid(x, z, 4, 'wall');
+}
+for (const x of [13, 15, 17, 19]) solid(x, 9, 3, 'desk');
+solid(17, -19, 14, 'term');                                                                        // Starry-Next terminal
+
 function heightAt(x, z) {
   if (!inIsland(x, z)) return null;
+  const so = SOLID.get(`${x},${z}`);
+  if (so) return so.h;
   if (inBox(x, z, AUD)) {
     const dd = Math.hypot(x - DOME.x, z - DOME.z);
     return dd < 4.6 ? 8 + Math.min(5, Math.ceil(4.6 - dd)) : 8;
@@ -46,6 +67,8 @@ function heightAt(x, z) {
   return 2;
 }
 function typeAt(x, z) {
+  const so = SOLID.get(`${x},${z}`);
+  if (so) return so.t;
   if (inBox(x, z, AUD)) return Math.hypot(x - DOME.x, z - DOME.z) < 4.6 ? 'dome' : 'brick';
   if (z === -15 && x >= -7 && x <= 7) return 'marble';
   if (inBox(x, z, CST)) return 'cst';
@@ -82,6 +105,15 @@ const PALETTE = {
   dorm: ['#d4b8a0', '#cfae94'],
   wood: ['#a0703f', '#94663a'],
   patio: ['#d1c7b7', '#c4baa9'],
+  gate: ['#f1f5f9', '#e2e8f0'],
+  mstone: ['#9ca3af', '#8b939e'],
+  gold: ['#facc15', '#eab308'],
+  lacquer: ['#b91c1c', '#a51b1b'],
+  stove: ['#374151'],
+  table: ['#a16207'],
+  wall: ['#e2e8f0', '#cbd5e1'],
+  desk: ['#92400e'],
+  term: ['#0f172a'],
 };
 
 // The Final Exam's written questions. Every right answer is a fact from the CV; the rest are jokes.
@@ -129,7 +161,6 @@ export default {
     const pick = (arr, x, y, z) => arr[Math.floor(hash3(x, y, z) * arr.length)];
 
     // -- 二校门, the Second Gate: white, three bays, the centre one open
-    for (let y = 3; y <= 9; y++) for (const x of [-5, -4, -3, -2, 2, 3, 4, 5]) for (const z of [17, 18]) put(Bk, x, y, z, (x + y) % 2 ? '#f1f5f9' : '#e2e8f0');
     for (let y = 10; y <= 11; y++) for (let x = -5; x <= 5; x++) for (const z of [17, 18]) put(S, x, y, z, '#f8fafc');
     for (let x = -6; x <= 6; x++) for (let z = 16; z <= 19; z++) put(S, x, 12, z, (x + z) % 2 ? '#cbd5e1' : '#b6c2d1');
     for (let x = -5; x <= 5; x++) for (const z of [17, 18]) put(S, x, 13, z, '#94a3b8');
@@ -138,7 +169,7 @@ export default {
       for (const x of [-4, -3, 3, 4]) for (let y = 4; y <= 6; y++) put(S, x, y, zf, '#1e293b');
     }
     // the motto stone
-    for (let x = -9; x <= -7; x++) { put(Bk, x, 3, 14, '#9ca3af'); put(Bk, x, 4, 14, '#6b7280'); put(S, x, 4, 14.56, '#facc15', 1.2); }
+    for (let x = -9; x <= -7; x++) put(S, x, 4, 14.06, '#facc15', 1.2);
 
     // -- trees, willows and lamps
     const tree = (x, z, willow = false) => {
@@ -172,12 +203,11 @@ export default {
     for (const [x, z] of [[-10, -3], [10, -3], [-8, 14], [10, 6], [-6, 1], [-5, 14], [5, 14]]) lamp(x, z);
 
     // -- 大礼堂: portico columns, door, windows, a golden pinnacle
-    for (const x of [-6, -4, -2, 2, 4, 6]) for (let y = 4; y <= 7; y++) put(Bk, x, y, -15, '#f5f5f4');
     for (let x = -7; x <= 7; x++) put(S, x, 8, -15, '#e7e5e4');
     for (let x = -1; x <= 1; x++) for (let y = 4; y <= 6; y++) put(S, x, y, -15.94, '#3f2a1d');
     for (const x of [-5, -3, 3, 5]) for (let y = 5; y <= 6; y++) put(S, x, y, -15.94, '#fde68a', 1.4);
     for (const zf of [-19, -21]) for (const [xf, s] of [[-7.5, -1], [7.5, 1]]) for (let y = 4; y <= 6; y++) put(S, xf - s * 0.44, y, zf, '#fde68a', y === 6 ? 0.4 : 1.3);
-    put(Bk, 0, 14, -20, '#facc15', 1.5); put(Bk, 0, 15, -20, '#fde047', 2);
+    put(S, 0, 15.1, -20, '#fde047', 2);
 
     // -- windows on the tall buildings (lit or dark)
     const winX = (xf, s, z0, z1, ys, lit = 0.6) => { for (let z = z0; z <= z1; z += 2) for (const y of ys) { const on = hash3(Math.round(xf), y, z) < lit; put(S, xf - s * 0.44, y, z, on ? '#fde68a' : '#1e293b', on ? 1.6 : 0); } };
@@ -198,31 +228,29 @@ export default {
       put(S, x, 0.08, z, i % 2 ? '#15803d' : '#16a34a');
       if (i % 3 === 0) { put(S, x, 1, z, '#f9a8d4', 1.3); }
     }
-    for (const [x, z] of [[-15, -4], [-13, -4], [-15, -2], [-13, -2]]) for (let y = 3; y <= 5; y++) put(Bk, x, y, z, '#b91c1c');
     for (let x = -16; x <= -12; x++) for (let z = -5; z <= -1; z++) put(S, x, 6, z, '#334155');
     for (let x = -15; x <= -13; x++) for (let z = -4; z <= -2; z++) put(S, x, 7, z, '#1f2937');
     put(S, -14, 8, -3, '#facc15', 1.2);
 
     // -- 紫荆 dorm patio: Zhuo's stove, wok and a table
-    for (let x = -11; x <= -9; x++) put(Bk, x, 3, 16, '#374151');
-    put(S, -10, 4, 16, '#111827'); put(S, -10.3, 4.4, 16, '#ef4444', 1); put(S, -9.7, 4.4, 16.1, '#fde047', 1);
-    put(S, -9.2, 3.8, 16, '#f97316', 2.2);
-    for (let x = -13; x <= -12; x++) for (let z = 17; z <= 18; z++) put(Bk, x, 3, z, '#a16207');
+    const wok = [];                                                    // a wok of tomato & egg (⅓-size voxels)
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
+      const r = Math.hypot(dx, dz);
+      if (r > 2.3) continue;
+      wok.push([(-10 * 3) + dx, 11, 16 * 3 + dz, '#111827']);
+      if (r > 1.6) wok.push([(-10 * 3) + dx, 12, 16 * 3 + dz, '#1f2937']);
+      else wok.push([(-10 * 3) + dx, 12, 16 * 3 + dz, (dx + dz) % 2 ? '#ef4444' : '#fde047', 0.9]);
+    }
+    wok.push([-30 + 3, 12, 48, '#57534e'], [-30 + 4, 12, 48, '#57534e']);                  // the handle
+    for (const [dx, dz] of [[-1, 0], [1, 0], [0, 1]]) wok.push([-30 + dx, 10.6, 48 + dz, '#f97316', 2.4]);
+    props(ctx, wok, { shadow: false }).scale.setScalar(1 / 3);
 
     // -- Yao Class classroom: low walls, the whiteboard, desks
-    const [cx0, cx1, cz0, cz1] = CLASS;
-    for (let x = cx0; x <= cx1; x++) for (let z = cz0; z <= cz1; z++) {
-      const edge = x === cx0 || x === cx1 || z === cz0 || z === cz1;
-      if (!edge) continue;
-      if (x === cx0 && z >= 6 && z <= 8) continue;               // west door
-      if (z === cz1 && x >= 15 && x <= 17) continue;             // south door
-      for (let y = 3; y <= 4; y++) put(Bk, x, y, z, (x + z + y) % 2 ? '#e2e8f0' : '#cbd5e1');
-    }
     for (let x = 12; x <= 20; x++) for (let y = 5; y <= 7; y++) put(S, x, y, 3, '#f8fafc', 0.25);
     for (let y = 5; y <= 8; y++) { put(S, 11, y, 3, '#94a3b8'); put(S, 21, y, 3, '#94a3b8'); }
     for (let x = 11; x <= 21; x++) put(S, x, 8, 3, '#94a3b8');
     for (let x = 12; x <= 20; x++) for (const y of [4.5, 5]) if (hash3(x, y * 2, 3) < 0.45 && x % 2) put(S, x, y + 0.5, 3.1, '#1e3a8a');
-    for (const x of [13, 15, 17, 19]) { put(Bk, x, 3, 9, '#92400e'); put(S, x, 3, 10, '#57534e'); }
+    for (const x of [13, 15, 17, 19]) put(S, x, 3, 10, '#57534e');
 
     // -- the moon, and its reflection (appears for the patient)
     const moon = [];
@@ -601,7 +629,7 @@ export default {
         }, { name: 'Starry-Next', sprite: 'robot' });
       },
     });
-    props(ctx, [[17, 13, -19, '#0f172a'], [17, 14, -19, '#22d3ee', 1.4]], { block: true });
+    props(ctx, [[17, 14, -18.94, '#22d3ee', 1.4], [17, 13, -18.94, '#1e293b', 0]], { shadow: false });
 
     // -- the window that is always lit
     const findLate = egg('thu-3am', 'Still debugging', 'One window of the CS&T building never goes dark.', 'Someone in CS&T is always debugging at 3 a.m. It is a tradition. (A joke. Mostly.)');

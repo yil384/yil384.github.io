@@ -162,7 +162,7 @@ export default {
     for (let x = -2; x <= 2; x++) for (let z = -1; z <= 2; z++) for (let y = 0; y <= 2; y++) {
       if (x > -2 && x < 2 && z > -1 && z < 2 && y < 2) continue;
       const door = z === 2 && x === 0 && y < 2, win = z === 2 && x === 1 && y === 1;
-      house.push([x, y, z, door ? '#7c2d12' : win ? '#fde68a' : '#93c5fd', win ? 2 : 0]);
+      house.push([x, y, z, door ? '#7c2d12' : win ? '#fde68a' : '#93c5fd', win ? 2 : door ? 0 : 0.3]);
     }
     for (let x = -3; x <= 3; x++) for (let z = -2; z <= 3; z++) house.push([x, 3, z, '#334155']);
     for (let x = -2; x <= 2; x++) for (let z = -1; z <= 2; z++) house.push([x, 4, z, '#1e293b']);
