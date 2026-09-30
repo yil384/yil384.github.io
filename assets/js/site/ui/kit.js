@@ -430,8 +430,13 @@ export function observe(el, { threshold = 0.5, once = true, rootMargin = '0px' }
     set.delete(rec);
     if (!set.size) { o.map.delete(el); o.io.unobserve(el); }
   };
-  if (!o.map.has(el)) { o.map.set(el, new Set()); o.io.observe(el); }
-  o.map.get(el).add(rec);
+  if (!o.map.has(el)) { o.map.set(el, new Set()); o.map.get(el).add(rec); o.io.observe(el); }
+  else {
+    // already observed: re-observe so this late subscriber also gets the current state
+    o.map.get(el).add(rec);
+    o.io.unobserve(el);
+    o.io.observe(el);
+  }
   return rec.off;
 }
 

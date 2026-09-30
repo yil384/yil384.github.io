@@ -48,6 +48,12 @@ export function clear(shot) {
   return true;
 }
 
+const dwellStops = new Map();
+function dwellFor(shot, card) {
+  dwellStops.get(shot)?.();
+  dwellStops.set(shot, dwell(card, 3000, () => { dwellStops.delete(shot); clear(shot); }));
+}
+
 export function initChapters() {
   if (started) return;
   started = true;
@@ -57,7 +63,7 @@ export function initChapters() {
     const shot = sec.dataset.shot;
     if (!CHAPTER_SHOTS.includes(shot) || P.cleared[shot]) continue;
     const card = sec.querySelector(':scope > .card');
-    if (card) dwell(card, 3000, () => clear(shot));
+    if (card) dwellFor(shot, card);
   }
   onSection((cur) => {
     if (!cur?.id) return;
@@ -71,7 +77,7 @@ export function initChapters() {
     $$('.seal-slot').forEach((s) => s.replaceChildren());
     for (const sec of $$('main section[data-shot]')) {
       const shot = sec.dataset.shot, card = sec.querySelector(':scope > .card');
-      if (card && CHAPTER_SHOTS.includes(shot)) dwell(card, 3000, () => clear(shot));
+      if (card && CHAPTER_SHOTS.includes(shot)) dwellFor(shot, card);
     }
   });
 }

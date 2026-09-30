@@ -97,12 +97,17 @@ export function toggleSheet(on) {
   }
 }
 
+const NAMES = ['yichen', 'yil384', 'lin'];
+let typed = '';
 function onKey(e) {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'Escape') { if (sheet && !sheet.hidden) { toggleSheet(false); e.preventDefault(); } return; }
   if (isEditable(e.target) || blocked()) return;
   if (world()?.playing) return;
   const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  // someone typing a name for the 'typename' egg: letters are not shortcuts
+  typed = (typed + (k.length === 1 ? k : ' ')).slice(-8);
+  if (NAMES.some((n) => { for (let i = 2; i <= n.length; i++) if (typed.endsWith(n.slice(0, i))) return true; return false; })) return;
   // registered keys first (sections, companions)
   const recs = registry.get(k);
   if (recs) {

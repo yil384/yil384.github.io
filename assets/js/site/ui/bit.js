@@ -312,11 +312,11 @@ function pet() {
 function tip() {
   if (!isGame() || !hostSec) return;
   const id = hostSec.id;
-  const list = (TIPS[id] || []).filter(([, egg]) => !egg || !has(egg));
-  const used = tipsUsed[id] | 0;
-  const max = Math.min(list.length, id === 'projects' ? 6 : PER_SECTION);
-  const text = used < max ? list[used][0] : OUT;
-  tipsUsed[id] = used + 1;
+  const shown = tipsUsed[id] instanceof Set ? tipsUsed[id] : (tipsUsed[id] = new Set());
+  const max = id === 'projects' ? 6 : PER_SECTION;
+  const next = shown.size < max ? (TIPS[id] || []).find(([t, egg]) => !shown.has(t) && (!egg || !has(egg))) : null;
+  const text = next ? next[0] : OUT;
+  if (next) shown.add(next[0]);
   speak('bit', text);
 }
 function bowl() {

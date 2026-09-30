@@ -323,6 +323,7 @@ export function buildStage(world, scene, { lowfx = false } = {}) {
   const stage = {
     group, sky, anchors, shots, pickables, items, hat, sungod, triton, mailbox, judge, tower, cse, seals,
     setFocus, setHover,
+    get hover() { return hoverId; },
     /** The tower takes off for a few seconds. */
     liftoff() { if (liftT < 0) liftT = 0; },
     /** `rm -rf /`: the island shudders, drops into the void, and floats back. */

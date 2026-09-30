@@ -9,6 +9,14 @@ monuments, the Sun God lawn and a Scripps-style pier). Press <kbd>W A S D</kbd> 
 controls and play the full game; <kbd>Esc</kbd> returns to the page. There are a lot of easter eggs
 (the counter in the top bar keeps score; the backtick key opens a terminal).
 
+The CV itself is game UI (`assets/js/site/ui/`, `assets/css/ui/`): a title screen, a party sheet (About),
+a class-change path (Education), an achievements hall (Publications), a quest log (Experience),
+equipment cards (Projects), attribute bars (Skills), portals and a save point (Contact) and a credits roll.
+An RPG status strip (level, HP, focus, progress, Triton Cash) rides under the bar; Bit and harmless
+critters live on the cards; <kbd>P</kbd> lets the scholar walk and jump across the page. Every fact stays plain
+HTML: <kbd>R</kbd> (or `?plain=1`) switches to Reviewer mode, a calm one-column CV, which is also what print
+and no-JS get. <kbd>?</kbd> lists the keys.
+
 Plain HTML/CSS and native ES modules, no build step. three.js r186 (WebGPU with a WebGL2 fallback).
 Devices without a usable GPU, `prefers-reduced-motion` and `?world=0` keep the baked poster behind a
 fully working page.

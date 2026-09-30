@@ -72,7 +72,13 @@ export function initChrome() {
 
   // Without the world there are no director events: a small scroll spy keeps the nav, zone name and
   // progress bar honest.
+  let spying = false;
+  // Reviewer mode pauses the world and its director: the scroll spy keeps the bar honest meanwhile
+  on('page:plain', (plain) => { if (plain) startSpy(); });
+  if (document.documentElement.classList.contains('is-plain')) queueMicrotask(startSpy);
   function startSpy() {
+    if (spying) return;
+    spying = true;
     const secs = [...document.querySelectorAll('main section[data-shot]')];
     let queued = false;
     const tick = () => {
@@ -131,7 +137,6 @@ export function initChrome() {
       world = api;
       done('waking the islanders… 9/9');
       body.classList.add('world-live');
-      if (document.documentElement.classList.contains('is-plain')) { try { api.setPaused?.(true); } catch { /* older world */ } }
       const canPlay = matchMedia('(min-width: 900px) and (pointer: fine)').matches;
       if (canPlay) bar.play.hidden = false;
       bar.play.addEventListener('click', () => api.enterPlay());

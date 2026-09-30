@@ -21,6 +21,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   let enabled = true;
   let paused = false;                 // the page asked the world to sleep (Reviewer mode)
   let pulseTimer = 0;
+  let prePulse = null;
   let sections = [];
   let focusEls = [];
   let currentEl = null;
@@ -286,9 +287,14 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     /** Light a landmark for `ms` as if hovered, then hand hover back to the pointer. A newer pulse replaces the older. */
     pulse(key, ms = 1500) {
       if (!enabled || !key) return;
+      if (!pulseTimer) prePulse = stage.hover ?? null;
       clearTimeout(pulseTimer);
       stage.setHover(key);
-      pulseTimer = setTimeout(() => { if (enabled) stage.setHover(hoverEl?.dataset.focus || null); }, ms);
+      pulseTimer = setTimeout(() => {
+        pulseTimer = 0;
+        // hand back to the pointer, or to whoever held the hover before (e.g. walk mode), unless it moved on
+        if (enabled && stage.hover === key) stage.setHover(hoverEl?.dataset.focus || prePulse);
+      }, ms);
     },
     /** The page went plain: stop reacting, drop bubbles. On resume the shot is re-applied. */
     setPaused(on) {

@@ -45,6 +45,8 @@ export function award({ id, xp: dx = 0, cash: dc = 0, why = '', from = null } = 
   if (!dx && !dc) { save(); return true; }
   const before = level();
   P.xp = xp() + dx;
+  // cash is paid once per save, even across New Game+ (it is shared with the 3D shop)
+  if (dc && id) { P.paid = P.paid || {}; if (P.paid[id]) dc = 0; else P.paid[id] = 1; }
   if (dc) S.player.gold = cash() + dc;
   save();
   if (from) {
@@ -110,7 +112,7 @@ export function bonk(kind, fromEl) {
 
 /** New Game+: page progress restarts; eggs, ◈, Reviewer mode, reduced motion and first visit stay. */
 export function resetPage() {
-  const keep = { plain: P.plain, rm: P.rm, critters: P.critters, firstVisit: P.firstVisit, lastVisit: P.lastVisit, ngplus: (P.ngplus | 0) + 1 };
+  const keep = { plain: P.plain, rm: P.rm, critters: P.critters, firstVisit: P.firstVisit, lastVisit: P.lastVisit, paid: P.paid || {}, ngplus: (P.ngplus | 0) + 1 };
   const fresh = defaults();
   for (const k of Object.keys(P)) delete P[k];
   Object.assign(P, fresh, keep);

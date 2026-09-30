@@ -60,7 +60,6 @@ export function setPlain(on, { persist = true, announce = true } = {}) {
   applyClasses();
   openDetails(on);
   renderButton();
-  try { world()?.setPaused?.(on); } catch { /* older world */ }
   emit('page:plain', on);
   if (announce) live(on ? 'Reviewer mode on: plain CV, game hidden.' : 'Play mode on.');
   if (on) found('reviewermode');
@@ -99,5 +98,4 @@ export function initMode() {
     if (printedOpen) { openDetails(false); printedOpen = false; }
     applyClasses();
   });
-  if (plain) { try { world()?.setPaused?.(true); } catch { /* no world yet */ } }
 }

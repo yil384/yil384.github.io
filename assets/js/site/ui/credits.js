@@ -107,8 +107,11 @@ export function init(ctx) {
     clearInterval(clock); clock = 0;
     if (vis) clock = setInterval(tickTime, 1000);
   });
+  let inside = false;
   kit.observe(sec, { threshold: 0.25, once: false }, (_e, ok) => {
-    if (!ok || !game()) return;
+    if (!ok) { inside = false; return; }
+    if (inside || !game()) return;
+    inside = true;
     const s = render(kit.sessionOnce('credits-enter'));
     if (!rolled) {
       rolled = true;
