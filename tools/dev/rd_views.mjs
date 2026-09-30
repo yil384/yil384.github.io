@@ -1,0 +1,21 @@
+import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const p = await b.newPage({ viewport: { width: 1100, height: 700 } });
+const S = '/tmp/yl';
+await p.goto('http://localhost:8000/?force=1&dpr=1&intro=0&lowfx=1&webgl=1&region=stacks', { waitUntil: 'load' });
+await p.waitForFunction(() => document.body.classList.contains('world-live') && window.__g?.where?.id === 'stacks', null, { timeout: 150000 });
+await p.waitForTimeout(1500);
+await p.evaluate(() => { window.__g.closeAllModals(); document.querySelector('.g__coach button')?.click(); });
+const view = async (name, region, pose, tp) => {
+  await p.evaluate(([region, pose, tp]) => { const g = window.__g; const ctx = g.regions.builtRegion(region); if (tp) g.teleport(ctx.ox + tp[0], ctx.oz + tp[1]); g.regions.cinematic(ctx, { ...pose, seconds: 30 }); }, [region, pose, tp]);
+  await p.waitForTimeout(3500);
+  await p.screenshot({ path: `${S}/rd_view_${name}.png` });
+};
+await view('overview', 'stacks', { x: 0, y: 2, z: -2, yaw: 0, pitch: 0.95, dist: 58 }, [0, 20]);
+await view('reviewer', 'stacks', { x: -18.5, y: 4, z: -9, yaw: 0, pitch: 0.25, dist: 9 }, [-18.5, 3]);
+await view('quire', 'stacks', { x: 0, y: 4, z: 10.5, yaw: 0, pitch: 0.2, dist: 8 }, [0, 16]);
+await p.evaluate(() => window.__g.travel('finale', null, { instant: true }));
+await p.waitForTimeout(2500); await p.evaluate(() => window.__g.closeAllModals());
+await view('finale', 'finale', { x: 0, y: 3, z: 0, yaw: 0, pitch: 0.7, dist: 44 }, [0, 16]);
+await view('owls', 'finale', { x: 0, y: 4, z: 6.8, yaw: Math.PI, pitch: 0.2, dist: 10 }, [0, 16]);
+await b.close();
