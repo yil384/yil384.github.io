@@ -3,6 +3,7 @@
 // or "w" into "W"). `pressed(code)` is edge-triggered (true once per press, consumed by the reader).
 // Touch controls (touch.js) feed the same channels through `stick` and `setVirtual`.
 //
+// Mouse look: the first click on the world takes pointer lock (Esc gives it back); right-drag also looks.
 // Deliberately NOT bound: Ctrl (Ctrl+W closes the tab while you are walking forward).
 
 const MOVE = { KeyW: [0, -1], ArrowUp: [0, -1], KeyS: [0, 1], ArrowDown: [0, 1], KeyA: [-1, 0], ArrowLeft: [-1, 0], KeyD: [1, 0], ArrowRight: [1, 0] };
@@ -22,7 +23,11 @@ export function createInput(el) {
   const api = {
     onEscape: null,
     onKey: null,           // (key, event) -> true if consumed (one-shot actions)
-    onPrimary: null,       // left click on the world
+    onPrimary: null,       // left click on the world (attack)
+    onLockChange: null,
+    locked: false,         // pointer lock (mouse look) active
+    lockable: matchMedia('(pointer: fine)').matches,
+    unlock() { if (document.pointerLockElement === el) document.exitPointerLock?.(); api.locked = false; },
     stick: { x: 0, y: 0 }, // touch joystick, -1..1
     attach() {
       handlers.kd = (e) => {
@@ -46,10 +51,22 @@ export function createInput(el) {
       handlers.ku = (e) => keys.delete(e.code);
       handlers.blur = () => { keys.clear(); virt.clear(); };
       handlers.md = (e) => {
+        if (e.pointerType === 'touch') return;                 // touch.js owns touches
         if (e.button === 2 || e.button === 1) { dragging = true; last = { x: e.clientX, y: e.clientY }; e.preventDefault(); return; }
-        if (e.button === 0 && e.pointerType !== 'touch' && !(e.target instanceof Element && e.target.closest('button, a, .g__plate, .modal, .hud-card, .touch'))) api.onPrimary?.(e);
+        if (e.button !== 0) return;
+        if (api.locked) { api.onPrimary?.(e); return; }
+        if (e.target instanceof Element && e.target.closest('button, a, input, .g__plate, .modal, .hud-card, .touch, .wmap')) return;
+        // the first click on the world captures the mouse for mouse look (Esc releases it)
+        if (api.lockable && el.requestPointerLock) { try { const r = el.requestPointerLock(); r?.catch?.(() => {}); } catch { /* not allowed */ } return; }
+        api.onPrimary?.(e);
       };
-      handlers.mm = (e) => { if (!dragging) return; dragDelta.dx += e.clientX - last.x; dragDelta.dy += e.clientY - last.y; last = { x: e.clientX, y: e.clientY }; };
+      handlers.mm = (e) => {
+        if (api.locked) { dragDelta.dx += e.movementX || 0; dragDelta.dy += e.movementY || 0; return; }
+        if (!dragging) return;
+        dragDelta.dx += e.clientX - last.x; dragDelta.dy += e.clientY - last.y; last = { x: e.clientX, y: e.clientY };
+      };
+      handlers.plc = () => { api.locked = document.pointerLockElement === el; api.onLockChange?.(api.locked); };
+      document.addEventListener('pointerlockchange', handlers.plc);
       handlers.mu = () => { dragging = false; };
       handlers.cm = (e) => e.preventDefault();
       handlers.wh = (e) => { if (e.target.closest('.modal, .hud-card, .hud-quests, .wmap')) return; wheelDelta += e.deltaY; e.preventDefault(); };
@@ -71,6 +88,8 @@ export function createInput(el) {
       window.removeEventListener('pointerup', handlers.mu);
       el.removeEventListener('contextmenu', handlers.cm);
       el.removeEventListener('wheel', handlers.wh);
+      document.removeEventListener('pointerlockchange', handlers.plc);
+      api.unlock();
       api.clear();
       dragging = false;
     },
@@ -98,7 +117,7 @@ export function createInput(el) {
       dragDelta = { dx: 0, dy: 0 };
       return d;
     },
-    addDrag(dx, dy) { dragDelta.dx += dx; dragDelta.dy += dy; },
+    addDrag(dx, dy) { dragDelta.dx += dx; dragDelta.dy += dy; dragDelta.touch = true; },
     wheel() { const w = wheelDelta; wheelDelta = 0; return w; },
   };
   return api;

@@ -359,3 +359,90 @@ html:not(.is-play) .g__plate--door, html:not(.is-play) .g__plate--chest { displa
 .g__say--npc { background: #eef0ff; }
 #world:not(.is-near) .g__plate { opacity: 0; pointer-events: none; }
 .g__plate { transition: opacity 0.4s, border-color 0.2s; }
+
+/* ---------------- round 4: the open world ---------------- */
+/* travel fade (masks teleports and camera snaps) */
+.g__fade { position: absolute; inset: 0; background: #04060c; opacity: 0; pointer-events: none; transition: opacity 0.22s ease; z-index: 3; }
+.g__fade.is-on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .g__fade { transition: none; } }
+
+/* the HUD fades in when you enter the world */
+html.is-play .g__hud { animation: g-hud-in 0.6s ease-out 0.35s both; }
+@keyframes g-hud-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { html.is-play .g__hud { animation: none; } }
+
+/* first person crosshair */
+.hud-cross { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; display: none; pointer-events: none; }
+.hud-cross::before, .hud-cross::after { content: ''; position: absolute; background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 2px rgba(0, 0, 0, 0.8); }
+.hud-cross::before { left: 8px; top: 0; width: 2px; height: 18px; }
+.hud-cross::after { top: 8px; left: 0; height: 2px; width: 18px; }
+.g__hud.is-fp .hud-cross { display: block; }
+
+/* world plates for things (signs, doors, portals) */
+.g__plate--thing, .g__plate--portal { pointer-events: auto; }
+.g__plate--portal { border-color: rgba(167, 139, 250, 0.55); }
+.g__plate--thing .g__plate-hint { color: var(--accent); }
+
+/* world map + boat */
+.map-panel { width: min(820px, 100%); }
+.wmap { position: relative; height: min(52vh, 420px); margin-top: 10px; border-radius: 12px; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 40%, #0f1d3a, #070b16 70%); border: 1px solid var(--line); }
+.wmap__isle { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px; min-width: 96px; padding: 8px 10px; border-radius: 12px;
+  background: rgba(14, 19, 33, 0.9); border: 1px dashed var(--line-2); color: var(--ink-3); font-size: 12.5px; text-align: center; }
+.wmap__isle b { font-weight: 600; }
+.wmap__isle small { color: var(--ink-3); font-size: 11px; }
+.wmap__isle.is-known { border-style: solid; border-color: rgba(96, 165, 250, 0.55); color: var(--ink); cursor: pointer; }
+.wmap__isle.is-known:hover:not(:disabled), .wmap__isle.is-known:focus-visible { border-color: var(--accent); }
+.wmap__isle.is-hub { border-color: rgba(242, 184, 75, 0.6); }
+.wmap__isle.is-here { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(242, 184, 75, 0.25); }
+.wmap__isle:disabled { cursor: default; }
+.wmap__legend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13.5px; }
+
+/* quest log: trophy board + quests */
+.trophies { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 10px; }
+.trophy { display: grid; justify-items: center; gap: 3px; padding: 10px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); text-align: center; opacity: 0.55; }
+.trophy.is-on { opacity: 1; border-color: rgba(242, 184, 75, 0.55); box-shadow: inset 0 0 18px rgba(242, 184, 75, 0.12); }
+.trophy b { font-size: 12.5px; }
+.trophy small { font-size: 11px; color: var(--ink-3); line-height: 1.25; }
+.qlog { display: grid; gap: 8px; }
+.qlog__q { padding: 8px 12px; border-radius: 8px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); }
+.qlog__q.is-done { border-color: rgba(74, 222, 128, 0.4); }
+.qlog__q small { color: var(--ink-3); font-weight: 400; }
+.qlog__q ul { margin: 4px 0 0; padding-left: 18px; font-size: 13.5px; color: var(--ink-2); }
+.qlog__q li.is-done { color: #86efac; text-decoration: line-through; }
+@media (max-width: 700px) { .trophies { grid-template-columns: repeat(3, 1fr); } }
+
+/* touch controls (phones / tablets) */
+.touch { position: absolute; inset: 0; display: none; pointer-events: none; touch-action: none; user-select: none; -webkit-user-select: none; }
+.touch.is-on { display: block; }
+.touch__look { position: absolute; right: 0; top: 64px; bottom: 0; width: 58%; pointer-events: auto; touch-action: none; }
+.touch__stick { position: absolute; left: 22px; bottom: 26px; width: 128px; height: 128px; border-radius: 50%; pointer-events: auto; touch-action: none;
+  background: rgba(7, 10, 18, 0.45); border: 2px solid rgba(233, 236, 241, 0.25); }
+.touch__knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%;
+  background: rgba(233, 236, 241, 0.35); border: 2px solid rgba(255, 255, 255, 0.55); }
+.touch__btns { position: absolute; right: 18px; bottom: 22px; display: grid; grid-template-columns: repeat(3, 60px); gap: 10px; pointer-events: none; }
+.touch__top { position: absolute; right: 16px; top: 64px; display: flex; gap: 8px; pointer-events: none; }
+.touch__btn { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; pointer-events: auto; touch-action: none;
+  background: rgba(7, 10, 18, 0.6); border: 2px solid rgba(233, 236, 241, 0.3); color: var(--ink); font: 700 18px var(--sans); }
+.touch__top .touch__btn { width: 46px; height: 46px; }
+.touch__btn.is-down { background: rgba(242, 184, 75, 0.35); border-color: var(--accent); }
+.touch__btn--attack { grid-column: 3; grid-row: 1 / span 2; align-self: center; width: 72px; height: 72px; background: rgba(242, 184, 75, 0.22); border-color: rgba(242, 184, 75, 0.6); }
+.touch__btn--down { display: none; }
+.touch.is-flying .touch__btn--down { display: grid; }
+/* on touch screens the keyboard HUD bits make room for the thumbs */
+html.is-play .touch.is-on ~ .hud-actions, .g__hud:has(.touch.is-on) .hud-actions, .g__hud:has(.touch.is-on) .hud-help, .g__hud:has(.touch.is-on) .hud-map-wrap { display: none; }
+@media (pointer: coarse) {
+  .hud-player { left: 10px; top: 10px; width: 200px; padding: 8px 10px; }
+  .hud-player .hud-buddy { display: none; }
+  .hud-close { top: 10px; right: 10px; padding: 5px 9px; }
+  .hud-zone { font-size: 20px; }
+  .g__toasts { width: min(300px, 70vw); }
+  html.is-play .g__toasts { top: 150px; left: 10px; }
+}
+/* thing / door / portal plates: play mode only, and only within a few steps */
+html:not(.is-play) .g__plate--thing, html:not(.is-play) .g__plate--portal { display: none !important; }
+.g__plate--thing.is-far, .g__plate--portal.is-far { display: none !important; }
+html.is-play .phud { opacity: 0; visibility: hidden; }
+.hud-help { bottom: 92px; max-width: 520px; text-align: right; line-height: 1.9; }
+@media (max-width: 1250px) { .hud-help { display: none; } }
+@media (pointer: coarse) { html.is-play .egg-toasts { top: 150px; left: 10px; right: auto; width: min(300px, 72vw); } }

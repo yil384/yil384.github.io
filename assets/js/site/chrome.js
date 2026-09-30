@@ -137,7 +137,8 @@ export function initChrome() {
       world = api;
       done('waking the islanders… 9/9');
       body.classList.add('world-live');
-      const canPlay = matchMedia('(min-width: 900px) and (pointer: fine)').matches;
+      // play mode runs everywhere the world does (phones get touch controls and the low-fx renderer)
+      const canPlay = true;
       if (canPlay) bar.play.hidden = false;
       bar.play.addEventListener('click', () => api.enterPlay());
       return canPlay;

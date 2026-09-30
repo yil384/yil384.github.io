@@ -12,6 +12,18 @@ const DEFAULT_GLOW = {
   robot: { C: 3, O: 1.5 }, cartographer: { Y: 3 }, owl: { Y: 0.6 }, door: { R: 0 },
 };
 
+/**
+ * Add a sprite at runtime (regions ship their own grids in regions/art-<id>.js): art = { pal, frames }
+ * (each frame an array of equal-width strings, '.' transparent). glow = { paletteKey: intensity }.
+ * Registered sprites work everywhere a built-in one does: actors, enemies, NPC portraits, spriteImg.
+ */
+export function registerArt(name, art, glow = null) {
+  if (!art?.pal || !Array.isArray(art.frames) || !art.frames.length) throw new Error(`registerArt(${name}): { pal, frames } required`);
+  ART[name] = art;
+  if (glow) DEFAULT_GLOW[name] = glow;
+  return name;
+}
+
 /** Build a voxel actor. Returns a Group whose origin is the feet centre. */
 export function makeActor(name, { scale = 0.2, glow = null, maxHalf = 2, minHalf = 1, rear = null } = {}) {
   const base = VARIANTS[name] ? VARIANTS[name][0] : name;

@@ -1,4 +1,4 @@
-// The player on the island: stats, progression, damage. Movement lives in index.js.
+// The player on the island: stats, progression, damage. Movement lives in move.js / vehicles.js.
 import { S, save } from './state.js';
 import { clock } from './clock.js';
 import { emit } from './bus.js';
@@ -62,7 +62,7 @@ export function mountSpecies() {
 }
 export function moveSpeed() {
   const m = mountSpecies();
-  return player.speed + (m ? SPECIES[m].mount.bonus * 1.6 : 0);
+  return (player.speed + (m ? SPECIES[m].mount.bonus * 1.6 : 0)) * (player.ride?.mult || 1);
 }
 
 /** Gear shows on the avatar: the weapon's rarity tints the shirt accent, the armour's the backpack straps. */
@@ -73,7 +73,7 @@ export function refreshLook() {
   const old = player.mesh;
   const scene = old?.parent;
   if (!scene) return;
-  const g = voxelSprite(ART.scholar, { glow: { G: 0.35, A: 0.5 }, overrides: { A: accent, R: strap }, bevel: 0, ...SCHOLAR_DEPTH });
+  const g = voxelSprite(ART.scholar, { glow: { G: 0.1, A: 0.5 }, overrides: { A: accent, R: strap }, bevel: 0, ...SCHOLAR_DEPTH });
   g.add(backpack(strap));
   g.scale.setScalar(0.22);
   g.userData.name = 'scholar';
@@ -94,16 +94,16 @@ const SCHOLAR_DEPTH = {
   maxHalf: 4, minHalf: 2,
   rear: { rows: [0, 8], map: { S: 'K', s: 'K', G: 'K', e: 'K', m: 'K', k: 'K' } }, // back of the head is hair
 };
-/** The black backpack behind the torso (sprite voxel units; the sprite faces +z). */
+/** The black backpack behind the torso (sprite voxel units; the sprite faces +z; the tee is rows 8-11 = y 4.5-7.5). */
 function backpack(strap) {
   const cells = [];
   const b = -SCHOLAR_DEPTH.maxHalf; // first layer behind the back
-  for (let x = -2.5; x <= 2.5; x++) for (let y = 2.5; y <= 5.5; y++) for (const z of [b, b - 1]) {
-    const zip = z === b - 1 && y === 4.5 && Math.abs(x) < 2;
+  for (let x = -2.5; x <= 2.5; x++) for (let y = 4.5; y <= 6.5; y++) for (const z of [b, b - 1]) {
+    const zip = z === b - 1 && y === 5.5 && Math.abs(x) < 2;
     cells.push([x, y, z, zip ? strap : (x + y) % 2 ? '#1b1b23' : '#23232d', 0]);
   }
-  for (let x = -1.5; x <= 1.5; x++) cells.push([x, 6.5, b, '#23232d', 0]);
-  cells.push([-2.5, 3.5, b - 2, '#1b1b23', 0], [2.5, 3.5, b - 2, '#1b1b23', 0]);
+  for (let x = -1.5; x <= 1.5; x++) cells.push([x, 7.5, b, '#23232d', 0]);
+  cells.push([-2.5, 5.5, b - 2, '#1b1b23', 0], [2.5, 5.5, b - 2, '#1b1b23', 0]);
   const m = voxBuild(cells, { roughness: 0.9 });
   m.userData.backpack = true;
   return m;

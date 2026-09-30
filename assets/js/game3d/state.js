@@ -21,6 +21,8 @@ function defaults() {
     },
     runes: { ice: false, shadow: false, dragon: false },
     secret: { unsealed: false, chest: false },
+    // round 4: the open world (regions, Road to Dr., quests, traversal)
+    world: { discovered: { hub: true }, road: {}, quests: {}, glider: false, bossKills: {}, data: {}, resume: null, firsts: {} },
     achievements: {},
     eggs: {},
     stats: { kills: 0, bossKills: 0, crits: 0, purchases: 0, deaths: 0, superEffective: 0, captures: 0, signatures: 0, playMs: 0, spells: {} },

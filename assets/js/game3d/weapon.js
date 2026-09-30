@@ -17,7 +17,10 @@ import { sfx } from './audio.js';
 import * as fx from './fx.js';
 
 // hand position in sprite voxel units (the sprite is 12 × 16 and faces +z; the right hand is at -x)
-const HAND = new THREE.Vector3(-5.5, 3.5, 0.6);
+const HAND = new THREE.Vector3(-5.5, 5.5, 0.6);
+// first person: the blade is held up in front of the eyes, lower right of the view
+const FP_HAND = new THREE.Vector3(-4.4, 11.6, 7);
+let viewModel = false;
 const STEPS = [
   // dur (s), hit moment (0..1), arc (half-angle, rad), range multiplier, damage multiplier, knockback
   { dur: 0.26, hitAt: 0.42, arc: 1.25, range: 1, mult: 1, knock: 5, sfx: 'slash' },
@@ -101,7 +104,7 @@ function attach(group) {
     castGlow.visible = false;
     pivot.add(castGlow);
   }
-  pivot.position.copy(HAND);
+  pivot.position.copy(viewModel ? FP_HAND : HAND);
   group.add(pivot);
   build();
 }
@@ -109,7 +112,7 @@ function attach(group) {
 // ---------------------------------------------------------------- trail (pooled voxel cubes)
 function makeTrail(scene) {
   const max = 120;
-  const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicNodeMaterial({ transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending }), max);
+  const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicNodeMaterial({ transparent: true, opacity: 0.75, depthWrite: false }), max);
   mesh.frustumCulled = false;
   const zero = new THREE.Matrix4().makeScale(0, 0, 0);
   for (let i = 0; i < max; i++) mesh.setMatrixAt(i, zero);
@@ -170,6 +173,12 @@ function start(step) {
     player.vz += Math.cos(player.yaw) * 7;
   }
   emit('player:swing', step);
+}
+
+/** First person: hold the blade in view (index.js hides the rest of the scholar). */
+export function setViewModel(on) {
+  viewModel = !!on;
+  if (pivot) pivot.position.copy(viewModel ? FP_HAND : HAND);
 }
 
 /** Remaining hit-stop (s): index.js freezes the simulation (not the camera or effects) while > 0. */

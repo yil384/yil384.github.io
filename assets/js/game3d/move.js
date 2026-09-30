@@ -3,7 +3,7 @@
 //            (a press just before landing still jumps), variable height (release early = short hop)
 //   step-up  walking climbs 1-block steps on its own; a hop gets you onto 2-block ledges
 //   sprint   Shift
-//   dodge    K / C, or double-tap a direction: a quick roll with invulnerability frames
+//   dodge    K, or double-tap a direction: a quick roll with invulnerability frames
 //   glide    hold Space while falling, once the Torrey Pines glider is unlocked
 // Falling off an island never hurts: `onFallOut` brings the player back to the region's spawn.
 // Vehicles (vehicles.js) take over while one is active.
@@ -25,7 +25,7 @@ export const TUNING = {
   fallOutY: -16,           // below this (world y) you are brought back
 };
 
-const lerpAngle = (a, b, k) => a + ((((b - a + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) - Math.PI) * k;
+export const lerpAngle = (a, b, k) => a + ((((b - a + Math.PI) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) - Math.PI) * k;
 
 export function initMoveState() {
   Object.assign(player, {
@@ -78,7 +78,7 @@ export function createMover({ world, input, rig, onFallOut }) {
 
     // ---- dodge
     const dt2 = input.takeDoubleTap();
-    if (input.pressed('KeyK') || input.pressed('KeyC') || input.pressed('Dodge')) tryDodge(w.mag > 0.2 ? w : null);
+    if (input.pressed('KeyK') || input.pressed('Dodge')) tryDodge(w.mag > 0.2 ? w : null);
     else if (dt2) {
       const yaw = rig.yaw;
       tryDodge({ x: dt2[0] * Math.cos(yaw) + dt2[1] * Math.sin(yaw), z: -dt2[0] * Math.sin(yaw) + dt2[1] * Math.cos(yaw) });
@@ -110,7 +110,8 @@ export function createMover({ world, input, rig, onFallOut }) {
     const nz = player.z + player.vz * dt;
     if (canEnter(player.x, nz, step)) player.z = nz; else player.vz = 0;
     const hs = Math.hypot(player.vx, player.vz);
-    if (hs > 0.3 && player.dodgeT <= 0) player.yaw = lerpAngle(player.yaw, Math.atan2(player.vx, player.vz), 1 - Math.exp(-16 * dt));
+    if (rig.firstPerson) player.yaw = rig.yaw + Math.PI;           // first person: the body faces the view
+    else if (hs > 0.3 && player.dodgeT <= 0) player.yaw = lerpAngle(player.yaw, Math.atan2(player.vx, player.vz), 1 - Math.exp(-14 * dt));
     if (hs > 0.3) markAction();
 
     // ---- jump (buffer + coyote + variable height)

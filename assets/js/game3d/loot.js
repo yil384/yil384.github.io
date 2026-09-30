@@ -26,8 +26,10 @@ const tokens = [];
 let combo = 0;
 let lastTokenAt = -1e9;
 
-export function initLoot(w, s) {
-  world = w; scene = s;
+let dropRoot = null;
+/** tokens go under `s` (the hub group); gear drops under `root` (the scene: they can fall in any region). */
+export function initLoot(w, s, root = s) {
+  world = w; scene = s; dropRoot = root;
   for (const [id, zone, ox, oz] of TOKEN_SPOTS) {
     const zn = ZONES[zone];
     let x = zn.x + ox, z = zn.z + oz;
@@ -117,14 +119,14 @@ function maybeDrop(target) {
   const mesh = makeOrb(RARITY_COLOR[it.rarity], 1.1);
   const y = world.surfaceY(target.x, target.z);
   mesh.position.set(target.x, y + 0.6, target.z);
-  scene.add(mesh);
+  dropRoot.add(mesh);
   const tag = h('div', { class: 'g__tag', style: { '--rc': RARITY_COLOR[it.rarity] } }, icon(it.icon, { size: 14 }), it.name);
   const d = { id, x: target.x, y, z: target.z, mesh, tag, expires: clock.t + 22000, anim: 0, region: where.id };
   d.unpin = fx.pin(tag, () => ({ x: d.x, y: d.y + 1.4, z: d.z }), { region: where.id });
   drops.push(d);
 }
 
-function remove(d) { scene.remove(d.mesh); d.unpin(); }
+function remove(d) { dropRoot.remove(d.mesh); d.unpin(); }
 
 function pickUp(d) {
   const i = drops.indexOf(d);

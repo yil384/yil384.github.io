@@ -9,6 +9,7 @@ import { mode } from './mode.js';
 import { makeActor, flash, makeRing } from './actors.js';
 import * as fx from './fx.js';
 import { sfx } from './audio.js';
+import { isLive } from './where.js';
 
 export const MAX_ROUND = 10;
 const RESPAWN_MS = 20000;
@@ -35,6 +36,7 @@ class Boss {
     this.setRound(S.bosses[id].round);
     addTarget(this);
   }
+  get active() { return isLive('hub'); }
   get round() { return S.bosses[this.id].round; }
   setRound(r) {
     S.bosses[this.id].round = Math.min(MAX_ROUND, Math.max(1, r));
@@ -74,7 +76,7 @@ class Boss {
     emit('boss:returned', { id: this.id, name: this.name, round: this.round });
   }
   clearHazards() { for (const z of this.hazards) this.scene.remove(z.m); this.hazards.length = 0; }
-  threat() { return mode.play && !player.dead && Math.hypot(this.x - player.x, this.z - player.z) < this.cfg.aggro; }
+  threat() { return mode.play && !player.dead && isLive('hub') && Math.hypot(this.x - player.x, this.z - player.z) < this.cfg.aggro && Math.abs(player.y - this.y) < 8; }
   update(dt) {
     if (!this.alive) { if (clock.t >= this.respawnAt) this.revive(); return; }
     this.anim += dt;
@@ -83,7 +85,7 @@ class Boss {
     if (threat && clock.t >= this.nextAttack) this.attack();
     this.updateHazards();
     const d = Math.hypot(this.x - player.x, this.z - player.z);
-    if (threat && d < this.r + 1 && clock.t - this.lastContact > 1000) { this.lastContact = clock.t; hurt(this.cfg.contact + this.round, this.name); }
+    if (threat && d < this.r + 1 && Math.abs(player.y - this.y) < 3 && clock.t - this.lastContact > 1000) { this.lastContact = clock.t; hurt(this.cfg.contact + this.round, this.name); }
     this.y = this.world.surfaceY(this.x, this.z);
     this.mesh.position.set(this.x, this.y + Math.sin(this.anim * 1.6) * 0.12, this.z);
     if (threat) this.mesh.rotation.y = Math.atan2(player.x - this.x, player.z - this.z);
@@ -122,7 +124,7 @@ class IceGolem extends Boss {
       const armed = clock.t >= z.armAt;
       z.m.material.opacity = armed ? 0.85 : 0.35;
       z.m.scale.setScalar(armed ? 1 + Math.sin(clock.t / 120) * 0.06 : 1.2);
-      if (armed && Math.hypot(z.x - player.x, z.z - player.z) < z.r && clock.t - z.tick > 800) { z.tick = clock.t; hurt(10 + this.round, 'frost'); }
+      if (armed && Math.hypot(z.x - player.x, z.z - player.z) < z.r && Math.abs(player.y - z.m.position.y) < 2 && clock.t - z.tick > 800) { z.tick = clock.t; hurt(10 + this.round, 'frost'); }
     }
   }
 }

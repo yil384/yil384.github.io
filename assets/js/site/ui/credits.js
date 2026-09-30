@@ -2,7 +2,7 @@
 // rolling credits list, a results plate (chapters, details, quests, bugs, tokens, eggs, time, level, rank),
 // a post-credits scene on the pier, and New Game+ / Back to title / Open field notes. Hidden in Reviewer
 // mode, print and without JS ([data-game]); the footer below stays plain.
-import { EGGS, has, foundCount, total } from '../eggs.js';
+import { EGGS, has, foundCount, total, capabilities, onChange as onEggs } from '../eggs.js';
 import { openNotes } from '../notes.js';
 import { CHAPTER_SHOTS } from './chapters.js';
 import { TOKENS_TOTAL, DETAILS_TOTAL } from './progress.js';
@@ -143,6 +143,23 @@ export function init(ctx) {
     if (bit) setTimeout(() => kit.bubble(bit, 'See you next conference.', { who: 'bit', place: 'above', ms: 4200 }), 350);
     kit.emit('page:credits');
     kit.found('credits');
+  }
+
+  // ---------------------------------------------------------------- enter the world (round 4)
+  // After reading the page, the reader can walk into it: the camera dives to the scholar and the game
+  // begins. Only where the 3D world runs; the CV above never depends on it.
+  const btnRow = $('.credits__btns', sec);
+  if (btnRow && !$('.credits__enter', sec)) {
+    const enter = h('div', { class: 'credits__enter', hidden: true },
+      h('button', { type: 'button', class: 'gbtn gbtn--hero', 'data-act': 'enter' }, 'Enter the world ▶'),
+      h('p', { class: 'credits__enter-sub' }, 'An open world behind this page: every place in the CV is a door. Esc brings you back here.'));
+    btnRow.before(enter);
+    const sync = () => { enter.hidden = !(capabilities().play && kit.world()); };
+    onEggs(sync);
+    sync();
+    enter.querySelector('button').addEventListener('click', () => {
+      try { kit.world()?.enterPlay({ dive: true }); } catch (err) { console.warn('[credits] enter', err); }
+    });
   }
 
   // ---------------------------------------------------------------- buttons

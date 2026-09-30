@@ -9,6 +9,10 @@ import { buddy, sigCooldown } from './companion.js';
 import { activeId, buddyLevel, buddyXp } from './monsters.js';
 import { quests } from './progress.js';
 import { activeBoss } from './bosses.js';
+import { activePatternBoss } from './foes.js';
+import { trackerLines } from './road.js';
+import { where } from './where.js';
+import { regionDef } from './regions.js';
 import { spriteImg } from './pixelart.js';
 import { h, fmt, icon } from './util.js';
 
@@ -17,7 +21,6 @@ const cache = {};
 let hudRoot = null;
 let markers = () => ({});
 let world = null;
-let mapBase = null;
 let lastBuddy = null;
 let lastQuestKey = '';
 let lastZone = null;
@@ -64,7 +67,7 @@ export function initHud(root, actions, opts) {
 
   // Action bar
   const slots = [
-    { id: 'attack', key: 'Space', icon: 'crossed-swords', name: 'Attack', desc: 'Hit everything in range', run: actions.attack },
+    { id: 'attack', key: 'J', icon: 'crossed-swords', name: 'Attack', desc: 'Swing (J or left click); press again for a 3-hit combo', run: actions.attack },
     ...Object.entries(SPELLS).map(([id, s]) => ({ id, key: s.key, icon: s.icon, name: s.name, desc: `${s.desc} · ${s.mp} MP`, cost: s.mp, run: () => actions.spell(id) })),
     { id: 'sig', key: 'G', icon: 'star-swirl', name: 'Signature move', desc: 'Your companion\'s signature move', run: actions.signature },
     { id: 'swap', key: 'T', icon: 'body-swapping', name: 'Swap companion', desc: 'Cycle your party', run: actions.swap },
@@ -81,6 +84,9 @@ export function initHud(root, actions, opts) {
       return node;
     }),
     h('span', { class: 'hud-actions__gap' }),
+    menuBtn('treasure-map', 'World map (M)', actions.map),
+    menuBtn('tied-scroll', 'Quest log (L)', actions.questlog),
+    menuBtn('horse-head', 'Vehicle (V)', actions.vehicle),
     menuBtn('trophy', 'Achievements', actions.achievements),
     menuBtn('backpack', 'Inventory', actions.inventory),
     menuBtn('circle-help', 'Controls & settings', actions.help),
@@ -116,8 +122,9 @@ export function initHud(root, actions, opts) {
   buildMapBase();
   const mapWrap = h('div', { class: 'hud-card hud-map-wrap' }, els.minimap);
 
-  els.help = h('div', { class: 'hud-help' }, h('kbd', null, 'W'), h('kbd', null, 'A'), h('kbd', null, 'S'), h('kbd', null, 'D'), ' move · right-drag look · ', h('kbd', null, 'E'), ' talk');
-  hudRoot.append(top, card, actionBar, tracker, mapWrap, els.help);
+  els.help = h('div', { class: 'hud-help' }, h('kbd', null, 'WASD'), ' move · click: mouse look · ', h('kbd', null, 'Space'), ' jump · ', h('kbd', null, 'J'), ' attack · ', h('kbd', null, 'E'), ' use · ', h('kbd', null, 'V'), ' vehicle · ', h('kbd', null, 'M'), ' map · ', h('kbd', null, 'C'), ' view · wheel zoom');
+  els.cross = h('div', { class: 'hud-cross', 'aria-hidden': 'true' });
+  hudRoot.append(top, card, actionBar, tracker, mapWrap, els.help, els.cross);
   // Mouse clicks on HUD controls must not leave them focused (Space would re-trigger them).
   hudRoot.addEventListener('mousedown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
 }
@@ -184,21 +191,22 @@ export function updateHud() {
   }
 
   // zone + boss
-  const zone = world.zoneAt(player.x, player.z);
+  const zi = world.zoneInfo ? world.zoneInfo(player.x, player.z) : null;
+  const zone = zi ? `${where.id}:${zi.key}` : null;
   if (zone !== lastZone) {
     lastZone = zone;
     if (zone) {
-      els.zone.textContent = ZONES[zone].label;
+      els.zone.textContent = zi.label || ZONES[zi.key]?.label || zi.key;
       els.zone.classList.remove('is-in');
       void els.zone.offsetWidth;
       els.zone.classList.add('is-in');
     }
   }
-  const boss = activeBoss();
+  const boss = activeBoss() || activePatternBoss();
   const showBoss = !!boss;
   if (cache.boss !== showBoss) { cache.boss = showBoss; els.boss.hidden = !showBoss; }
   if (boss) {
-    set('bossN', els.bossName, 'text', `${boss.name} · Lv.${boss.round}`);
+    set('bossN', els.bossName, 'text', boss.round && !boss.cfg?.pattern ? `${boss.name} · Lv.${boss.round}` : boss.name);
     set('bossS', els.bossFill, 'scale', Math.max(0, boss.hp / boss.maxHp).toFixed(3));
   }
 
@@ -207,16 +215,19 @@ export function updateHud() {
 }
 
 function updateTracker() {
-  const list = quests().filter((q) => !q.done).slice(0, 3);
+  const road = trackerLines();
+  const hub = where.id === 'hub' ? quests().filter((q) => !q.done).slice(0, 2) : [];
+  const list = [...road.slice(0, 1), ...road.slice(1, 3), ...hub].slice(0, 4);
   const key = list.map((q) => q.id + q.detail).join('|');
   if (key === lastQuestKey) return;
   lastQuestKey = key;
-  els.quests.replaceChildren(...(list.length ? list : [{ icon: 'trophy', label: 'Everything cleared', detail: 'Bosses keep levelling up to Lv.10.' }])
+  els.quests.replaceChildren(...list
     .map((q) => h('li', { class: q.hot ? 'is-hot' : '' }, icon(q.icon, { size: 16 }), h('span', null, h('b', null, q.label), h('small', null, q.detail)))));
 }
 
 // ---------------------------------------------------------------- minimap
 const MAP_COLOR = { 1: '#3f7d52', 2: '#6f4622', 3: '#3b4455', 4: '#a9c8e6', 5: '#3a3563', 6: '#5a3a3a', 7: '#b9a874', 8: '#8f8168' };
+const bases = {};           // region id -> { canvas, ox, oz, half, scale }
 function buildMapBase() {
   const c = document.createElement('canvas');
   c.width = SIZE * 3; c.height = SIZE * 3;
@@ -230,23 +241,55 @@ function buildMapBase() {
     g.fillStyle = MAP_COLOR[t] || '#555';
     g.fillRect((x + half) * 3, (z + half) * 3, 3, 3);
   }
-  mapBase = c;
+  bases.hub = { canvas: c, ox: 0, oz: 0, half, scale: 3 };
 }
+/** A region's minimap: its grids' top colours (falls back to grey), sampled once when first shown. */
+function regionBase(id) {
+  if (bases[id]) return bases[id];
+  const def = regionDef(id);
+  if (!def) return null;
+  const half = Math.ceil(Math.max(def.size || 48, 16) / 2) + 2;
+  const scale = (SIZE * 3) / (half * 2);
+  const c = document.createElement('canvas');
+  c.width = SIZE * 3; c.height = SIZE * 3;
+  const g = c.getContext('2d');
+  g.fillStyle = 'rgba(6,10,20,0.55)';
+  g.fillRect(0, 0, c.width, c.height);
+  const [ox, oz] = def.origin;
+  for (let z = -half; z < half; z++) for (let x = -half; x < half; x++) {
+    const wx = ox + x, wz = oz + z;
+    if (world.height(wx, wz) === -Infinity) continue;
+    let colr = null;
+    for (const gr of world.grids) if (gr.colorAt && wx >= gr.x0 && wx < gr.x1 && wz >= gr.z0 && wz < gr.z1) { colr = gr.colorAt(wx, wz); if (colr) break; }
+    g.fillStyle = colr || '#64748b';
+    g.fillRect((x + half) * scale, (z + half) * scale, Math.ceil(scale), Math.ceil(scale));
+  }
+  bases[id] = { canvas: c, ox, oz, half, scale };
+  return bases[id];
+}
+/** Forget a cached region minimap (regions that reshape their terrain can call this via the bus). */
+export function invalidateMinimap(id) { delete bases[id]; }
 function drawMinimap() {
   const c = els.minimap;
   const g = c.getContext('2d');
-  const half = SIZE / 2;
+  const B = where.id === 'hub' ? bases.hub : regionBase(where.id);
   g.clearRect(0, 0, c.width, c.height);
-  g.drawImage(mapBase, 0, 0);
-  const dot = (x, z, r, color) => { g.fillStyle = color; g.beginPath(); g.arc((x + half) * 3 + 1.5, (z + half) * 3 + 1.5, r, 0, Math.PI * 2); g.fill(); };
+  if (!B) return;
+  g.drawImage(B.canvas, 0, 0);
+  const dot = (x, z, r, color) => { g.fillStyle = color; g.beginPath(); g.arc((x - B.ox + B.half) * B.scale + B.scale / 2, (z - B.oz + B.half) * B.scale + B.scale / 2, r, 0, Math.PI * 2); g.fill(); };
   const m = markers();
   for (const p of m.tokens || []) dot(p.x, p.z, 2, '#f2b84b');
+  for (const p of m.doors || []) dot(p.x, p.z, 2.6, '#a78bfa');
   for (const p of m.npcs || []) dot(p.x, p.z, 2.4, p.news ? '#93c5fd' : '#60a5fa');
   for (const p of m.enemies || []) dot(p.x, p.z, 2, '#f87171');
   for (const p of m.bosses || []) dot(p.x, p.z, 3.4, '#ef4444');
   if (m.door) dot(m.door.x, m.door.z, 3, m.door.open ? '#e9d5ff' : m.door.ready ? '#e879f9' : '#7c3aed');
   dot(buddy.x, buddy.z, 2, '#86efac');
   dot(player.x, player.z, 3, '#ffffff');
+  // facing arrow
+  g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath();
+  const px = (player.x - B.ox + B.half) * B.scale + B.scale / 2, pz = (player.z - B.oz + B.half) * B.scale + B.scale / 2;
+  g.moveTo(px, pz); g.lineTo(px + Math.sin(player.yaw) * 8, pz + Math.cos(player.yaw) * 8); g.stroke();
 }
 
 export function flashSlot(id) {
@@ -255,4 +298,11 @@ export function flashSlot(id) {
   s.node.classList.remove('is-denied');
   void s.node.offsetWidth;
   s.node.classList.add('is-denied');
+}
+
+/** View flags on the HUD root: first person (crosshair), current vehicle (for styling). */
+export function setHudFlags({ fp = false, vehicle = null } = {}) {
+  if (!hudRoot) return;
+  if (cache.fp !== fp) { cache.fp = fp; hudRoot.classList.toggle('is-fp', fp); }
+  if (cache.veh !== vehicle) { cache.veh = vehicle; hudRoot.dataset.vehicle = vehicle || ''; }
 }

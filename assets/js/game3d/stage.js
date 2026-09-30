@@ -16,9 +16,9 @@ import { reducedMotion } from '../three/boot.js';
 
 const TAU = Math.PI * 2;
 
-export function buildStage(world, scene, { lowfx = false } = {}) {
+export function buildStage(world, scene, { lowfx = false, parent = scene } = {}) {
   const group = new THREE.Group();
-  scene.add(group);
+  parent.add(group);
   const sky = buildSky(scene, { lowfx });
 
   // Keep every authored point on the island: step toward the centre until the ground is walkable.
@@ -329,6 +329,8 @@ export function buildStage(world, scene, { lowfx = false } = {}) {
     /** `rm -rf /`: the island shudders, drops into the void, and floats back. */
     collapse() { if (fallT < 0) fallT = 0; },
     get collapsing() { return fallT >= 0; },
+    /** Something scripted is moving (liftoff, collapse, hat, flyby): the tour loop keeps full frame rate. */
+    get animating() { return liftT >= 0 || fallT >= 0 || hatT >= 0 || !!fly; },
     /** The striped hat pops onto the tower (and off again). */
     hatTrick() { hat.visible = true; hatT = 0; },
     /** The paragliders swoop to `at(i)` (a world point per glider, read every frame) for `seconds`, then return to their orbits. */

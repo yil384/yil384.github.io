@@ -6,7 +6,6 @@
 import { S, save } from './state.js';
 import { emit, on } from './bus.js';
 import { ZONES } from './world.js';
-import { SPECIES } from './data.js';
 import { player, reward, refreshLook, fullRestore } from './player.js';
 import { capture, setActive } from './monsters.js';
 import { makeActor, makeOrb } from './actors.js';

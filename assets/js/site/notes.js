@@ -89,8 +89,15 @@ function render() {
 }
 
 function renderEggs(avail) {
-  els.groups.replaceChildren(...GROUPS.map(([kind, label]) => {
-    const list = EGGS.filter((e) => e.kind === kind && (avail.has(e.id) || has(e.id)));
+  // game eggs are grouped by the place in the world they belong to (the island, then each region)
+  const groups = [];
+  for (const [kind, label] of GROUPS) {
+    if (kind !== 'game') { groups.push([kind, label, null]); continue; }
+    const regions = [...new Set(EGGS.filter((e) => e.kind === 'game').map((e) => e.regionName || 'UC San Diego island'))];
+    for (const r of regions) groups.push([kind, `${label} · ${r}`, r]);
+  }
+  els.groups.replaceChildren(...groups.map(([kind, label, region]) => {
+    const list = EGGS.filter((e) => e.kind === kind && (!region || (e.regionName || 'UC San Diego island') === region) && (avail.has(e.id) || has(e.id)));
     if (!list.length) return null;
     const sec = el('section', 'notes__group');
     const got = list.filter((e) => has(e.id)).length;

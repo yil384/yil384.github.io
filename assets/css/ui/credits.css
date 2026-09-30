@@ -107,3 +107,10 @@ html.rm .pier__bit img { animation: none; }
   .results__rank-k { display: none; }
   .credits__btns .gbtn { flex: 1 1 140px; }
 }
+
+/* round 4: the way into the game, after the credits */
+.credits__enter { display: grid; justify-items: center; gap: 8px; margin: 22px auto 14px; text-align: center; }
+.credits__enter[hidden] { display: none; }
+.gbtn--hero { font-size: 17px; padding: 14px 26px; background: linear-gradient(135deg, var(--accent-2, #ffd23f), var(--accent, #f2b84b)); color: #1a1300; border-color: transparent; box-shadow: 0 10px 30px rgba(242, 184, 75, 0.35); }
+.gbtn--hero:hover, .gbtn--hero:focus-visible { transform: translateY(-1px); box-shadow: 0 14px 36px rgba(242, 184, 75, 0.5); }
+.credits__enter-sub { max-width: 440px; color: var(--ink-2); font-size: 14px; }

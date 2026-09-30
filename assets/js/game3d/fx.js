@@ -4,7 +4,7 @@ import * as THREE from 'three/webgpu';
 import { makeRing } from './actors.js';
 import { where } from './where.js';
 
-let scene, camera, labelRoot, overlay;
+let scene, camera, labelRoot;
 const particles = { mesh: null, alive: [], max: 320, free: [] };
 const rings = [];
 const beams = [];
@@ -14,7 +14,7 @@ const _v = new THREE.Vector3();
 const _c = new THREE.Color();
 
 export function initFx({ scene: s, camera: c, root }) {
-  scene = s; camera = c; overlay = root;
+  scene = s; camera = c;
   labelRoot = document.createElement('div');
   labelRoot.className = 'g__fx';
   root.append(labelRoot);
