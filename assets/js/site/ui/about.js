@@ -3,7 +3,7 @@
 // and Chef Zhuo as a party member with a pan. Facts stay in the prose and the <dl>; this adds game chrome.
 
 const ZHUO = ['Tomato and egg. Eat before you debug.', 'Dinner is at seven. Bring a benchmark.', 'The secret ingredient is a deadline.'];
-const AFF_NAME = { systems: 'Systems', compilers: 'Compilers', gpu: 'GPU code generation', agents: 'LLM agent tooling' };
+const AFF_NAME = { aisci: 'AI for Science', chip: 'Chip Design', arch: 'Arch for agentic workloads', bench: 'Harnesses & benchmarks' };
 
 export function init({ kit, progress, hud, P }) {
   const { $, $$, h, emit, found, sfx, say, bubble, burst, rm, isGame, spriteImg, echo } = kit;
@@ -90,7 +90,7 @@ export function init({ kit, progress, hud, P }) {
     clearT = setTimeout(unmatch, 2100);
     if (out) {
       out.replaceChildren(
-        h('span', { class: 'affinities__k' }, matches.length ? `${matches.length} match${matches.length > 1 ? 'es' : ''}` : 'No matches yet'),
+        h('span', { class: 'affinities__k' }, matches.length ? `${matches.length} match${matches.length > 1 ? 'es' : ''}` : 'Main quest in progress. Results pending (that is what the Ph.D. is for)'),
         ...matches.map((el) => h('button', {
           type: 'button', class: 'affinities__link',
           onclick: () => {

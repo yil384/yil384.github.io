@@ -12,7 +12,7 @@ let mode = 'shell';          // 'shell' | 'vim'
 let busy = false;
 
 const FILES = {
-  'about.md': () => 'Ph.D. student at UC San Diego CSE (advisor: Yufei Ding). Systems, compilers, GPU code generation, tooling for LLM agents. Previously Tsinghua, CS.',
+  'about.md': () => 'Ph.D. student at UC San Diego CSE (advisor: Yufei Ding). AI for science and chip design, architecture for agentic workloads, harnesses and benchmarks. Previously Tsinghua, CS.',
   'contact.txt': () => 'yil384@ucsd.edu · (858) 319-7361 · La Jolla, CA',
   'publications.bib': () => '@inproceedings{tritongym2026,\n  title = {TritonGym: A Benchmark for Agentic LLM Workflows in Triton GPU Code Generation},\n  note  = {Under review, ICML 2026}\n}\n@inproceedings{reh2o2023,\n  title = {(Re)^2H_2O: Autonomous Driving Scenario Generation ...},\n  booktitle = {IEEE IV}, year = {2023}\n}',
   'stack.txt': () => 'Python  C++  Rust  Go  TypeScript  JavaScript  Verilog\nLinux  Vim  LaTeX  WebSocket  Django  MongoDB',

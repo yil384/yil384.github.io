@@ -205,7 +205,7 @@ export function initDomEggs(getWorld) {
   };
   window.yichen = {
     help,
-    about: () => { found('console'); return 'Ph.D. student at UC San Diego CSE, working on systems, compilers and GPU code generation. Also: the island is hand-made.'; },
+    about: () => { found('console'); return 'Ph.D. student at UC San Diego CSE, working on AI for science and chip design, architecture for agentic workloads, and harnesses and benchmarks. Also: the island is hand-made.'; },
     eggs: () => { found('console'); return `${foundCount()} / ${total()} eggs`; },
     hint: () => { found('console'); const e = EGGS.find((x) => !foundEgg(x.id) && (x.kind === 'page')); return e ? e.hint : 'You have found every page-level egg. The world has more.'; },
     play: () => { found('console'); getWorld()?.enterPlay(); return 'W A S D'; },

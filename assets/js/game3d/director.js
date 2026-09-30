@@ -24,6 +24,8 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   let prePulse = null;
   let sections = [];
   let focusEls = [];
+  let lastSect = null;
+  const STEADY = new Set(['edu']);
   let currentEl = null;
   let currentKey = null;
   let currentSig = '';
@@ -103,7 +105,11 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   function apply(el, { force = false, restand = false } = {}) {
     if (!el) return;
     const key = el.dataset.focus || el.dataset.shot;
-    const shot = stage.shots[key] || stage.shots[el.closest('[data-shot]')?.dataset.shot];
+    // The Education section holds one wide shot of both campuses (its rows only highlight their
+    // landmark): swinging between the gate and CSE on every row made the camera and the scholar lurch.
+    const sectKey = el.closest('[data-shot]')?.dataset.shot;
+    const steady = STEADY.has(sectKey);
+    const shot = steady ? stage.shots[sectKey] : stage.shots[key] || stage.shots[sectKey];
     if (!shot) return;
     const side = sideOf(el);
     const compact = compactMQ.matches;
@@ -123,9 +129,13 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
       shiftX: compact ? 0 : (side === 'right' ? -1 : 1) * (shot.shiftX ?? 0.2),
       shiftY: compact ? -0.17 : 0,
     });
-    stage.setFocus(shot.item ?? key);
+    stage.setFocus(steady ? key : shot.item ?? key);
+    const enteredSect = sectKey !== lastSect;
+    lastSect = sectKey;
     if (changed || restand) {
-      if (shot.stand) tour.stand(shot.stand[0], shot.stand[1], shot.face ?? null);
+      if (sectKey === 'edu' && enteredSect && !restand) eduWarp();
+      else if (steady && !restand) { /* rows inside a steady section: the scholar stays put */ }
+      else if (shot.stand) tour.stand(shot.stand[0], shot.stand[1], shot.face ?? null);
       const sect = el.closest('[data-shot]') || el;
       emit('shot', { key, el, zone: sect.dataset.zone || '', index: sections.indexOf(sect) });
       const line = el.dataset.say;
@@ -138,6 +148,19 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
         }
       }
     }
+  }
+
+  // Tsinghua -> UC San Diego: entering Education teleports the scholar from the Second Gate to CSE
+  // (at most every 10 s; otherwise they are simply already there)
+  let lastWarp = -1e9;
+  function eduWarp() {
+    const g = stage.shots.gate?.stand, c = stage.shots.cse?.stand, cf = stage.shots.cse?.face ?? null;
+    if (!g || !c) { const e = stage.shots.edu; if (e?.stand) tour.stand(e.stand[0], e.stand[1], e.face ?? null); return; }
+    if (performance.now() - lastWarp < 10000) { tour.stand(c[0], c[1], cf); return; }
+    lastWarp = performance.now();
+    tour.warp({ x: g[0], z: g[1] }, { x: c[0], z: c[1] }, cf, () => {
+      if (lastSect === 'edu') say('me', 'Tsinghua → UC San Diego. Jet lag: 15 hours. Worth it.');
+    });
   }
 
   function evaluate() {
