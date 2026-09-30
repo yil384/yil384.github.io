@@ -422,6 +422,7 @@ html.modal-open { overflow: hidden; }
 body.is-glitch #page { filter: hue-rotate(90deg) saturate(1.6); }
 
 /* ---------------- responsive ---------------- */
+@media (max-width: 1440px) { .bar__zone { display: none; } }
 @media (max-width: 1240px) {
   .bar__zone { display: none; }
   .bar { gap: 14px; }

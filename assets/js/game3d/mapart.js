@@ -97,7 +97,7 @@ export function regionMapCanvas(world, def, pixels = 168) {
 export function forgetRegionMap(id) { for (const k of Object.keys(regionCache)) if (k.startsWith(`${id}:`)) delete regionCache[k]; }
 
 /** The hub map with roads highlighted and district names, for the world map (M). */
-export function hubIllustrated(world, px = 5) {
+export function hubIllustrated(world, px = 5, doors = []) {
   const base = hubMapCanvas(world, px);
   const c = document.createElement('canvas');
   c.width = c.height = base.canvas.width;
@@ -118,9 +118,14 @@ export function hubIllustrated(world, px = 5) {
     // names by the rim are anchored so they read inward
     const edge = Math.hypot(zn.x, zn.z) > 44;
     g.textAlign = edge ? (zn.x > 0 ? 'right' : 'left') : 'center';
-    const [a, b] = P(zn.x + (edge ? (zn.x > 0 ? 3 : -3) : 0), zn.z);
     const big = ['forest', 'price', 'rimac', 'warren', 'libwalk', 'plaza'].includes(k);
     g.font = `${big ? 700 : 600} ${Math.round(px * (big ? 2.4 : 2))}px system-ui, "Segoe UI", sans-serif`;
+    // step the name down while a door marker (drawn on top of the map) would sit on its letters
+    const lx = zn.x + (edge ? (zn.x > 0 ? 3 : -3) : 0);
+    const w = g.measureText(name.toUpperCase()).width / px, x0 = g.textAlign === 'center' ? lx - w / 2 : g.textAlign === 'right' ? lx - w : lx;
+    let lz = zn.z;
+    for (let i = 0; i < 3 && doors.some((d) => d.x > x0 - 2 && d.x < x0 + w + 2 && Math.abs(d.z - lz) < 2.6); i++) lz += 3.5;
+    const [a, b] = P(lx, lz);
     g.lineWidth = px * 0.9; g.strokeStyle = 'rgba(5, 9, 20, 0.85)'; g.lineJoin = 'round';
     g.strokeText(name.toUpperCase(), a, b);
     g.fillStyle = big ? '#fff4d6' : '#dbe4f5';

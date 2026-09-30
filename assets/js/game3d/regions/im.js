@@ -359,7 +359,7 @@ export default {
     const findEcho = egg('im-echo', 'Echo server', 'Say three things to Echo.', 'The first thing anyone runs on a fresh WebSocket.');
     const findSeen = egg('im-seen', 'Left on read', 'Open the "Seen" message in the maze three times.', 'Delivered, read, ignored. The rarest delivery guarantee.');
     const findDelivered = egg('im-delivered', 'Delivered ✓✓', 'Carry Ping\'s message to Pong and bring back the ACK.', 'Reliable message delivery, the IM System\'s whole point.');
-    const findUnsub = egg('im-unsubscribe', 'Unsubscribe', 'Defeat 10 Spam Bots in one visit.', 'You have been removed from this mailing list. (You have not.)');
+    const findUnsub = egg('im-unsubscribe', 'Unsubscribe', 'Defeat 10 Spam Bots.', 'You have been removed from this mailing list. (You have not.)');
     const findTyping = egg('im-typing', '… is typing', 'Defeat a Typing Indicator.', 'They were never going to send it.');
     const findRate = egg('im-ratelimit', 'Rate-limited', 'Take down all three Spam Relays in #general.', '429 Too Many Requests, but for spam.');
     const findRelic = egg('im-relic', 'Chat muted', 'Defeat the Group Chat in #general.', 'IM System Relic earned.');

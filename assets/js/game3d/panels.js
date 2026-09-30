@@ -172,10 +172,10 @@ export function openMenu(a) {
           item('body-swapping', 'Swap buddy', a.swap),
           item('trophy', 'Achievements', a.achievements),
           item('circle-help', 'Controls & settings', a.help, 'sound, music'),
+          h('button', { type: 'button', class: 'gmenu__item gmenu__item--leave', onclick: go(a.leave) }, icon('x', { size: 22 }), h('span', null, h('b', null, 'Back to the page'), h('small', null, 'the CV'))),
         ),
         h('p', { class: 'modal__sub' }, 'Spell button'),
         spells,
-        h('div', { class: 'modal__actions' }, h('button', { type: 'button', class: 'btn btn--primary', onclick: go(a.leave) }, 'Back to the page')),
       );
     },
   });

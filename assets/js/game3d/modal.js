@@ -67,7 +67,7 @@ export function openModal(opts) {
 
   setTimeout(() => {
     if (!wrap.isConnected) return;
-    const target = panel.querySelector('[autofocus], input, .modal__primary, button:not(.modal__x)') || panel.querySelector('button');
+    const target = (opts.focus && panel.querySelector(opts.focus)) || panel.querySelector('[autofocus], input, .modal__primary, button:not(.modal__x)') || panel.querySelector('button');
     target?.focus({ preventScroll: true });
   }, 30);
 

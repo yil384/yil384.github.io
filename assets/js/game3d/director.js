@@ -71,7 +71,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
 
   // ---------------------------------------------------------------- scanning the page
   function scan() {
-    sections = [...document.querySelectorAll('[data-shot]')];
+    sections = [...document.querySelectorAll('main [data-shot]')];   // not the HUD's chapter pips, which carry data-shot too
     focusEls = [...document.querySelectorAll('[data-focus]')];
   }
 

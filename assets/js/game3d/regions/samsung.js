@@ -407,7 +407,7 @@ export default {
         skyT -= dt;
         if (skyT <= 0) {
           skyT = 0.15;
-          const f = ((10 - (ffUntil - t)) / 10) * SKY_CYCLE.length;
+          const f = Math.min(Math.max(0, (10 - (ffUntil - t)) / 10), 0.999) * SKY_CYCLE.length;
           const a = SKY_CYCLE[Math.floor(f) % SKY_CYCLE.length], b = SKY_CYCLE[(Math.floor(f) + 1) % SKY_CYCLE.length], w = f % 1;
           setSky({ ...SKY, tint: `#${tmpC.set(a[0]).lerp(tmpF.set(b[0]), w).getHexString()}`, fog: `#${tmpC.set(a[1]).lerp(tmpF.set(b[1]), w).getHexString()}` });
         }

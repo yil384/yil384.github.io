@@ -15,7 +15,7 @@ const CLEAR_LINES = {
   about: ['ash', 'Character sheet read. I will put you on the map.'],
   edu: ['ash', 'Both schools charted. The path is on the map now.'],
   library: ['nell', 'Both shelves read. Library card stamped.'],
-  trail: ['me', 'Five flags, one trail. Quest log complete.'],
+  trail: ['me', 'Six flags, one trail. Quest log complete.'],
   workshop: ['unit7', 'Workshop inventory reviewed. Nothing is on fire.'],
   meadow: ['fern', 'You found the meadow. The mailbox is always open.'],
   footer: ['bit', 'You read all the way down!'],

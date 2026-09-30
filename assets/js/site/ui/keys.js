@@ -70,13 +70,23 @@ const ROWS = [
   [['?'], 'this sheet'],
   [['Esc'], 'close'],
 ];
+// the same things, by touch
+const TOUCH_ROWS = [
+  [['tap a row'], 'the scholar hops there'],
+  [['☰'], 'jump to a section'],
+  [['🎮'], 'take control of the scholar'],
+  [['📖'], 'Reviewer mode (plain CV)'],
+  [['🥚'], 'Field Notes: eggs, progress, the terminal'],
+  [['Inspect'], 'flip a card for the details'],
+];
 function buildSheet() {
+  const touch = matchMedia('(pointer: coarse)').matches;
   sheet = $('#keys-sheet');
   if (!sheet) return null;
   sheet.replaceChildren(
     h('div', { class: 'keys-sheet__head' }, h('p', { class: 'keys-sheet__t' }, 'Controls'), h('button', { type: 'button', class: 'keys-sheet__x', 'aria-label': 'Close controls', onclick: () => toggleSheet(false) }, '×')),
-    h('dl', { class: 'keys-sheet__list' }, ...ROWS.map(([ks, what]) => h('div', null, h('dt', null, ...ks.map((k) => h('kbd', null, k))), h('dd', null, what)))),
-    h('p', { class: 'keys-sheet__foot' }, 'Everything also works with a mouse or a tap.'),
+    h('dl', { class: 'keys-sheet__list' }, ...(touch ? TOUCH_ROWS : ROWS).map(([ks, what]) => h('div', null, h('dt', null, ...ks.map((k) => h('kbd', null, k))), h('dd', null, what)))),
+    h('p', { class: 'keys-sheet__foot' }, touch ? 'With a keyboard there are shortcuts for all of this.' : 'Everything also works with a mouse or a tap.'),
   );
   sheet.classList.add('keys-sheet');
   sheet.tabIndex = -1;

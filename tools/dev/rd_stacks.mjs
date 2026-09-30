@@ -41,7 +41,8 @@ export default async ({ p, ev, sim, check, shot }) => {
   check('shield: ~10% damage', d0 === 5, d0);
   for (let round = 0; round < 3; round++) {
     for (let i = 0; i < 20; i++) { await sim(0.5); await ev(() => { window.__g.player.hp = 999; }); if ((await ev(() => window.__g.regions.builtRegion('stacks').debug.R3.live.length)) > 0) break; }
-    const pos = await ev(() => { const p = window.__g.regions.builtRegion('stacks').debug.R3.live[0]; return [p.x, p.z]; });
+    const pos = await ev(() => { const p = window.__g.regions.builtRegion('stacks').debug.R3.live[0]; return p ? [p.x, p.z] : null; });
+    if (!pos) { console.log('LOG R3 no live comment this round'); continue; }
     await tp(pos[0], pos[1]); await sim(0.1); await p.waitForTimeout(400);
     const gi = await ev(() => window.__g.regions.builtRegion('stacks').debug.R3.goodIdx);
     await pick(gi); await close();
@@ -64,7 +65,7 @@ export default async ({ p, ev, sim, check, shot }) => {
   let hits = 0, lanes = 0;
   for (let sc = 0; sc < 3; sc++) {
     for (let i = 0; i < 12; i++) {
-      await sim(2); await ev(() => { window.__g.player.hp = 999; });
+      await sim(2); await ev(() => { window.__g.player.hp = 999; }); await close();   // a toast-modal (egg) can pause the world mid-scenario
       const d = await ev(() => { const s = window.__g.regions.builtRegion('stacks').debug; return { run: s.SC.run, next: s.SC.nextIn, t: s.SC.t, hits: s.SC.hits, lane: s.lane(), rogues: s.SC.rogues.length }; });
       lanes = Math.max(lanes, d.lane); hits = Math.max(hits, d.hits);
       if (i === 3 && sc === 2) await shot('track', 200);

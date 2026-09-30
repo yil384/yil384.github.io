@@ -557,6 +557,7 @@ html.is-play .touch.is-on ~ .hud-actions, .g__hud:has(.touch.is-on) .hud-actions
 .gmenu__item { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); color: var(--ink); text-align: left; font-size: 14px; }
 .gmenu__item span { display: grid; }
 .gmenu__item small { color: var(--ink-3); font-size: 11.5px; }
+.gmenu__item--leave { background: rgba(242, 184, 75, 0.16); border-color: rgba(242, 184, 75, 0.6); }
 .gmenu__spells { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .gmenu__spell { display: grid; justify-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); color: var(--ink); }
 .gmenu__spell small { font-size: 12px; }

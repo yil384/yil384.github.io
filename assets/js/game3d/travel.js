@@ -147,10 +147,14 @@ export function createTravel(env) {
   }
 
   /** Back to the live region's spawn (fell off, or got up after a game over). Nothing is lost. */
+  let respawning = false;           // falling out calls this every frame until the fade has covered the jump
   function respawnHere(reason = 'fall') {
+    if (respawning) return;
+    respawning = true;
     const id = where.id;
     const sp = spawnOf(id);
-    const go = () => {
+    const go = () => { try { land(); } finally { respawning = false; } };
+    const land = () => {
       const d = safeSpot(sp.x, sp.z);
       player.x = d.x; player.z = d.z; player.y = env.world.surfaceY(d.x, d.z);
       player.vx = player.vz = player.vy = 0; player.grounded = true;
@@ -161,7 +165,7 @@ export function createTravel(env) {
       fade(false);
       if (reason === 'fall') toast('Caught by a friendly breeze. Back at the portal.', { icon: 'magic-portal' });
     };
-    fade(true).then(go);
+    fade(true).then(go, go);
   }
 
   // ---------------------------------------------------------------- hub doors
@@ -198,10 +202,11 @@ export function createTravel(env) {
     const colourOf = Object.fromEntries(doors.map((d) => [d.to, d.colour]));
     openModal({
       id: 'map', title: boat ? 'The boat · where to?' : 'World map', className: 'wide-panel map-panel',
+      focus: '.modal__x',   // not the first door on the map (its focus ring and name would greet you)
       body: (b) => {
         const inHub = where.id === 'hub';
         const def = inHub ? null : regionDef(where.id);
-        const art = inHub ? hubIllustrated(env.world, 5) : def ? regionMapCanvas(env.world, def, 480) : null;
+        const art = inHub ? hubIllustrated(env.world, 5, doors) : def ? regionMapCanvas(env.world, def, 480) : null;
         const map = h('div', { class: `wmap2__map${inHub ? '' : ' is-region'}` });
         if (art) {
           const cv = h('canvas', { class: 'wmap2__canvas', width: art.canvas.width, height: art.canvas.height, 'aria-label': `Map of ${regionName(where.id)}` });

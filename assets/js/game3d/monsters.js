@@ -71,7 +71,7 @@ export function setActive(id, quiet = false) {
 export function cycleActive() {
   const t = T();
   if (t.party.length < 2) {
-    toast('Catch more creatures in the tall grass to swap companions.', { icon: 'sprout' });
+    toast('Catch more creatures in the tall grass to swap companions.', { icon: 'paw-print' });
     return;
   }
   const i = t.party.indexOf(activeId());

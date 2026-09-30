@@ -214,8 +214,11 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   let useTag = null;
   function useReady() {
     if (player.dead || player.vehicle) return null;
-    if (nearestNpc(4)) return 'Talk';
-    if (nearestInteractable()) return 'Use';
+    // the same priority as interact(): a door or sign in reach wins over an islander a few steps away
+    const npc = nearestNpc(4), it = nearestInteractable();
+    const npcScore = npc ? Math.hypot(player.x - npc.x, player.z - npc.z) / 4 : Infinity;
+    if (it && it.d <= npcScore) return 'Use';
+    if (npc) return 'Talk';
     if (where.id === 'hub' && (nearChest() || (!S.secret.unsealed && Math.hypot(player.x - secretDoor.x, player.z - secretDoor.z) <= 4.5))) return 'Use';
     if (player.ride) return 'Off';
     return null;
@@ -760,7 +763,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     invalidate: wake,
     dispose() { renderer.setAnimationLoop(null); },
   };
-  window.__g = { S, player, buddy, clock, world, stage, rig, director, scene, renderer, backend, lowfx, bosses, enemies, foes, patternBosses, npcs, liveTargets, emit, on, modalOpen, closeAllModals, teleport, mode, ZONES, where, input, vehicles, VEHICLES, sim, regions: regionsApi, ensureRegion, travelApi, ...api };
+  window.__g = { api, S, player, buddy, clock, world, stage, rig, director, scene, renderer, backend, lowfx, bosses, enemies, foes, patternBosses, npcs, liveTargets, emit, on, modalOpen, closeAllModals, teleport, mode, ZONES, where, input, vehicles, VEHICLES, sim, regions: regionsApi, ensureRegion, travelApi, ...api };
   try { initPageLink(api); } catch (err) { console.warn('[pagelink] failed to start:', err); }
   // ?region=<id>: jump straight into a region (for region authors); implies play
   const startRegion = q.get('region');

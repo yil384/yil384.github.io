@@ -289,13 +289,13 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     about:   { look: [1.5, A.tower.y + 4.5, 5.5], yaw: -0.3, pitch: 0.34, dist: 40, shiftX: 0.2, fov: 34, stand: [1.5, 6.4], face: 0.2 },
     // one steady shot of both campuses: the scholar beams from the Second Gate to CSE, and the camera
     // looks at that arc side-on (from the south-south-west), framed in the half the card leaves free
-    edu:     { look: [(G.x + C.x) / 2 - 2, A.tower.y + 6, (G.z + C.z) / 2 + 1], yaw: -0.585, pitch: 0.62, dist: 90, shiftX: 0.25, fov: 36, stand: [4.5, 5.5], face: 0.5 },
+    edu:     { look: [(G.x + C.x) / 2 - 2, A.tower.y + 6, (G.z + C.z) / 2 + 1], yaw: -0.585, pitch: 0.62, dist: 90, shiftX: 0.32, fov: 36, stand: [4.5, 5.5], face: 0.5 },
     cse:     { look: sub('cse', 8), yaw: 0.35, pitch: 0.22, dist: 38, shiftX: 0.2, fov: 34, stand: [C.x - 3, C.z + 6.5], face: 0.2 },
     gate:    { look: sub('gate', 4.5), yaw: 3.45, pitch: 0.3, dist: 34, shiftX: 0.2, fov: 34, stand: [G.x + 2.5, G.z - 4], face: 3.14 },
     library: { item: 'tower', look: [T.x, A.tower.y + 15, T.z], yaw: -0.55, pitch: 0.16, dist: 72, shiftX: 0.2, fov: 36, stand: [0.4, 4.2], face: 0.1 },
     'book-triton': { look: sub('book-triton'), yaw: -0.6, pitch: 0.14, dist: 34, shiftX: 0.2, fov: 34, stand: [-3.5, 5], face: -0.6 },
     'book-reh2o':  { look: sub('book-reh2o'), yaw: 0.2, pitch: 0.14, dist: 34, shiftX: 0.2, fov: 34, stand: [3.5, 5], face: 0.6 },
-    trail:   { look: [0.5, A['flag-tencent'].y + 3, A['flag-tencent'].z - 1], yaw: -0.35, pitch: 0.24, dist: 46, shiftX: 0.2, fov: 36, stand: [6.5, -4], face: 0.9 },
+    trail:   { look: [0.5, A['flag-tencent'].y + 3, A['flag-tencent'].z - 1], yaw: -0.35, pitch: 0.24, dist: 46, shiftX: 0.33, fov: 36, stand: [6.5, -4], face: 0.9 },
     workshop:{ look: [15, A.camp.y + 5, -16], yaw: 3.5, pitch: 0.4, dist: 52, shiftX: 0.2, fov: 36, stand: [camp.unit7.x + 2, camp.unit7.z + 3], face: 3.0 },
     workbench:{ look: sub('workbench', 1.5), yaw: 3.3, pitch: 0.6, dist: 19, shiftX: 0.2, fov: 34, stand: [camp.bench.x - 3, camp.bench.z + 1.5], face: 1.6 },
     meadow:  { look: [20, A.sungod.y + 3, 8], yaw: 0.85, pitch: 0.3, dist: 64, shiftX: 0.2, fov: 36, stand: [MB.x - 2, MB.z + 1.5], face: 1.5 },
