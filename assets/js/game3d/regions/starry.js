@@ -150,7 +150,9 @@ export default {
     const paintPads = (flash = -1) => { PADS.forEach((p, i) => pads.setColorAt(i, col.set(st.layers >= 3 || i < hs ? '#22c55e' : i === flash ? '#f87171' : '#94a3b8'))); pads.instanceColor.needsUpdate = true; };
     paintPads();
     // the Jumbo Frame's header shells
-    const shells = HEADER_COL.map((c, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(3.4 + i * 0.7, 4.4 + i * 0.7, 3.4 + i * 0.7), basic(c, { wireframe: true, transparent: true, opacity: 0.55, depthWrite: false })); m.visible = false; ctx.group.add(m); return m; });
+    const shells = inst(new THREE.BoxGeometry(1, 1, 1), 4, basic('#ffffff', { wireframe: true, transparent: true, opacity: 0.6, depthWrite: false }));
+    HEADER_COL.forEach((c, i) => shells.setColorAt(i, col.set(c)));
+    const shellS = new THREE.Vector3(), shellQ = new THREE.Quaternion(), shellP = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
 
     // ================================================================ enemies
     const kinds = {
@@ -167,7 +169,7 @@ export default {
     put('starry-irq', [[12, -10], [-13, 8]]);
     put('starry-dupack', [[-11, -5], [9, -9]]);
     put('starry-packet', [[-5, 3], [5, 4], [-6, -3]]);
-    put('starry-proc', [[8, 21], [-10, -21], [22, -3]]);
+    put('starry-proc', [[-10, -21], [22, -3]]);
 
     // ================================================================ boss: the Jumbo Frame
     const headers = () => 4 - Math.min(4, st.layers);
@@ -392,11 +394,22 @@ export default {
       if (boss.alive && !wasAlive) introShown = false;
       wasAlive = boss.alive;
       const n = headers();
-      for (let i = 0; i < 4; i++) {
-        const on = boss.alive && i >= 4 - n;
-        shells[i].visible = on;
-        if (on) { shells[i].position.set(boss.x, boss.y + 2.2, boss.z); shells[i].rotation.y = t * (0.4 + i * 0.15) * (i % 2 ? -1 : 1); }
+      // header i (0 = Ethernet, the outermost shell) is still worn while fewer than i + 1 layers are up
+      let m = 0;
+      if (boss.alive) {
+        for (let i = 4 - n; i < 4; i++) {
+          const w = 3.4 + (3 - i) * 0.7;
+          shellQ.setFromAxisAngle(UP, t * (0.4 + i * 0.15) * (i % 2 ? -1 : 1));
+          _m.compose(shellP.set(boss.x, boss.y + 2.2, boss.z), shellQ, shellS.set(w, w + 1, w));
+          shells.setMatrixAt(m, _m);
+          shells.setColorAt(m, col.set(HEADER_COL[i]));
+          m++;
+        }
+        shells.instanceMatrix.needsUpdate = true;
+        shells.instanceColor.needsUpdate = true;
       }
+      shells.count = m;
+      shells.visible = m > 0;
       if (boss.alive) boss.name = n ? `The Jumbo Frame · ${n} header${n > 1 ? 's' : ''}` : 'The Jumbo Frame · payload exposed';
     });
 
