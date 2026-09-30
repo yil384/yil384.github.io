@@ -1,6 +1,6 @@
 # Handoff: yil384.github.io "most fun academic homepage"
 
-Last updated 2026-09-30. Read this first, then `CLAUDE.md` (repo root), `docs/dev/GAME_SPEC.md` and `docs/dev/REGIONS_API.md`.
+Last updated 2026-09-30 (round 5: phones + Hub 2.0 merged). Read this first, then `CLAUDE.md` (repo root), `docs/dev/GAME_SPEC.md` and `docs/dev/REGIONS_API.md`.
 
 ## What this is
 Yichen Lin's homepage (UCSD CSE Ph.D. student). Vanilla HTML/CSS/ES modules, no build step, no CDNs; three.js r186
@@ -19,39 +19,33 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
 - Page layer: `assets/js/site/**` (kit, progress/XP, HUD, chapters, eggs registry, Field Notes, terminal `~`).
 
 ## Branch / deploy
-- Work branch: `claude/ecstatic-mayer-xlwq56`. **Standing instruction from the user: merge into `main` every time
-  (no PR).** Deploy = push to main; GitHub Pages is live ~40 s later at https://yil384.github.io.
+- Work branch: `claude/bold-maxwell-12zifa` (was `claude/ecstatic-mayer-xlwq56`). **Standing instruction from the user:
+  merge into `main` every time (no PR).** Deploy = push to main; GitHub Pages is live ~40 s later at https://yil384.github.io.
 - Push a verified commit to main with `git push origin <sha>:main` (main must be an ancestor; it is linear).
-- **main is at `b192a8d`** (verified). The branch is ahead with the **unverified Hub 2.0** work:
-  `e54acbb`, `52e257d` (WIP snapshots), `728c1b0` (island 2.6x bigger, round diorama in a moving sea),
-  `6e11422` (illustrated world map + minimap, fewer draw calls, re-framed tour shots), `e56e902` (door plates up
-  close, signposts, beacons, map labels, shadow box). Its agent was stopped right before its final perf probes; it
-  reported: all regions pass, full-fx draw calls 98 / 118 / 137 (settled / scroll / play; target <= ~130 in play),
-  "mobile renders fine" (but see TODO 1: the user says mobile is unplayable).
+- Round 5 (2026-09-30) merged Hub 2.0 (verified: 14 regions clean, finale 27/27, stacks 20/20, starry/im/oj/triton
+  playthroughs, tour shots vs the old main, desktop play, phone) plus the phone overhaul below.
+
+## Phones (round 5)
+- `game3d/touch.js`: the whole screen is one gesture surface in play (floating stick on the left half, look / pinch
+  zoom / tap-a-plate-to-talk on the right), an action arc (attack, jump, E that lights up with Talk/Use, dodge,
+  spell: tap casts, hold picks), a top row (map, vehicle, view, ☰ menu = `panels.js openMenu`, incl. Back to the page).
+  Controls hide while any modal is open; iOS gesture/zoom guards while playing. WebGL2 forced on coarse pointers
+  (`?webgpu=1` to try WebGPU), maxDpr 1.5 with the adaptive drop, GPU context loss reloads (max twice per visit).
+- Phone CSS lives in `game.css` (touch block, `@media (pointer: coarse)` / `(max-height: 500px)` layouts for battle,
+  dialog, map) and `site.css` (bar fits at 360 px with icon buttons and the gamepad; one egg toast at a time).
+- No end-of-page auto-enter on touch. Field Notes has Terminal / Controls buttons on touch (the terminal also takes
+  `yichen` and `konami`). `#world` keeps 100lvh on phones (browser bars no longer resize/re-aim the view).
+- Probe: `tools/dev/mplay.mjs [w] [h] [out] [shots]` (real CDP touch: stick, look, jump, map, battle, menu, spell picker).
 
 ## TODO (priority order)
-1. **Mobile is broken / unplayable (user report).** Reproduce at 390x844 and 412x915 with `hasTouch/isMobile`
-   (snap.mjs does this when width < 700): tour page layout over the world, the HUD, the title menu, and PLAY mode
-   touch controls (joystick, right-half drag look, buttons for jump/attack/E/V/map), modals, battle UI, the world
-   map. Check `(pointer: coarse)` paths in `game3d/input.js`, `assets/css/game.css`, `assets/css/ui/*.css`.
-   Fix layout overflow, tap targets, performance (coarse maxDpr 1.25, lowfx), and anything that blocks play.
-2. **Verify Hub 2.0 then merge to main**: every tour shot before/after (hero, about, education incl. the teleport
-   framing: the gate AND CSE must be visible right of the Education card at desktop width, papers, experience
-   with 6 flags incl. flag-samsung, projects, contact, credits), play mode (walk, doors to several regions and
-   back, boat, map M, minimap), `tools/dev/regsmoke.mjs` for all 14 regions, perf probe `?perf=1`, phone.
-3. The user's earlier complaints to keep an eye on (fixed, but confirm on the new hub):
-   - blur/fog: DPR now up to 2 desktop, floor 1 (0.75 touch), adaptive drop only after 3 s slow and 6 s grace;
-     bloom (0.5, 0.18, 0.05); fog 0.0062. Don't reintroduce a blurry look.
-   - third-person camera jitter: eased ground lift + occlusion hold in `game3d/camera.js` (`place()`); verify
-     with `tools/dev/camjit.mjs` (counts direction flips per walk; 0-1 is good).
-   - Education must stay ONE steady shot (director `STEADY`), no camera swings between rows.
-4. Known engine limitation: a dialog choice whose `action` opens another `dialog()` gets closed immediately
-   (`npcs.js choose()`); regions use `next` instead. A fix was tried and broke the finale test; if you fix it,
-   re-run `tools/dev/rd.mjs finale 0 ./rd_finale.mjs` (27 checks) and stacks (20 checks).
-5. Engine niceties the region agents asked for: `regions.js` re-exporting `heal`, `openModal`, `h`, `dealDamage`, a
-   `mount('car')` helper, official boss shield/damage-multiplier hooks (regions currently wrap `boss.hit`).
-6. The IM "Unsubscribe" egg (10 spam kills in one visit) was never hit by a test.
-7. Keep polishing "less AI flavour, more game feel and humour" wherever copy reads corporate.
+1. Real-device check on an iPhone and an Android phone (emulation only so far): floating stick feel, pinch zoom, iOS
+   Safari bars, audio, frame rate on a mid-range phone. The new hub costs ~+75% sim CPU vs the old one at 4x
+   throttle (still ~2 ms/frame): `ambient.update` / `updateHud` could skip work on coarse pointers if needed.
+2. Stale test harnesses: rb_metabit/timi/hotstar/lark 'quest done' checks and rb_lark's elevator/boss checks fail on
+   main too (quest ids changed); rb_timi/rb_hotstar need to wait for `.talk__choice` after typing.
+3. Two islanders' tour speech bubbles can overlap (clamped on screen now, but not de-overlapped).
+4. Keep polishing "less AI flavour, more game feel and humour" wherever copy reads corporate.
+(Done in round 5: dialog chains (npcs.js), engine helpers for regions (REGIONS_API §9), IM Unsubscribe egg verified.)
 
 ## Facts / tone rules (hard)
 - Only use facts in `docs/dev/GAME_SPEC.md` "Allowed facts" and `index.html`. Jokes must read as jokes.

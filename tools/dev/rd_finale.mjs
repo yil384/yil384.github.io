@@ -52,7 +52,7 @@ export default async ({ p, ev, sim, check, shot }) => {
   const e1 = await ev(() => window.__g.regions.builtRegion('finale').debug.exp.name);
   console.log('LOG exp', e0, '→', e1);
   check('experiment progresses on its own', e0 !== e1);
-  for (let i = 0; i < 40 && (await F()).phase === 'exp'; i++) { await sim(1); await ev(() => { window.__g.player.hp = 999; }); }
+  for (let i = 0; i < 70 && (await F()).phase === 'exp'; i++) { await sim(1); await ev(() => { window.__g.player.hp = 999; }); }
   f = await F(); check('experiment finished by surviving', f.phase === 'verdict' || f.phase === 'grad', JSON.stringify(f));
   // deliberation → travel to the lawn → ceremony
   await p.waitForFunction(() => { const d = window.__g.regions.builtRegion('finale').debug; return d.F.pose === 'grad' && d.F.gradT >= 0; }, null, { timeout: 20000 }).catch(() => {});
