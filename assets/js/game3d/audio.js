@@ -68,6 +68,14 @@ const SFX = {
   warp: () => seq([[220, 0, 0.35]], { type: 'sine', gain: 0.08, slide: 1760 }),
   ring: () => seq([[1320, 0, 0.05], [1320, 0.1, 0.05], [1320, 0.2, 0.05]], { gain: 0.05 }),
   squeak: () => seq([[520, 0, 0.05], [780, 0.04, 0.07]], { gain: 0.07 }),
+  // round 4: traversal, blades and vehicles
+  jump: () => seq([[330, 0, 0.09]], { type: 'triangle', gain: 0.05, slide: 620 }),
+  slash: () => seq([[900, 0, 0.09]], { type: 'sawtooth', gain: 0.05, slide: 240 }),
+  slash3: () => seq([[1200, 0, 0.16]], { type: 'sawtooth', gain: 0.06, slide: 180 }),
+  honk: () => seq([[392, 0, 0.22], [370, 0, 0.22], [392, 0.28, 0.3], [370, 0.28, 0.3]], { type: 'square', gain: 0.08 }),
+  thrust: () => seq([[90, 0, 0.18]], { type: 'sawtooth', gain: 0.05, slide: 160 }),
+  vehicle: () => seq([[262, 0, 0.08], [392, 0.07, 0.08], [523, 0.14, 0.14]], { type: 'triangle', gain: 0.08 }),
+  portal: () => seq([[196, 0, 0.5]], { type: 'sine', gain: 0.1, slide: 1568 }),
 };
 
 export function sfx(name) {

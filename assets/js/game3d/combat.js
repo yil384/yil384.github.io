@@ -116,23 +116,33 @@ export function clearHostileProjectiles() {
 export function clearAllProjectiles() { for (const p of projectiles) scene.remove(p.mesh); projectiles.length = 0; }
 
 // ---------------------------------------------------------------- player attack
-let lastAttack = -1e9;
-export function playerAttack() {
-  if (player.dead || clock.t - lastAttack < 380) return;
-  lastAttack = clock.t;
-  markAction();
-  sfx('swing');
-  fx.ring(player.x, player.y, player.z, '#f2b84b', attackRange() * 0.55, 0.28);
-  const hits = targetsWithin(player.x, player.z, attackRange());
-  const dmg = attackPower();
+/**
+ * One melee swing lands (weapon.js calls this at the swing's hit moment). Hits every live target in
+ * front of the scholar: within attackRange() × range, within ±arc of `yaw`, and roughly at his height.
+ * Returns how many were hit. Each target is pushed back (target.knock(dx, dz, power) when it has one).
+ */
+export function swingHit({ step = 0, arc = 1.2, range = 1, mult = 1, knock = 5, yaw = player.yaw } = {}) {
+  if (player.dead) return 0;
+  const reach = attackRange() * range;
+  const hits = targetsWithin(player.x, player.z, reach).filter((t) => {
+    if (Math.abs((t.y + (t.h || 2) * 0.5) - (player.y + 1.5)) > 3.5 + (t.h || 2) * 0.5) return false;
+    if (arc >= Math.PI) return true;
+    const a = Math.atan2(t.x - player.x, t.z - player.z);
+    const d = Math.abs(((a - yaw + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI);
+    return d <= arc || hdist(player.x, player.z, t.x, t.z) < t.r + 0.8;
+  });
+  const dmg = attackPower() * mult;
   for (const t of hits) {
-    const d = hdist(player.x, player.z, t.x, t.z);
-    if (d > 2.6) fx.beam(player.x, player.y + 2, player.z, t.x, t.y + t.h * 0.5, t.z, '#fde047', 0.08, 0.25);
-    fx.burst(t.x, t.y + t.h * 0.5, t.z, '#fde68a', 5, 3, 0.4, 0.5);
+    const dx = t.x - player.x, dz = t.z - player.z, l = Math.hypot(dx, dz) || 1;
+    fx.burst(t.x, t.y + t.h * 0.5, t.z, step === 2 ? '#fde68a' : '#bae6fd', 7, 4, 0.4, 0.55);
     dealDamage(t, dmg, { source: 'player' });
+    t.knock?.(dx / l, dz / l, t.boss ? knock * 0.15 : knock);
   }
   if (hits.length) sfx('hit');
+  return hits.length;
 }
+/** Kept for callers from before the combo: one plain swing's worth of damage, no animation. */
+export function playerAttack() { markAction(); return swingHit({}); }
 
 // ---------------------------------------------------------------- spells
 export const SPELLS = {

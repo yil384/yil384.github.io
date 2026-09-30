@@ -13,12 +13,12 @@ const DEFAULT_GLOW = {
 };
 
 /** Build a voxel actor. Returns a Group whose origin is the feet centre. */
-export function makeActor(name, { scale = 0.2, glow = null, maxHalf = 2 } = {}) {
+export function makeActor(name, { scale = 0.2, glow = null, maxHalf = 2, minHalf = 1, rear = null } = {}) {
   const base = VARIANTS[name] ? VARIANTS[name][0] : name;
   const overrides = VARIANTS[name] ? VARIANTS[name][1] : null;
   const art = ART[base];
   if (!art) throw new Error(`unknown actor ${name}`);
-  const g = voxelSprite(art, { overrides, glow: glow || DEFAULT_GLOW[name] || DEFAULT_GLOW[base] || {}, maxHalf, bevel: 0 });
+  const g = voxelSprite(art, { overrides, glow: glow || DEFAULT_GLOW[name] || DEFAULT_GLOW[base] || {}, maxHalf, minHalf, rear, bevel: 0 });
   g.scale.setScalar(scale);
   g.userData.name = name;
   g.userData.height = art.frames[0].length * scale;

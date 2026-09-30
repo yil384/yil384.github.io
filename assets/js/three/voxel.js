@@ -22,9 +22,11 @@ const lum = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; // linear luminan
  *   overrides  palette overrides (variants)
  *   maxHalf    max half-thickness in voxels (1 = flat card, 2-3 = chunky/rounded)
  *   glow       { paletteKey: intensity } -> emissive (goes to bloom via MRT)
+ *   minHalf    min half-thickness (raise it so thin parts like limbs are not paper-flat)
+ *   rear       { rows: [y0, y1], map: { key: key } } palette swap for the rear voxels of those rows
  *   bevel      rounded-box bevel radius (0 = hard cubes)
  */
-export function voxelize(art, { frame = 0, overrides = null, maxHalf = 2, glow = {}, bevel = 0.08, material = null } = {}) {
+export function voxelize(art, { frame = 0, overrides = null, maxHalf = 2, minHalf = 1, rear = null, glow = {}, bevel = 0.08, material = null } = {}) {
   const grid = art.frames[frame];
   const pal = { ...art.pal, ...overrides };
   const h = grid.length;
@@ -67,11 +69,13 @@ export function voxelize(art, { frame = 0, overrides = null, maxHalf = 2, glow =
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     if (!solid(x, y)) continue;
     const ch = at(x, y);
-    const half = Math.min(dist[y * w + x], maxHalf); // 1 -> single layer
+    const half = Math.min(dist[y * w + x] + minHalf - 1, maxHalf); // 1 -> single layer
     const isDetail = lum(colors[ch]) < 0.02 && dist[y * w + x] > 1;
     const back = isDetail ? detailFill(x, y) : ch;
+    // `rear` repaints the back half of some rows (the back of a head is hair, not face)
+    const rearKey = rear && y >= rear.rows[0] && y <= rear.rows[1] ? rear.map[ch] || rear.map[back] : null;
     for (let z = -(half - 1); z <= half - 1; z++) {
-      const key = z === half - 1 ? ch : back;
+      const key = z === half - 1 ? ch : (rearKey && z < 0 ? rearKey : back);
       voxels.push({ x: x - w / 2 + 0.5, y: h - 1 - y + 0.5, z, key });
     }
   }

@@ -340,5 +340,5 @@ export function buildWorld(seed = 7) {
   const isBlocked = (x, z) => blocked.has(`${Math.round(x)},${Math.round(z)}`);
   const block = (x, z) => blocked.add(`${Math.round(x)},${Math.round(z)}`);
   const unblock = (x, z) => blocked.delete(`${Math.round(x)},${Math.round(z)}`);
-  return { group, height, walkable, zoneAt, typeAt, surfaceY, isBlocked, block, unblock, sealChamber, gate, voxels: cells.length / 4 + props.length / 4, TYPE, rand };
+  return { group, height, walkable, zoneAt, typeAt, surfaceY, isBlocked, block, unblock, sealChamber, gate, voxels: cells.length / 4 + props.length / 4, TYPE, rand, ZONES };
 }
