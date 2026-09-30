@@ -45,13 +45,13 @@ export function initWorldEggs(world) {
     if (v.ok) found('accepted', { say: 'Accepted. It ran in 0 ms, which is suspicious.' });
   }
 
-  // ---- flags: touch all five
+  // ---- flags: touch all six
   const touched = new Set();
   function onFlag(id) {
     const a = stage.anchors[id];
     flash(a.x, a.y + 2, a.z, '#fde68a', 10);
     touched.add(id);
-    if (touched.size >= 5) found('flags');
+    if (touched.size >= 6) found('flags');
   }
 
   // ---- pokes and pets

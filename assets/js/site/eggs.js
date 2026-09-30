@@ -38,7 +38,7 @@ export const EGGS = [
   { id: 'mailbox',  kind: 'world', name: "You've got mail", hint: 'The mailbox has a flag.', done: 'Flag up. Write to me: yil384@ucsd.edu.' },
   { id: 'gate',     kind: 'world', name: 'The Second Gate', hint: 'The white gate on the west side.', done: '自强不息，厚德载物.' },
   { id: 'fallen',   kind: 'world', name: 'Fallen Star', hint: 'A house sits oddly on the roof.', done: 'It has been there since before you arrived.' },
-  { id: 'flags',    kind: 'world', name: 'Flag collector', hint: 'Touch every flag on the trail.', done: 'Five flags, five jobs, one very tired scholar.' },
+  { id: 'flags',    kind: 'world', name: 'Flag collector', hint: 'Touch every flag on the trail.', done: 'Six flags, six jobs, one very tired scholar.' },
   { id: 'pet',      kind: 'world', name: 'Good Bit', hint: 'The blue one likes attention.', done: 'Bit purrs in binary.' },
   { id: 'poke',     kind: 'world', name: 'Ask the scholar', hint: 'Poke the little one a few times.', done: 'You have heard the whole repertoire of excuses.' },
   { id: 'wasd',     kind: 'game',  name: 'Player One', hint: 'Take the controls.', done: 'Game on.' },

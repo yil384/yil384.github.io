@@ -1,6 +1,6 @@
 // "Road to Dr.": the main quest, and the quest registry every region uses.
-// Collect the Tsinghua Diploma, five internship Badges, four project Relics and two paper Seals; each
-// is earned by finishing that region's boss or puzzle (regions call award(id)). With all twelve the
+// Collect the Tsinghua Diploma, six internship Badges, four project Relics and two paper Seals; each
+// is earned by finishing that region's boss or puzzle (regions call award(id)). With all thirteen the
 // Geisel "Defense" opens (the finale package listens for 'road:complete').
 // Side quests: registerQuest({ id, title, region, steps: [{ id, text, done: () => bool }], reward }).
 // The HUD tracker shows the Road and the quests of the region you stand in; L opens the Quest log
@@ -16,6 +16,7 @@ import { where } from './where.js';
 
 export const ROAD = [
   { id: 'diploma', kind: 'Diploma', name: 'Tsinghua Diploma', region: 'tsinghua', icon: 'graduation-cap', note: 'B.S. Computer Science & Technology, 2021–2025' },
+  { id: 'badge-samsung', kind: 'Badge', name: 'Samsung Semiconductor Badge', region: 'samsung', icon: 'ribbon-medal', note: 'Research intern: architecture for agentic workloads' },
   { id: 'badge-picasso', kind: 'Badge', name: 'Picasso Lab Badge', region: 'picasso', icon: 'ribbon-medal', note: 'Research intern, UCSD CSE' },
   { id: 'badge-metabit', kind: 'Badge', name: 'Metabit Badge', region: 'metabit', icon: 'ribbon-medal', note: 'Quant developer intern' },
   { id: 'badge-timi', kind: 'Badge', name: 'TiMi Studio Badge', region: 'timi', icon: 'ribbon-medal', note: 'Game dev intern, Tencent' },
@@ -44,7 +45,7 @@ export function award(id) {
   sfx('achievement');
   banner(`${it.kind} obtained: ${it.name}`, `Road to Dr. · ${roadCount()} / ${ROAD.length}`, it.icon);
   emit('road:item', { id, item: it, count: roadCount() });
-  if (roadComplete()) setTimeout(() => { banner('The committee is ready', 'All twelve collected. The Defense awaits in Geisel.', 'graduation-cap'); emit('road:complete'); }, 3600);
+  if (roadComplete()) setTimeout(() => { banner('The committee is ready', 'All thirteen collected. The Defense awaits in Geisel.', 'graduation-cap'); emit('road:complete'); }, 3600);
   return true;
 }
 
@@ -98,7 +99,7 @@ export function openQuestLog() {
     id: 'questlog', title: `Quest log · Road to Dr. ${roadCount()} / ${ROAD.length}`, className: 'wide-panel',
     body: (b) => {
       b.append(
-        h('p', { class: 'muted small' }, 'Finish each place’s boss or puzzle to earn its item. All twelve open the Defense in Geisel.'),
+        h('p', { class: 'muted small' }, 'Finish each place’s boss or puzzle to earn its item. All thirteen open the Defense in Geisel.'),
         h('div', { class: 'trophies' }, ...ROAD.map((r) => {
           const got = hasItem(r.id);
           return h('div', { class: `trophy${got ? ' is-on' : ''}`, title: got ? r.note : `Found in ${r.region}` },

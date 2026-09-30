@@ -549,7 +549,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       coarse
         ? h('p', null, 'Left thumb: move · drag on the right: look · buttons: attack, jump, E to use, dodge, vehicle, map.')
         : h('p', null, k('W'), k('A'), k('S'), k('D'), ' move · click: mouse look · ', k('Space'), ' jump · ', k('Shift'), ' sprint · ', k('K'), ' dodge · ', k('J'), '/click attack (combo) · ', k('E'), ' use · ', k('V'), ' vehicle · ', k('M'), ' map · ', k('C'), ' first person · ', k('Esc'), ' back to the page'),
-      h('p', { class: 'muted small' }, `Your journey, the Road to Dr.: collect a diploma, 5 badges, 4 relics and 2 seals (${roadCount()} / ${ROAD.length}). Every landmark on the island is a door: the gate, the CSE building, the flags, the monuments, Geisel. The boat on the pier goes anywhere you have been.`),
+      h('p', { class: 'muted small' }, `Your journey, the Road to Dr.: collect a diploma, 6 badges, 4 relics and 2 seals (${roadCount()} / ${ROAD.length}). Every landmark on the island is a door: the gate, the CSE building, the flags, the monuments, Geisel. The boat on the pier goes anywhere you have been.`),
       h('button', { type: 'button', class: 'btn btn--small btn--primary', onclick: () => { S.settings.tutorial4 = true; save(); coach.remove(); coach = null; } }, 'Let’s go'),
     );
     hudEl.append(coach);

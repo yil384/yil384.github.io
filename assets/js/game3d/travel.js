@@ -31,7 +31,7 @@ function doorList() {
   return [
     { to: 'tsinghua', x: G.x, z: G.z - 0.5, r: 1.4, walk: true, label: '二校门 · to Tsinghua', plateY: 10.5 },
     { to: 'picasso', x: C.x, z: C.z + 4.6, r: 2.4, label: 'CSE · Picasso Lab', prompt: 'E · enter the lab' },
-    ...[['metabit', 'flag-metabit'], ['timi', 'flag-tencent'], ['hotstar', 'flag-hotstar'], ['lark', 'flag-lark']].map(([to, id]) => {
+    ...[['samsung', 'flag-samsung'], ['metabit', 'flag-metabit'], ['timi', 'flag-tencent'], ['hotstar', 'flag-hotstar'], ['lark', 'flag-lark']].map(([to, id]) => {
       const f = flag(id);
       return { to, x: f.x, z: f.z, r: 2.6, label: `${regionName(to)}`, prompt: 'E · touch the flag', plateY: 5.2 };
     }),

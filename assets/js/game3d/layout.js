@@ -48,14 +48,14 @@ for (let i = 0; i < SNAKE.n; i++) {
   const t = i / (SNAKE.n - 1);
   snakePoints.push([Math.round(SNAKE.x + SNAKE.dx * t), Math.round(SNAKE.z + SNAKE.dz * t + Math.sin(t * SNAKE.turns) * SNAKE.wiggle)]);
 }
-// Experience trail: five flags along the Snake Path on the plaza's south side. East is the present
+// Experience trail: six flags along the Snake Path on the plaza's south side. East is the present
 // (the CSE building, Picasso Lab), west is the past (the Tsinghua gate), so scrolling down walks back
 // in time. Each flag stands a step south of the path.
 const FLAG_DEFS = [
-  ['flag-picasso', '#a78bfa'], ['flag-metabit', '#2dd4bf'], ['flag-tencent', '#38bdf8'], ['flag-hotstar', '#6366f1'], ['flag-lark', '#22d3ee'],
+  ['flag-samsung', '#6e8bff'], ['flag-picasso', '#a78bfa'], ['flag-metabit', '#2dd4bf'], ['flag-tencent', '#38bdf8'], ['flag-hotstar', '#6366f1'], ['flag-lark', '#22d3ee'],
 ];
 LAYOUT.flags = FLAG_DEFS.map(([id, colour], i) => {
-  const tx = 5.5 - i * 3.9;
+  const tx = 6 - i * 3.6;
   const [px, pz] = snakePoints.reduce((best, q) => (Math.abs(q[0] - tx) < Math.abs(best[0] - tx) ? q : best), snakePoints[0]);
   return { id, colour, x: px, z: pz + 3 };
 });

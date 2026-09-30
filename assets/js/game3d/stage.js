@@ -457,6 +457,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
 }
 
 const FLAG_LABELS = {
+  'flag-samsung': 'Samsung Semiconductor',
   'flag-picasso': 'Picasso Lab · UCSD CSE',
   'flag-metabit': 'Metabit',
   'flag-tencent': 'Tencent · TiMi Studio',

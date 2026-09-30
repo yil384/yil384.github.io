@@ -41,12 +41,13 @@ export const REGIONS = {
   timi: { name: 'TiMi hunting grounds', origin: [400, 400], door: 'The TiMi Studio flag on the trail' },
   hotstar: { name: 'Hotstar stadium', origin: [800, 400], door: 'The Disney+ Hotstar flag on the trail' },
   lark: { name: 'Lark tower', origin: [1200, 400], door: 'The Lark flag on the trail' },
+  samsung: { name: 'Samsung agent fab', origin: [1600, 400], door: 'The Samsung flag on the trail' },
   starry: { name: 'Starry-Next kernel', origin: [0, 800], door: 'The Starry-Next monolith' },
   im: { name: 'IM chat maze', origin: [400, 800], door: 'The IM System speech bubbles' },
   oj: { name: 'CST-OJ tower', origin: [800, 800], door: 'The online judge' },
   triton: { name: 'TritonGym arena', origin: [1200, 800], door: 'King Triton’s statue' },
   stacks: { name: 'Geisel Stacks', origin: [0, -400], door: 'Geisel Library’s entrance' },
-  finale: { name: 'The Defense', origin: [400, -400], door: 'Deep in the Stacks, once all twelve are collected' },
+  finale: { name: 'The Defense', origin: [400, -400], door: 'Deep in the Stacks, once all thirteen are collected' },
   sandbox: { name: 'Sandbox', origin: [-400, 400], door: 'Developers only (?region=sandbox)' },
 };
 
