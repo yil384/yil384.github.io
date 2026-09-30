@@ -364,7 +364,13 @@ export function interactable(ctx, { x, z, r = 2.2, label = '', prompt = 'E · us
     setPrompt(t) { hint.textContent = t; },
     remove() { it.enabled = false; it.unpin(); if (mesh) ctx.group.remove(mesh); const i = interactables.indexOf(it); if (i >= 0) interactables.splice(i, 1); },
   };
-  it.unpin = fx.pin(plate, () => (it.enabled ? { x: x + ctx.ox, y: gy + plateY, z: z + ctx.oz } : null), { region: ctx.id, nearOnly: true });
+  // in play, a plate only shows when you're close to it, so a row of doors doesn't turn into a pile of labels
+  const seeR = r + 6;
+  it.unpin = fx.pin(plate, () => {
+    if (!it.enabled) return null;
+    if (mode.play && Math.hypot(player.x - x - ctx.ox, player.z - z - ctx.oz) > seeR) return null;
+    return { x: x + ctx.ox, y: gy + plateY, z: z + ctx.oz };
+  }, { region: ctx.id, nearOnly: true });
   plate.addEventListener('click', () => { if (mode.play && it.near) use(it); });
   interactables.push(it);
   return it;

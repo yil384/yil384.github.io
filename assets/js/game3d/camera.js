@@ -31,6 +31,10 @@ export function createCamera() {
   let fpPitch = 0.12;             // first-person pitch (+ looks down)
   let tpDist = PLAY.dist;         // remembered third-person distance
   let ground = null;              // (x, z) -> surface y, for camera collision
+  let floor = null;               // (x, z) -> bare terrain y (no props), for the minimum camera height
+  let occ = null;                 // eased camera distance after occlusion pull-in
+  let occT = 0;
+  const occDt = () => { const n = performance.now(), d = occT ? (n - occT) / 1000 : 0.016; occT = n; return d; };
   let lastFov = 0, lastSx = NaN, lastSy = NaN, lastW = 0, lastH = 0;
   let motion = 0;                 // how much the pose changed last update (for the tour frame cap)
   let lookIdle = 99;              // seconds since the last manual look input (auto-follow waits for it)
@@ -56,7 +60,7 @@ export function createCamera() {
     /** Change in pose during the last update (world units + radians); ~0 when the camera is at rest. */
     get motion() { return motion; },
     resize(w, h) { size.w = w; size.h = h; },
-    setGround(fn) { ground = fn; },
+    setGround(fn, floorFn = null) { ground = fn; floor = floorFn; },
 
     /** Aim the tour camera at a shot: { look:[x,y,z], yaw, pitch, dist, shiftX, shiftY, fov }. */
     shot(s) {
@@ -202,16 +206,25 @@ export function createCamera() {
       }
       const cp = Math.cos(pitch);
       let dist = cur.dist;
-      // keep terrain out from between the camera and the player: march outward, pull in on a hit
+      // keep terrain out from between the camera and the player: march outward, pull in on a hit.
+      // A single-cell hit (a lamp, a sign, a bench) is ignored so small props don't yank the camera;
+      // the pull-in eases (fast in, slow back out) instead of snapping.
       if (play && ground) {
         const sx = Math.sin(yaw) * cp, sy = Math.sin(pitch), sz = Math.cos(yaw) * cp;
+        let want = dist, first = -1;
         for (let s = 1.5; s < dist; s += 0.75) {
           const x = cur.look.x + sx * s, y = cur.look.y + sy * s, z = cur.look.z + sz * s;
-          if (ground(x, z) > y - 0.6) { dist = Math.max(1.2, s - 0.8); break; }
+          if (ground(x, z) > y - 0.6) {
+            if (first < 0) first = s;
+            else if (s - first >= 1.4) { want = Math.max(1.2, first - 0.8); break; }
+          } else first = -1;
         }
-      }
+        if (occ == null || occ > dist) occ = dist;
+        occ += (want - occ) * (1 - Math.exp(-(want < occ ? 18 : 3.5) * Math.min(occDt(), 0.1)));
+        dist = Math.min(dist, occ);
+      } else occ = null;
       pos.set(cur.look.x + Math.sin(yaw) * cp * dist, cur.look.y + Math.sin(pitch) * dist, cur.look.z + Math.cos(yaw) * cp * dist);
-      if (play && ground) { const gy = ground(pos.x, pos.z); if (pos.y < gy + 0.8) pos.y = gy + 0.8; }
+      if (play && ground) { const gy = (floor || ground)(pos.x, pos.z); if (pos.y < gy + 0.8) pos.y = gy + 0.8; }
       cam.position.copy(pos);
       cam.lookAt(cur.look);
     }

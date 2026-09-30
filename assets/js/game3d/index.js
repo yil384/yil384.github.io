@@ -117,7 +117,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   const stage = buildStage(world, scene, { lowfx, parent: hub });
   const rig = createCamera();
   // camera collision: terrain, plus blocked cells (buildings, statues, trunks) as ~9-voxel obstacles
-  rig.setGround((x, z) => world.surfaceY(x, z) + (world.isBlocked(x, z) ? 9 : 0));
+  rig.setGround((x, z) => world.surfaceY(x, z) + (world.isBlocked(x, z) ? 9 : 0), (x, z) => world.surfaceY(x, z));
   const input = createInput(worldEl);
   const tour = createTour(world);
 
