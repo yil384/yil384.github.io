@@ -1,1 +1,209 @@
-/* ui/hero.css: owned by SECTIONS-A (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* HERO: the title screen (SPEC §4.1). Everything is scoped under html.is-game so no-JS, Reviewer mode and
+   print keep today's hero from site.css. The h1 text stays real (transparent under the letter blocks). */
+
+html.is-game .scene--hero .hero { max-width: 600px; }
+html.is-game .scene--hero .eyebrow { margin-bottom: 10px; font: 400 11px/1 var(--px); letter-spacing: 0.16em; color: var(--ink-2); }
+
+/* ---------------------------------------------------------------- the name: nine letter blocks */
+html.is-game .hero__name {
+  position: relative; font-size: 88px; line-height: 0.98; margin-bottom: 16px;
+  background: none; -webkit-background-clip: border-box; background-clip: border-box; color: transparent;
+  filter: drop-shadow(0 4px 22px rgba(0, 0, 0, 0.6));
+}
+html.is-game .hero__name-t,
+html.is-game .hero__name.is-alias .hero__name-t { color: transparent; }
+html.is-game .hero__name.is-alias .hero__blocks { visibility: visible; }
+.hero__blocks { position: absolute; left: 0; top: 0; right: -40px; display: flex; flex-wrap: wrap; white-space: pre; pointer-events: auto; }
+.hero__word { display: inline-flex; }
+.hero__gap { display: inline-block; }
+.hero__blk {
+  --lift: 0px;
+  position: relative; display: inline-block; cursor: pointer;
+  color: transparent; background: linear-gradient(180deg, #ffffff 34%, #dfe4f7 64%, #b8c1e8);
+  -webkit-background-clip: text; background-clip: text;
+  transform: translateY(var(--lift)); transition: transform 160ms var(--ease);
+}
+/* the underside of each block: a dashed gold ledge that shows when you point at it */
+.hero__blk::before {
+  content: ''; position: absolute; left: 8%; right: 8%; bottom: 0.02em; height: 4px;
+  background: repeating-linear-gradient(90deg, var(--gold) 0 4px, transparent 4px 7px);
+  opacity: 0.22; transform: scaleX(0.8); transition: opacity 160ms, transform 200ms var(--ease);
+}
+/* a sheen that sweeps through the letters every 9 s */
+.hero__blk::after {
+  content: attr(data-l); position: absolute; inset: 0; pointer-events: none;
+  color: transparent; -webkit-background-clip: text; background-clip: text;
+  background: linear-gradient(100deg, transparent 38%, rgba(255, 236, 160, 0.95) 50%, transparent 62%) no-repeat;
+  background-size: 300% 100%; background-position: 130% 0;
+  -webkit-background-clip: text; background-clip: text;
+  animation: blk-sheen 9s linear infinite; animation-delay: calc(var(--d, 0) * 55ms + 1.2s);
+}
+.hero__blk:nth-child(2) { --d: 1; } .hero__blk:nth-child(3) { --d: 2; } .hero__blk:nth-child(4) { --d: 3; }
+.hero__blk:nth-child(5) { --d: 4; } .hero__blk:nth-child(6) { --d: 5; }
+.hero__word + .hero__gap + .hero__word .hero__blk:nth-child(1) { --d: 7; }
+.hero__word + .hero__gap + .hero__word .hero__blk:nth-child(2) { --d: 8; }
+.hero__word + .hero__gap + .hero__word .hero__blk:nth-child(3) { --d: 9; }
+@keyframes blk-sheen { 0% { background-position: 130% 0; } 9%, 100% { background-position: -30% 0; } }
+.hero__blk:hover { --lift: -3px; }
+.hero__blk:hover::before { opacity: 0.85; transform: none; }
+.hero__blk.is-bump { animation: blk-bump 240ms steps(2) both; }
+.hero__blk.is-bump::before { opacity: 1; transform: none; }
+@keyframes blk-bump { 0% { transform: translateY(0); } 45% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+.scene--hero:not(.is-live) .hero__blk::after { animation-play-state: paused; }
+html.rm .hero__blk::after { animation: none; }
+html.rm .hero__blk.is-bump { animation: none; }
+
+/* typing his name: an arcade flicker for 900ms */
+.hero__name.is-typename .hero__blk {
+  background: linear-gradient(180deg, #fff6c2, var(--gold) 60%, #d49b00); -webkit-background-clip: text; background-clip: text;
+  animation: blk-flicker 900ms steps(6) both;
+}
+.hero__name.is-typename::after {
+  content: ''; position: absolute; inset: -6px -10px; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.32) 0 2px, transparent 2px 4px);
+  animation: blk-flicker 900ms steps(5) both;
+}
+@keyframes blk-flicker { 0%, 30%, 60% { opacity: 1; } 15%, 45% { opacity: 0.55; } 100% { opacity: 1; } }
+html.rm .hero__name.is-typename .hero__blk, html.rm .hero__name.is-typename::after { animation: none; }
+
+/* ---------------------------------------------------------------- class tag */
+html.is-game .hero__class { text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85); display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0 0 14px; font: 400 15px/1.4 var(--sans); color: var(--ink-2); }
+.hero__class-k {
+  display: inline-flex; align-items: center; height: 22px; padding: 0 24px 0 9px;
+  font: 400 10px/1 var(--px); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold);
+  background: linear-gradient(90deg, var(--ucsd-navy), var(--ucsd-navy-2));
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+html.is-game .hero__role { font-size: 17.5px; line-height: 1.55; }
+
+/* ---------------------------------------------------------------- skill slots (links 1-4) */
+html.is-game .hero__links { gap: 12px 20px; margin-top: 20px; }
+html.is-game .hero__links a {
+  display: grid; grid-template-columns: 36px auto; grid-template-rows: 36px auto; column-gap: 10px; row-gap: 4px; align-items: center;
+  font: 500 14px/1.2 var(--sans); color: var(--ink-2); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+html.is-game .hero__links a::before {
+  content: ''; grid-area: 1 / 1; width: 36px; height: 36px; border-radius: 3px;
+  background: linear-gradient(180deg, rgba(34, 64, 110, 0.92), rgba(15, 29, 51, 0.95));
+  box-shadow: 0 0 0 1px var(--ucsd-navy-3), 0 0 0 2px var(--gold-a45), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+  transition: box-shadow var(--t-ui), transform 120ms var(--ease);
+}
+html.is-game .hero__links img { grid-area: 1 / 1; justify-self: center; position: relative; z-index: 1; transition: transform 120ms var(--ease); }
+html.is-game .hero__links a:hover, html.is-game .hero__links a:focus-visible { color: var(--ink); }
+html.is-game .hero__links a:hover::before, html.is-game .hero__links a:focus-visible::before {
+  box-shadow: 0 0 0 1px var(--ucsd-navy-3), 0 0 0 2px var(--gold), 0 0 16px rgba(255, 205, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+  transform: translateY(-1px);
+}
+html.is-game .hero__links a:hover img, html.is-game .hero__links a:focus-visible img { transform: translateY(-1px); }
+html.is-game .hero__links a.is-slot-hit::before { animation: slot-hit 360ms var(--ease); }
+@keyframes slot-hit { 40% { transform: scale(0.9); box-shadow: 0 0 0 1px var(--ucsd-navy-3), 0 0 0 2px #fff, 0 0 20px rgba(255, 205, 0, 0.6); } }
+.slot-key { grid-area: 2 / 1; justify-self: center; font: 400 8px/1 var(--px-num); color: var(--gold); opacity: 0.8; text-shadow: none; }
+.scene--hero:not(.has-keys) .slot-key { display: none; }
+
+/* ---------------------------------------------------------------- title menu: a JRPG window with a pixel hand */
+.title-menu {
+  position: relative; width: max-content; min-width: 320px; max-width: 100%; margin-top: 24px; padding: 8px 22px 8px 42px;
+  background: linear-gradient(180deg, rgba(20, 34, 60, 0.9), rgba(9, 14, 27, 0.92));
+  border: 1px solid var(--gold-a45); border-radius: 6px;
+  box-shadow: inset 0 0 0 3px rgba(9, 14, 27, 0.9), inset 0 0 0 4px rgba(255, 205, 0, 0.14), 0 18px 44px rgba(0, 0, 0, 0.5);
+  text-shadow: none;
+}
+.title-menu::before, .title-menu::after {
+  content: ''; position: absolute; width: 6px; height: 6px; background: var(--gold); pointer-events: none;
+  box-shadow: 0 0 6px rgba(255, 205, 0, 0.5);
+}
+.title-menu::before { left: -3px; top: -3px; }
+.title-menu::after { right: -3px; bottom: -3px; }
+.title-menu ul { display: grid; gap: 0; list-style: none; margin: 0; padding: 0; }
+.title-menu li:has(> [hidden]) { display: none; }
+.title-menu__i {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 0 4px; margin: 0;
+  font: 400 19px/1 var(--px-title); letter-spacing: 0.01em; color: var(--ink-3);
+  background: none; border: 0; border-radius: 3px; text-decoration: none; text-align: left; cursor: pointer;
+  transition: color 160ms, transform 200ms var(--ease);
+}
+.title-menu__i[hidden] { display: none; }
+.title-menu__i.is-cur, .title-menu__i:hover, .title-menu__i:focus-visible { color: #fff; transform: translateX(3px); }
+.title-menu__i.is-cur { text-shadow: 0 0 14px rgba(78, 163, 255, 0.45); }
+.title-menu__i:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.title-menu__i kbd {
+  margin-left: auto; min-width: 20px; height: 20px; padding: 0 5px; display: inline-grid; place-items: center;
+  font: 400 9px/1 var(--px); color: var(--gold); background: var(--ucsd-navy-3); border: 1px solid var(--gold-a45); border-radius: 3px;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35);
+}
+.title-menu__i [data-slot] { color: var(--gold); margin-left: -4px; }
+.title-menu__i[data-act='start']::after {
+  content: 'New'; margin-left: auto; font: 400 9px/1 var(--px); letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); opacity: 0;
+  transition: opacity 160ms;
+}
+.title-menu__i[data-act='start'].is-cur::after { opacity: 0.9; }
+.title-menu__i.is-chosen { animation: menu-chosen 520ms steps(2); }
+@keyframes menu-chosen { 0%, 50% { color: var(--gold); } 25%, 75% { color: #fff; } }
+.title-menu__cursor {
+  position: absolute; left: 14px; top: 0; width: 22px; height: 16px; opacity: 0; pointer-events: none;
+  transform: translateY(calc(var(--y, 26px) - 8px)); transition: transform var(--t-ui) var(--ease), opacity 200ms;
+}
+.title-menu__cursor.is-on { opacity: 1; }
+.title-menu__cursor::before {
+  content: ''; position: absolute; inset: 0; image-rendering: pixelated;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 8' shape-rendering='crispEdges'%3E%3Cpath fill='%230f1d33' d='M1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM0 1h1v1h-1zM5 1h1v1h-1zM6 1h1v1h-1zM7 1h1v1h-1zM8 1h1v1h-1zM9 1h1v1h-1zM0 2h1v1h-1zM10 2h1v1h-1zM0 3h1v1h-1zM5 3h1v1h-1zM6 3h1v1h-1zM7 3h1v1h-1zM8 3h1v1h-1zM9 3h1v1h-1zM0 4h1v1h-1zM6 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1zM2 7h1v1h-1zM3 7h1v1h-1zM4 7h1v1h-1zM5 7h1v1h-1z'/%3E%3Cpath fill='%234ea3ff' d='M3 1h1v1h-1zM4 1h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM5 2h1v1h-1zM6 2h1v1h-1zM7 2h1v1h-1zM8 2h1v1h-1zM9 2h1v1h-1zM1 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM1 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM5 4h1v1h-1zM2 5h1v1h-1zM3 5h1v1h-1zM4 5h1v1h-1zM5 5h1v1h-1z'/%3E%3Cpath fill='%23cfe6ff' d='M1 1h1v1h-1zM2 1h1v1h-1zM1 2h1v1h-1z'/%3E%3Cpath fill='%232b6fd6' d='M1 5h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1z'/%3E%3C/svg%3E") center / 22px 16px no-repeat;
+  filter: drop-shadow(0 0 6px rgba(78, 163, 255, 0.55));
+  animation: hand-nudge 0.9s steps(2) infinite;
+}
+@keyframes hand-nudge { 50% { transform: translateX(3px); } }
+.scene--hero:not(.is-live) .title-menu__cursor::before { animation-play-state: paused; }
+html.rm .title-menu__cursor { transition: none; }
+html.rm .title-menu__cursor::before { animation: none; }
+
+html.is-game .hero__hint { margin-top: 18px; font-size: 13.5px; color: var(--ink-3); }
+html.is-game .hero__hint .keys kbd { font-family: var(--px); font-size: 9px; }
+
+/* ---------------------------------------------------------------- boot log (the real #boot-status stays for screen readers) */
+html.is-game #boot-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+.hero__bootlog {
+  margin-top: 14px; min-height: 4.8em; font: 400 12px/1.6 var(--mono); color: var(--ink-2); letter-spacing: 0.02em;
+  white-space: pre-wrap; opacity: 0.62; transition: opacity 1s ease; text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+.hero__bootlog .bl { display: block; }
+.hero__bootlog .bl i { font-style: normal; color: var(--gold); margin-right: 8px; opacity: 0.8; }
+.hero__bootlog .bl b { font-weight: 400; }
+.hero__bootlog .bl:last-child b::after { content: '▌'; margin-left: 2px; color: var(--ink-2); animation: blink 1s steps(2) infinite; }
+.hero__bootlog .bl--ok b { color: var(--hp); }
+.hero__bootlog .bl--warn b { color: var(--warn); }
+.hero__bootlog .bl--dim b { color: var(--ink-3); }
+.hero__bootlog.is-done { opacity: 0; }
+html.rm .hero__bootlog .bl:last-child b::after { animation: none; }
+
+/* ---------------------------------------------------------------- PRESS START above the scroll cue */
+html.is-game .scroll-cue { border-color: var(--gold-a45); }
+html.is-game .scroll-cue span { background: var(--gold); }
+.press-start {
+  position: absolute; left: 50%; bottom: calc(100% + 12px); transform: translateX(-50%);
+  white-space: nowrap; font: 400 12px/1 var(--px); letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold);
+  text-shadow: 0 0 12px rgba(255, 205, 0, 0.55), 0 2px 0 #000;
+  animation: ps-blink 1.2s steps(2) infinite;
+}
+@keyframes ps-blink { 50% { opacity: 0.15; } }
+.press-start.is-pressed { color: #fff; animation: ps-flash 520ms steps(4) both; text-shadow: 0 0 18px #fff, 0 0 30px var(--gold); }
+@keyframes ps-flash { 0%, 50% { opacity: 1; } 25%, 75% { opacity: 0.1; } 100% { opacity: 1; } }
+.scene--hero:not(.is-live) .press-start { animation-play-state: paused; }
+html.rm .press-start { animation: none; }
+
+/* ---------------------------------------------------------------- phones */
+@media (max-width: 719px) {
+  html.is-game .hero__name { font-size: 52px; margin-bottom: 12px; }
+  .hero__blocks { right: -20px; }
+  html.is-game .hero__class { font-size: 14px; margin-bottom: 10px; }
+  html.is-game .hero__role { font-size: 16px; }
+  html.is-game .hero__links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin-top: 16px; }
+  html.is-game .hero__links a { grid-template-rows: 36px; font-size: 13px; min-height: 44px; }
+  html.is-game .hero__links li { min-width: 0; }
+  .slot-key { display: none; }
+  .title-menu { width: 100%; min-width: 0; margin-top: 18px; padding: 6px 14px 6px 40px; }
+  .title-menu__i { min-height: 44px; font-size: 18px; }
+  .title-menu__i kbd { display: none; }
+  html.is-game .hero__hint { display: none; }
+  .hero__bootlog { min-height: 0; font-size: 11px; margin-top: 10px; }
+  .press-start { display: none; }
+}

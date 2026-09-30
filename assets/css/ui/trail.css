@@ -1,1 +1,141 @@
-/* ui/trail.css: owned by SECTIONS-A (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* TRAIL: the strips between chapters (SPEC §2.5). Zone title card, a lamp post with a signpost, a token and
+   footprints. Game-only DOM ([data-game] is hidden outside html.is-game and in print). */
+
+.trail {
+  position: relative; z-index: 11; height: 140px; padding: 0 var(--gutter);
+  display: grid; grid-template-columns: minmax(max-content, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: 24px;
+  pointer-events: none;
+}
+.trail button { pointer-events: auto; }
+
+/* ---------------------------------------------------------------- zone title card (Octopath chapter card) */
+.trail__card { position: relative; isolation: isolate; grid-column: 2; grid-row: 1; display: grid; justify-items: center; gap: 6px; text-align: center; opacity: 0; }
+.trail__line {
+  position: relative; display: block; width: 300px; height: 1px; margin-bottom: 4px;
+  background: linear-gradient(90deg, transparent, var(--gold) 20%, var(--gold) 80%, transparent);
+  transform: scaleX(0); box-shadow: 0 0 8px rgba(255, 205, 0, 0.5);
+}
+.trail__line::before {
+  content: ''; position: absolute; left: 50%; top: -3px; width: 7px; height: 7px; margin-left: -3.5px;
+  background: var(--gold); transform: rotate(45deg); box-shadow: 0 0 8px rgba(255, 205, 0, 0.7);
+}
+.trail__zone {
+  margin: 0; font: 400 36px/1 var(--serif); letter-spacing: 0.02em; color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 0 30px rgba(255, 205, 0, 0.18);
+}
+.trail__sub { margin: 0; font: 400 10px/1 var(--px); letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
+.trail__ng { color: var(--teal); }
+.trail.is-arrived .trail__card { animation: zone-card 4.2s var(--ease) forwards; }
+.trail.is-arrived .trail__line { animation: zone-line 380ms var(--ease) forwards; }
+.trail.is-arrived .trail__zone { animation: zone-rise 520ms var(--ease) 260ms both; }
+.trail.is-arrived .trail__sub { animation: zone-rise 520ms var(--ease) 460ms both; }
+@keyframes zone-card { 0%, 78% { opacity: 1; } 100% { opacity: 0.5; } }
+@keyframes zone-line { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes zone-rise { from { opacity: 0; transform: translateY(8px); letter-spacing: 0.12em; } }
+html.rm .trail.is-arrived .trail__card { animation: zone-rm 200ms linear forwards; }
+html.rm .trail.is-arrived .trail__line { animation: none; transform: none; }
+html.rm .trail.is-arrived .trail__zone, html.rm .trail.is-arrived .trail__sub { animation: none; }
+@keyframes zone-rm { from { opacity: 0; } to { opacity: 0.6; } }
+
+.trail__card::before {
+  content: ''; position: absolute; inset: -22px -90px; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 55%, rgba(7, 10, 18, 0.78), rgba(7, 10, 18, 0.35) 55%, transparent 72%);
+}
+
+/* ---------------------------------------------------------------- lamp post with a signpost */
+.trail__post { grid-column: 1; grid-row: 1; justify-self: start; position: relative; display: flex; align-items: center; gap: 8px; height: 112px; padding: 34px 0 0 28px; }
+.trail--r .trail__post { grid-column: 3; justify-self: end; }
+.trail__post::before { /* the pole */
+  content: ''; position: absolute; left: 12px; top: 8px; bottom: 0; width: 4px;
+  background: linear-gradient(90deg, #5b3a1c, #8a5a2c 50%, #4a2e15); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+.trail__post::after { /* the arm */
+  content: ''; position: absolute; left: 4px; top: 8px; width: 22px; height: 3px; background: #4a2e15; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+.trail__lantern {
+  position: absolute; left: -2px; top: 11px; width: 14px; height: 18px; display: grid; place-items: center;
+  background: rgba(20, 24, 36, 0.9); border: 2px solid #2a2f3d; border-top-width: 3px; border-radius: 2px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.04);
+  transition: background-color 400ms, box-shadow 500ms var(--ease);
+}
+.trail__lantern::before { content: ''; position: absolute; left: 50%; top: -6px; width: 2px; height: 4px; margin-left: -1px; background: #2a2f3d; }
+.trail__flame { width: 4px; height: 7px; border-radius: 2px 2px 1px 1px; background: #6b5a3a; opacity: 0.5; transition: background-color 300ms, opacity 300ms; }
+.trail__lantern.is-lit { background: #ffcf6b; box-shadow: 0 0 14px 4px rgba(255, 196, 80, 0.55), 0 0 42px 12px rgba(255, 170, 40, 0.22), inset 0 0 0 2px rgba(255, 255, 255, 0.25); }
+.trail__lantern.is-lit .trail__flame { background: #fff6d6; opacity: 1; animation: flame 1.3s steps(2) infinite; }
+@keyframes flame { 50% { transform: scaleY(0.75) translateY(1px); opacity: 0.85; } }
+.trail:not(.is-live) .trail__flame { animation-play-state: paused; }
+html.rm .trail__lantern.is-lit .trail__flame { animation: none; }
+.trail__lantern.is-lit { animation: lantern-on 480ms steps(4); }
+@keyframes lantern-on { 0% { transform: scale(0.8); } 50% { transform: scale(1.15); } 100% { transform: none; } }
+html.rm .trail__lantern.is-lit { animation: none; }
+
+.trail__sign {
+  position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 26px 0 12px; margin: 0;
+  font: 400 10px/1 var(--px); letter-spacing: 0.08em; text-transform: uppercase; color: #fdf3d7; white-space: nowrap;
+  background: linear-gradient(180deg, #9a6532, #74461f 60%, #5e3818);
+  border: 0; cursor: pointer; text-shadow: 0 1px 0 #2d1a0a;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.18), inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+  transition: transform 160ms var(--ease), filter 160ms;
+}
+.trail__sign::before { /* nail */ content: ''; width: 3px; height: 3px; background: #2d1a0a; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15); }
+.trail__sign:hover, .trail__sign:focus-visible { transform: translateX(3px); filter: brightness(1.15); }
+.trail__sign:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.trail__sign.is-cleared::after { content: '✓'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--gold); font-size: 10px; }
+.trail__sign.is-cleared { padding-right: 32px; }
+.trail--r .trail__sign { order: 0; }
+@media (pointer: coarse) { .trail__sign { min-height: 44px; } }
+
+/* g3: a tiny house on a roof (the Fallen Star) */
+.trail__house {
+  position: relative; width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer;
+}
+.trail__house::before { /* roof slab */
+  content: ''; position: absolute; left: 6px; right: 6px; bottom: 10px; height: 5px; background: #6b7280; box-shadow: inset 0 -2px 0 #4b5563;
+}
+.trail__house::after { /* the little house: walls, door, roof */
+  content: ''; position: absolute; left: 15px; bottom: 15px; width: 14px; height: 14px;
+  background:
+    linear-gradient(#1f2937, #1f2937) 5px 7px / 4px 7px no-repeat,
+    linear-gradient(#60a5fa, #60a5fa) 9px 3px / 3px 3px no-repeat,
+    linear-gradient(#e5e7eb, #cbd5e1) 1px 5px / 12px 9px no-repeat;
+  clip-path: polygon(50% 0, 100% 40%, 100% 100%, 0 100%, 0 40%);
+  box-shadow: inset 0 5px 0 #3b82f6;
+}
+.trail__house:hover::after { filter: brightness(1.2) drop-shadow(0 0 4px #60a5fa); }
+.trail__house:focus-visible { outline: 2px solid var(--gold); outline-offset: 0; }
+
+/* ---------------------------------------------------------------- token and footprints */
+.trail > .token { grid-column: 3; grid-row: 1; justify-self: center; align-self: end; margin-bottom: 18px; z-index: 1; }
+.trail--r > .token { grid-column: 1; }
+.trail__steps { grid-column: 3; grid-row: 1; justify-self: start; align-self: end; width: 240px; height: 40px; margin-bottom: 16px; overflow: visible; }
+.trail--r .trail__steps { grid-column: 1; justify-self: end; transform: scaleX(-1); }
+.trail__step { fill: rgba(233, 236, 241, 0.28); opacity: 0; }
+.trail.is-arrived .trail__step { animation: step-in 320ms ease-out forwards; }
+.trail.is-arrived .trail__step:nth-child(2) { animation-delay: 60ms; }
+.trail.is-arrived .trail__step:nth-child(3) { animation-delay: 120ms; }
+.trail.is-arrived .trail__step:nth-child(4) { animation-delay: 180ms; }
+.trail.is-arrived .trail__step:nth-child(5) { animation-delay: 240ms; }
+.trail.is-arrived .trail__step:nth-child(6) { animation-delay: 300ms; }
+@keyframes step-in { from { opacity: 0; } to { opacity: 1; } }
+html.rm .trail.is-arrived .trail__step { animation: none; opacity: 1; }
+
+/* ---------------------------------------------------------------- narrow screens */
+@media (max-width: 1100px) {
+  .trail__steps { display: none; }
+}
+@media (max-width: 719px) {
+  .trail { height: auto; min-height: 88px; padding-top: 6px; padding-bottom: 6px; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; column-gap: 8px; row-gap: 4px; align-content: center; }
+  .trail__card { grid-column: 1 / -1; grid-row: 1; gap: 4px; }
+  .trail__line { width: 180px; margin-bottom: 2px; }
+  .trail__zone { font-size: 26px; }
+  .trail__sub { font-size: 9px; letter-spacing: 0.16em; }
+  .trail__post, .trail--r .trail__post { grid-column: 1; grid-row: 2; justify-self: start; height: auto; padding: 0 0 0 22px; }
+  .trail__post::before { top: -4px; bottom: -4px; left: 8px; }
+  .trail__post::after { display: none; }
+  .trail__lantern { left: 2px; top: 50%; margin-top: -9px; width: 12px; height: 16px; }
+  .trail__sign { font-size: 8px; min-height: 28px; padding: 0 20px 0 8px; max-width: calc(100vw - 32px - 110px); overflow: hidden; text-overflow: ellipsis; }
+  .trail > .token, .trail--r > .token { grid-column: 2; grid-row: 2; align-self: center; margin: 0; }
+  .trail__house { width: 36px; height: 36px; }
+  .trail__house::before { bottom: 6px; } .trail__house::after { bottom: 11px; }
+}

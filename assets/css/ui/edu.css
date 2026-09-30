@@ -1,1 +1,202 @@
-/* ui/edu.css: owned by SECTIONS-A (stub created by FOUNDATION). Scope game looks under html.is-game. */
+/* EDUCATION: the class-change path (SPEC §4.3). Scoped under html.is-game; the plain CV keeps two .rows. */
+
+html.is-game .path { position: relative; --hex: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+
+/* ---------------------------------------------------------------- nodes: Tsinghua left, UCSD right */
+html.is-game .path__nodes { display: grid; grid-template-columns: minmax(0, 1fr) 176px minmax(0, 1fr); gap: 0; align-items: start; }
+html.is-game .path__node--thu { grid-column: 1; grid-row: 1; }
+html.is-game .path__node--ucsd { grid-column: 3; grid-row: 1; }
+html.is-game .path__node {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: start; gap: 6px;
+  margin: 0; padding: 14px 12px 16px; border-radius: 8px; text-align: center;
+  background: linear-gradient(180deg, rgba(8, 12, 24, 0.5), rgba(8, 12, 24, 0.2));
+  border: 1px solid rgba(233, 236, 241, 0.06);
+  transition: border-color var(--t-ui), background-color var(--t-ui);
+}
+html.is-game .path__node:hover, html.is-game .path__node:focus-visible, html.is-game .path__node.is-current, html.is-game .path__node.is-lit {
+  background: linear-gradient(180deg, rgba(255, 205, 0, 0.08), rgba(8, 12, 24, 0.2)); box-shadow: none; border-color: var(--gold-a45);
+}
+html.is-game .path__node > .path__badge,
+html.is-game .path__node > .row__logo { grid-row: 1; grid-column: 1; }
+html.is-game .path__node > .row__logo { z-index: 1; align-self: center; justify-self: center; min-height: 0; padding: 0; }
+html.is-game .path__node .row__logo img { width: 78px; height: auto; max-width: 78px; max-height: 30px; opacity: 1; filter: brightness(0) invert(1) drop-shadow(0 1px 0 rgba(0, 0, 0, 0.6)); }
+html.is-game .path__node .row__main { margin-top: 6px; }
+html.is-game .path__node .row__title { font-size: 16px; line-height: 1.35; }
+html.is-game .path__node .row__role { margin-top: 2px; font-size: 14.5px; line-height: 1.4; }
+html.is-game .path__node .row__desc { font-size: 14px; margin-top: 4px; }
+html.is-game .path__node .row__when { padding: 0; font: 400 10px/1 var(--px-num); letter-spacing: 0; color: var(--ink-3); }
+
+/* the hexagon badge: a coloured rim and a dark core */
+.path__badge {
+  position: relative; display: block; width: 120px; height: 104px; clip-path: var(--hex);
+  background: linear-gradient(160deg, var(--rim-1), var(--rim-2));
+  transition: filter 300ms;
+}
+.path__badge::before {
+  content: ''; position: absolute; inset: 6px 7px; clip-path: var(--hex);
+  background: radial-gradient(circle at 50% 38%, var(--core-1), var(--core-2) 70%);
+}
+.path__badge::after { /* a pixel sheen along the top edges */
+  content: ''; position: absolute; left: 25%; right: 25%; top: 0; height: 3px; background: rgba(255, 255, 255, 0.45);
+}
+.path__node--thu { --rim-1: #a24bb3; --rim-2: #660874; --core-1: #4a1356; --core-2: #1e0724; }
+.path__node--ucsd { --rim-1: #ffe066; --rim-2: #c99400; --core-1: #2a4a7c; --core-2: #0f1d33; }
+.path__node--ucsd.is-flash .path__badge { animation: badge-flash 900ms steps(6) both; }
+@keyframes badge-flash { 0%, 34%, 68% { filter: brightness(1.9) saturate(0.4); } 17%, 51%, 100% { filter: none; } }
+/* a glow under each badge (clip-path eats box-shadows) */
+html.is-game .path__node::before {
+  content: ''; position: absolute; left: 50%; top: 18px; width: 150px; height: 110px; margin-left: -75px; pointer-events: none; z-index: -1;
+  background: radial-gradient(ellipse, var(--glow, rgba(255, 205, 0, 0.18)), transparent 65%);
+}
+.path__node--thu { --glow: rgba(162, 75, 179, 0.22); }
+
+/* state chip: MASTERED ✓ (green) / CURRENT CLASS (teal with a pulse ring) */
+.path__state {
+  display: inline-flex; align-items: center; gap: 7px; margin: 4px 0 2px; padding: 4px 8px; border-radius: 3px;
+  font: 400 10px/1 var(--px); letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--hp); border: 1px solid rgba(74, 222, 128, 0.45); background: rgba(74, 222, 128, 0.08);
+}
+.path__node--ucsd .path__state { color: var(--teal); border-color: rgba(0, 198, 215, 0.5); background: rgba(0, 198, 215, 0.08); }
+.path__node--ucsd .path__state::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 0 var(--teal-a30);
+  animation: state-ring 1.8s ease-out infinite;
+}
+@keyframes state-ring { 0% { box-shadow: 0 0 0 0 rgba(0, 198, 215, 0.6); } 100% { box-shadow: 0 0 0 7px rgba(0, 198, 215, 0); } }
+section:not(.is-live) .path__state::before { animation-play-state: paused; }
+html.rm .path__state::before { animation: none; }
+
+html.is-game .path__inspect { margin-top: 4px; }
+html.is-game .path__node.is-open .path__inspect { border-color: var(--teal); color: var(--teal); }
+.path__back { width: 100%; text-align: left; }
+.path__back .x-in > *:first-child { margin-top: 10px; }
+.path__back p { font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.path__back p + p { margin-top: 6px; }
+.path__back p[lang='zh'] { font-size: 17px; letter-spacing: 0.12em; color: var(--ink); }
+.path__back .x-in, .path__back:not(.x-exp) { padding: 0 2px; }
+.path__back .gbtn { margin: 10px 0 2px; }
+.path__back .x-in { border-top: 1px dashed rgba(255, 205, 0, 0.2); }
+
+/* ---------------------------------------------------------------- the track between the badges */
+.path__track { position: absolute; left: calc(50% - 88px); top: 14px; width: 176px; height: 230px; pointer-events: none; }
+.path__svg { position: absolute; left: 4px; top: 31px; width: 168px; height: 42px; overflow: visible; }
+.path__ghost { fill: none; stroke: rgba(233, 236, 241, 0.22); stroke-width: 2; stroke-dasharray: 2 5; stroke-linecap: round; }
+.path__line {
+  fill: none; stroke: var(--gold); stroke-width: 3; stroke-linecap: round;
+  stroke-dasharray: var(--len, 170); stroke-dashoffset: var(--len, 170);
+  filter: drop-shadow(0 0 4px rgba(255, 205, 0, 0.7));
+}
+.path.is-drawing .path__line { stroke-dashoffset: 0; transition: stroke-dashoffset 900ms var(--ease); }
+.path.is-drawn .path__line { stroke-dashoffset: 0; }
+
+.path__walker { position: absolute; left: -8px; top: 22px; width: 24px; height: 32px; z-index: 2; transform: translate(0, 0); }
+.path__walker img { display: block; width: 24px; height: 32px; image-rendering: pixelated; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.5)); }
+.path__walker::after { content: ''; position: absolute; left: 4px; right: 4px; bottom: -2px; height: 3px; border-radius: 50%; background: rgba(0, 0, 0, 0.45); }
+.path.is-walking .path__walker { animation: walk-h 2.4s linear forwards; }
+.path.is-walking .path__walker img { animation: walker-bob 0.3s steps(2) infinite; }
+.path.is-arrived .path__walker { transform: translate(160px, 0); }
+@keyframes walk-h {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(40px, -6px); }
+  50% { transform: translate(80px, 0); }
+  75% { transform: translate(120px, 6px); }
+  100% { transform: translate(160px, 0); }
+}
+@keyframes walker-bob { 50% { transform: translateY(-2px); } }
+
+.path__waypoint {
+  position: absolute; left: 74px; top: 38px; z-index: 1; width: 28px; height: 28px; padding: 0; pointer-events: auto; cursor: pointer;
+  display: grid; place-items: center; font: 400 10px/1 var(--px-num); color: var(--ucsd-navy-3);
+  background: var(--gold); border: 0; transform: rotate(45deg); border-radius: 3px;
+  box-shadow: 0 0 0 2px var(--ucsd-navy-3), 0 0 0 3px var(--gold-a45), 0 0 14px rgba(255, 205, 0, 0.35);
+  transition: transform 160ms var(--ease);
+}
+.path__waypoint::before { content: ''; position: absolute; inset: -8px; }
+.path__waypoint:hover { transform: rotate(45deg) scale(1.12); }
+.path__waypoint.is-seen { background: var(--teal); }
+.path__waypoint:not(:empty) { color: transparent; }
+.path__waypoint::after { content: '?'; position: absolute; inset: 0; display: grid; place-items: center; transform: rotate(-45deg); color: var(--ucsd-navy-3); font: 400 10px/1 var(--px-num); }
+.path__waypoint.is-seen::after { content: '0d'; font-size: 7px; }
+
+.path__banner {
+  position: absolute; left: -12px; right: -12px; top: 100px; margin: 0; padding: 8px 6px 9px; text-align: center;
+  display: grid; gap: 5px; justify-items: center;
+  background: linear-gradient(90deg, transparent, rgba(24, 43, 73, 0.95) 14%, rgba(24, 43, 73, 0.95) 86%, transparent);
+  border-top: 1px solid var(--gold-a45); border-bottom: 1px solid var(--gold-a45);
+  opacity: 0; transform: scale(0.6); transform-origin: 50% 50%;
+}
+.path__banner b { font: 600 17px/1 var(--px-title); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); text-shadow: 0 0 12px rgba(255, 205, 0, 0.5), 0 2px 0 #000; }
+.path__banner span { font: 400 9px/1.35 var(--px); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+.path.is-changed .path__banner { opacity: 1; transform: none; }
+.path__banner.is-pop { animation: banner-pop 520ms var(--ease) both; }
+@keyframes banner-pop { 0% { opacity: 0; transform: scale(0.6); } 60% { opacity: 1; transform: scale(1.08); } 100% { opacity: 1; transform: none; } }
+.path__track .token { position: absolute; left: 66px; top: 172px; pointer-events: auto; }
+.path__track .token.is-pop { animation: token-drop 520ms var(--ease) both; }
+@keyframes token-drop { 0% { transform: translateY(-30px); opacity: 0; } 60% { transform: translateY(4px); opacity: 1; } 100% { transform: none; } }
+html.rm .path__walker, html.rm .path__walker img, html.rm .path__banner.is-pop, html.rm .path__track .token.is-pop, html.rm .path__node--ucsd.is-flash .path__badge { animation: none; }
+html.rm .path.is-drawing .path__line { transition: none; }
+
+/* ---------------------------------------------------------------- the locked node */
+.path__locked {
+  display: flex; align-items: center; gap: 12px; margin: 16px 6px 0 auto; padding: 6px 14px 6px 6px; min-height: 44px;
+  background: none; border: 1px dashed rgba(233, 236, 241, 0.2); border-radius: 6px; color: var(--ink-3); cursor: pointer;
+  opacity: calc(0.62 + var(--crack, 0) * 0.05); transition: opacity var(--t-ui), border-color var(--t-ui);
+}
+.path__locked:hover { opacity: 1; border-color: var(--gold-a45); }
+.path__locked > span {
+  display: grid; place-items: center; width: 56px; height: 48px; clip-path: var(--hex);
+  font: 400 10px/1 var(--px-num); color: var(--ink-3);
+  background:
+    repeating-linear-gradient(135deg, rgba(233, 236, 241, 0.07) 0 4px, transparent 4px 8px),
+    rgba(8, 12, 24, 0.8);
+}
+.path__locked small { font: 400 10px/1.2 var(--px); letter-spacing: 0.1em; text-transform: uppercase; }
+.path__locked::before {
+  content: ''; order: 3; width: 10px; height: 12px; margin-left: 2px;
+  background:
+    linear-gradient(currentColor, currentColor) 0 5px / 10px 7px no-repeat,
+    linear-gradient(currentColor, currentColor) 2px 0 / 2px 6px no-repeat,
+    linear-gradient(currentColor, currentColor) 6px 0 / 2px 6px no-repeat,
+    linear-gradient(currentColor, currentColor) 2px 0 / 6px 2px no-repeat;
+}
+.path__locked.is-shake { animation: lock-shake 300ms steps(6); }
+@keyframes lock-shake { 0%, 100% { transform: none; } 17%, 50%, 83% { transform: translateX(-3px); } 33%, 67% { transform: translateX(3px); } }
+.path__locked.is-unlocked { opacity: 1; color: var(--gold); border-style: solid; border-color: var(--gold); box-shadow: 0 0 22px rgba(255, 205, 0, 0.3); }
+.path__locked.is-unlocked > span { font: 600 13px/1 var(--px-title); color: var(--ucsd-navy-3); background: linear-gradient(160deg, #fff0a0, var(--gold)); }
+.path__locked.is-unlocked::before { opacity: 0; }
+html.rm .path__locked.is-shake { animation: none; }
+
+/* ---------------------------------------------------------------- phones and narrow cards: a vertical path */
+@media (max-width: 899px) {
+  html.is-game .path__nodes { grid-template-columns: minmax(0, 1fr); row-gap: 88px; }
+  html.is-game .path__node--thu { grid-column: 1; grid-row: 1; }
+  html.is-game .path__node--ucsd { grid-column: 1; grid-row: 2; }
+  html.is-game .path__node { grid-template-columns: 76px minmax(0, 1fr); justify-items: start; text-align: left; column-gap: 14px; row-gap: 4px; padding: 12px; }
+  html.is-game .path__node > .path__badge, html.is-game .path__node > .row__logo { grid-column: 1; grid-row: 1 / span 4; align-self: start; }
+  html.is-game .path__node > .row__logo { margin-top: 20px; justify-self: center; }
+  html.is-game .path__node .row__logo img { width: 52px; max-width: 52px; max-height: 20px; }
+  html.is-game .path__node > :not(.path__badge):not(.row__logo):not(.path__back) { grid-column: 2; }
+  html.is-game .path__node .row__main { margin-top: 0; }
+  html.is-game .path__node > .path__back { grid-column: 1 / -1; }
+  html.is-game .path__node::before { left: 12px; top: 8px; width: 76px; height: 76px; margin-left: 0; }
+  .path__badge { width: 76px; height: 66px; }
+  .path__badge::before { inset: 5px 6px; }
+
+  .path__track { left: 0; right: 0; width: auto; top: var(--gap-top, 300px); height: var(--gap-h, 88px); }
+  .path__svg { display: none; }
+  .path__track::before, .path__track::after { content: ''; position: absolute; left: 49px; top: 0; bottom: 0; width: 2px; }
+  .path__track::before { background: repeating-linear-gradient(180deg, rgba(233, 236, 241, 0.25) 0 3px, transparent 3px 8px); }
+  .path__track::after { background: var(--gold); box-shadow: 0 0 6px rgba(255, 205, 0, 0.7); transform-origin: top; transform: scaleY(0); }
+  .path.is-drawing .path__track::after { transform: scaleY(1); transition: transform 900ms var(--ease); }
+  .path.is-drawn .path__track::after { transform: scaleY(1); }
+  .path__walker { left: 38px; top: -12px; }
+  .path.is-walking .path__walker { animation: walk-v 2.4s linear forwards; }
+  .path.is-arrived .path__walker { transform: translateY(calc(var(--gap-h, 88px) - 20px)); }
+  @keyframes walk-v { to { transform: translateY(calc(var(--gap-h, 88px) - 20px)); } }
+  .path__waypoint { left: 36px; top: calc(50% - 14px); }
+  .path__banner { left: 84px; right: 52px; top: 50%; transform: translateY(-50%) scale(0.6); justify-items: start; text-align: left; padding: 6px 10px; background: linear-gradient(90deg, rgba(24, 43, 73, 0.95), rgba(24, 43, 73, 0.6)); border: 1px solid var(--gold-a45); border-radius: 4px; }
+  .path.is-changed .path__banner { transform: translateY(-50%); }
+  .path__banner b { font-size: 14px; }
+  @keyframes banner-pop { 0% { opacity: 0; transform: translateY(-50%) scale(0.6); } 60% { opacity: 1; transform: translateY(-50%) scale(1.06); } 100% { opacity: 1; transform: translateY(-50%); } }
+  .path__track .token { left: auto; right: 0; top: calc(50% - 22px); }
+  .path__locked { margin: 14px 0 0; width: 100%; }
+}
