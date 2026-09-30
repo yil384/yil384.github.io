@@ -634,8 +634,8 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
   // (the south of the island is where the page's cameras stand: it keeps to lawns, low palms and bushes)
   scatter(4, [40, 52, 26, 46], 4, (x, z) => T[idx(x, z)] !== TYPE.SAND, addPine);                       // the far bluffs
   scatter(5, [26, 50, -52, -18], 5, (x, z) => T[idx(x, z)] === TYPE.DRY && !(Math.abs(x - 40) < 7 && Math.abs(z + 28) < 6), addPine); // the mesa
-  scatter(4, [-34, -2, -54, -30], 4, () => true, addJacaranda);                                          // north campus
-  scatter(6, [-40, 30, -40, 4], 4, (x, z) => T[idx(x, z)] === TYPE.GRASS && Math.hypot(x, z) > 30, addEucalyptus);
+  scatter(4, [-34, -8, -54, -30], 4, () => true, addJacaranda);                                          // north campus
+  scatter(6, [-44, -18, -40, 4], 4, (x, z) => T[idx(x, z)] === TYPE.GRASS && Math.hypot(x, z) > 30, addEucalyptus);
   scatter(lowfx ? 8 : 14, [-30, 40, 14, 50], 2, (x, z) => T[idx(x, z)] === TYPE.GRASS, (x, z) => addBush(x, z, ['#3f8f4f', '#4fa35a']));
   // chaparral on the mesa, beach grass on the dunes
   scatter(lowfx ? 20 : 40, [30, 56, -54, -18], 1.5, (x, z) => T[idx(x, z)] === TYPE.DRY, (x, z) => addBush(x, z, ['#6f7a3e', '#7f8a45']));

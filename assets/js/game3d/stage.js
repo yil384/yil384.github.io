@@ -7,10 +7,10 @@
 import * as THREE from 'three/webgpu';
 import { voxelize } from '../three/voxel.js';
 import { ART } from '../three/art.js';
-import { makeActor } from './actors.js';
+import { makeActor, spriteBatch } from './actors.js';
 import { LAYOUT, snakePoints } from './layout.js';
 import { buildSky } from './sky.js';
-import { voxBuild } from './props.js';
+import { voxBuild, bakeInstanced } from './props.js';
 import * as L from './landmarks.js';
 import { reducedMotion } from '../three/boot.js';
 
@@ -184,10 +184,13 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   register('pier', pier, { label: 'Scripps-style pier', pick: false });
 
   const rocks = L.buildRocks();
+  const rockGroups = [];
+  let snakeMesh = null;
   const seals = [];
   LAYOUT.seals.forEach((sl, i) => {
     const r = i === 0 ? rocks : L.buildRocks();
     put(r, sl.x, sl.z);
+    rockGroups.push(r);
     const seal = makeActor('sealion', { scale: 0.22, maxHalf: 2 });
     seal.position.set(sl.x, surface(sl.x, sl.z) + 2.0, sl.z);
     seal.rotation.y = i ? -1.3 : 1.6;
@@ -203,6 +206,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     const pts = snakePoints;
     const cells = L.snakeCells(pts).map(([x, y, z, c, g]) => [x, surface(x, z) - 0.42 + y * 0.6, z, c, g]);
     const snake = voxBuild(cells, { shadow: false });
+    snakeMesh = snake;
     const m = new THREE.Matrix4();
     for (let i = 0; i < cells.length; i++) { m.makeScale(1, 0.18, 1).setPosition(cells[i][0], cells[i][1], cells[i][2]); snake.setMatrixAt(i, m); }
     snake.instanceMatrix.needsUpdate = true;
@@ -240,22 +244,14 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     items[d.id] = { id: d.id, obj: { group: g }, meshes: [g], hi: 0, tgt: 0, hover: 0, focus: 0, isTome: true };
     pickables.push({ id: d.id, root: g, label: d.label, link: d.id });
   }
+  // books and crystals circling the tower: two batched meshes, moved through light proxies
   const orbit = new THREE.Group();
-  for (let i = 0; i < 4; i++) {
-    const b = voxelize(ART.book, { maxHalf: 1, bevel: 0 });
-    b.scale.setScalar(0.16);
-    b.userData.a = (i / 4) * TAU;
-    b.userData.r = 10.5 + (i % 2) * 2.5;
-    orbit.add(b);
-  }
-  for (let i = 0; i < 3; i++) {
-    const c = voxelize(ART.crystal, { maxHalf: 1, bevel: 0, glow: { V: 2.5, v: 1.5, W: 4 } });
-    c.scale.setScalar(0.26);
-    c.userData.a = (i / 3) * TAU + 1;
-    c.userData.r = 14.5;
-    c.userData.crystal = true;
-    orbit.add(c);
-  }
+  const orbiters = [];
+  for (let i = 0; i < 4; i++) { const o = new THREE.Object3D(); o.userData = { a: (i / 4) * TAU, r: 10.5 + (i % 2) * 2.5 }; orbiters.push(o); }
+  for (let i = 0; i < 3; i++) { const o = new THREE.Object3D(); o.userData = { a: (i / 3) * TAU + 1, r: 14.5, crystal: true }; orbiters.push(o); }
+  const bookBatch = spriteBatch('book', 4, { maxHalf: 1, scale: 0.16 });
+  const crystalBatch = spriteBatch('crystal', 3, { maxHalf: 1, scale: 0.26, glow: { V: 2.5, v: 1.5, W: 4 } });
+  orbit.add(bookBatch.mesh, crystalBatch.mesh);
   orbit.position.set(T.x, surface(T.x, T.z) + 4, T.z);
   group.add(orbit);
 
@@ -263,6 +259,18 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   sky.placeMoon(-0.45, 0.3);
   sky.moonHit.userData.pickId = 'moon';
   pickables.push({ id: 'moon', root: sky.moonHit, label: 'Make a wish', egg: 'moon' });
+
+  // ---------------------------------------------------------------- static props -> one mesh
+  // (props that never animate and never light up for the page: one draw call instead of seven)
+  {
+    group.updateMatrixWorld(true);
+    const bakeList = [tent.meshes[0], fire.meshes[0], rocks.meshes[0], pier.meshes[0], plinthSun.meshes[0], snakeMesh];
+    for (const r of rockGroups) if (r !== rocks) bakeList.push(r.meshes[0]);
+    const baked = bakeInstanced(bakeList.filter(Boolean));
+    baked.name = 'landmark-statics';
+    for (const m of bakeList) m?.parent?.remove(m);
+    group.add(baked);
+  }
 
   // ---------------------------------------------------------------- focus beam
   const beam = new THREE.Mesh(
@@ -279,9 +287,9 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     // the whole island, a diorama in the night sea, Geisel at the heart
     hero:    { look: [3, A.tower.y + 1, 5], yaw: -0.45, pitch: 0.5, dist: 150, shiftX: 0.13, fov: 34, stand: [2.2, 5.6], face: 0.4 },
     about:   { look: [1.5, A.tower.y + 4.5, 5.5], yaw: -0.3, pitch: 0.34, dist: 40, shiftX: 0.2, fov: 34, stand: [1.5, 6.4], face: 0.2 },
-    // one steady shot of both campuses (the scholar beams from the Second Gate to CSE): seen from the
-    // south-west so the two sit close together on screen, in the half the Education card leaves free
-    edu:     { look: [(G.x + C.x) / 2 + 1, A.tower.y + 7, (G.z + C.z) / 2 - 1], yaw: -0.9, pitch: 0.38, dist: 72, shiftX: 0.3, fov: 36, stand: [4.5, 5.5], face: 0.5 },
+    // one steady shot of both campuses: the scholar beams from the Second Gate to CSE, and the camera
+    // looks at that arc side-on (from the south-south-west), framed in the half the card leaves free
+    edu:     { look: [(G.x + C.x) / 2 - 2, A.tower.y + 6, (G.z + C.z) / 2 + 1], yaw: -0.585, pitch: 0.62, dist: 90, shiftX: 0.25, fov: 36, stand: [4.5, 5.5], face: 0.5 },
     cse:     { look: sub('cse', 8), yaw: 0.35, pitch: 0.22, dist: 38, shiftX: 0.2, fov: 34, stand: [C.x - 3, C.z + 6.5], face: 0.2 },
     gate:    { look: sub('gate', 4.5), yaw: 3.45, pitch: 0.3, dist: 34, shiftX: 0.2, fov: 34, stand: [G.x + 2.5, G.z - 4], face: 3.14 },
     library: { item: 'tower', look: [T.x, A.tower.y + 15, T.z], yaw: -0.55, pitch: 0.16, dist: 72, shiftX: 0.2, fov: 36, stand: [0.4, 4.2], face: 0.1 },
@@ -289,20 +297,20 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     'book-reh2o':  { look: sub('book-reh2o'), yaw: 0.2, pitch: 0.14, dist: 34, shiftX: 0.2, fov: 34, stand: [3.5, 5], face: 0.6 },
     trail:   { look: [0.5, A['flag-tencent'].y + 3, A['flag-tencent'].z - 1], yaw: -0.35, pitch: 0.24, dist: 46, shiftX: 0.2, fov: 36, stand: [6.5, -4], face: 0.9 },
     workshop:{ look: [15, A.camp.y + 5, -16], yaw: 3.5, pitch: 0.4, dist: 52, shiftX: 0.2, fov: 36, stand: [camp.unit7.x + 2, camp.unit7.z + 3], face: 3.0 },
-    workbench:{ look: sub('workbench', 1.5), yaw: 3.45, pitch: 0.66, dist: 26, shiftX: 0.2, fov: 34, stand: [camp.bench.x - 3, camp.bench.z + 1.5], face: 1.6 },
+    workbench:{ look: sub('workbench', 1.5), yaw: 3.3, pitch: 0.6, dist: 19, shiftX: 0.2, fov: 34, stand: [camp.bench.x - 3, camp.bench.z + 1.5], face: 1.6 },
     meadow:  { look: [20, A.sungod.y + 3, 8], yaw: 0.85, pitch: 0.3, dist: 64, shiftX: 0.2, fov: 36, stand: [MB.x - 2, MB.z + 1.5], face: 1.5 },
     sungod:  { look: sub('sungod', 3), yaw: 0.3, pitch: 0.26, dist: 34, shiftX: 0.2, fov: 34, stand: [SG.x - 4, SG.z + 2], face: 1.2 },
     pier:    { look: [P.x + 12, A.pier.y + 2, P.z], yaw: 0.78, pitch: 0.24, dist: 46, shiftX: 0.2, fov: 34, stand: [P.x - 1.5, P.z + 1.5], face: 1.5 },
     mailbox: { look: sub('mailbox', 0), yaw: 0.75, pitch: 0.34, dist: 34, shiftX: 0.2, fov: 34, stand: [MB.x - 2, MB.z + 1], face: 1.5 },
   };
   for (const f of LAYOUT.flags) {
-    shots[f.id] = { look: sub(f.id, -1.5), yaw: -0.25, pitch: 0.32, dist: 30, shiftX: 0.2, fov: 34, stand: [f.x + 1.6, f.z + 2.2], face: 0.3 };
+    shots[f.id] = { look: sub(f.id, -1.5), yaw: -0.1, pitch: 0.32, dist: 30, shiftX: 0.2, fov: 34, stand: [f.x + 1.6, f.z + 2.2], face: 0.3 };
   }
   // (the Warren Mall buildings stand behind the monuments now: these look down a little more)
   shots['mon-starry'] = { look: sub('mon-starry', 1), yaw: 3.3, pitch: 0.42, dist: 34, shiftX: 0.2, fov: 34, stand: [M.starry.x - 0.5, M.starry.z - 4.5], face: 3.14 };
   shots['mon-im'] = { look: sub('mon-im', 1), yaw: 3.14, pitch: 0.42, dist: 34, shiftX: 0.2, fov: 34, stand: [M.im.x - 1, M.im.z - 4.5], face: 3.14 };
   shots['mon-oj'] = { look: sub('mon-oj', 1), yaw: 3.0, pitch: 0.42, dist: 34, shiftX: 0.2, fov: 34, stand: [M.oj.x - 1, M.oj.z - 5], face: 3.1 };
-  shots['mon-triton'] = { look: sub('mon-triton', 3), yaw: 2.75, pitch: 0.5, dist: 36, shiftX: 0.2, fov: 34, stand: [M.triton.x - 3, M.triton.z - 4.5], face: 3.14 };
+  shots['mon-triton'] = { look: sub('mon-triton', 3), yaw: 2.95, pitch: 0.46, dist: 36, shiftX: 0.2, fov: 34, stand: [M.triton.x - 3, M.triton.z - 4.5], face: 3.14 };
 
   // ---------------------------------------------------------------- highlight state
   let focusId = null;
@@ -388,12 +396,14 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
         g.rotation.y = Math.sin(t * 0.5 + i) * 0.35 + (i ? -0.4 : 0.4);
         g.rotation.z = Math.sin(t * 0.9 + i) * 0.06;
       });
-      if (!calm) for (const c of orbit.children) {
-        c.userData.a += dt * (c.userData.crystal ? 0.28 : 0.2);
+      for (const c of orbiters) {
+        if (!calm) c.userData.a += dt * (c.userData.crystal ? 0.28 : 0.2);
         const a = c.userData.a;
         c.position.set(Math.cos(a) * c.userData.r, (c.userData.crystal ? 12 : 8) + Math.sin(a * 3) * 1.2, Math.sin(a) * c.userData.r);
-        c.rotation.y += dt * 1.2;
+        if (!calm) c.rotation.y += dt * 1.2;
       }
+      bookBatch.sync(orbiters.slice(0, 4));
+      crystalBatch.sync(orbiters.slice(4));
       // paragliders drift around the island, banking into the turn
       // (a flyby pulls them off their orbit toward points the caller supplies, then lets them drift back)
       let flyW = 0;

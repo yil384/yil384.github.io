@@ -1,7 +1,8 @@
 // Heads-up display: vitals, companion chip, action bar, quest tracker, minimap, zone name, boss bar.
 import { S, save } from './state.js';
 import { clock } from './clock.js';
-import { SIZE, ZONES } from './world.js';
+import { ZONES } from './world.js';
+import { hubMapCanvas, regionMapCanvas, forgetRegionMap } from './mapart.js';
 import { SPECIES, TYPE_COLOR, buddyXpNeeded, BUDDY_MAX_LEVEL } from './data.js';
 import { player, maxHp, maxMp, xpNeeded, powered } from './player.js';
 import { SPELLS, cooldownLeft } from './combat.js';
@@ -118,7 +119,7 @@ export function initHud(root, actions, opts) {
   const top = h('div', { class: 'hud-top' }, h('div', { class: 'hud-top__mid' }, els.zone, els.boss), close);
 
   // Minimap
-  els.minimap = h('canvas', { class: 'hud-map', width: SIZE * 3, height: SIZE * 3, 'aria-label': 'Minimap' });
+  els.minimap = h('canvas', { class: 'hud-map', width: MM, height: MM, 'aria-label': 'Minimap' });
   buildMapBase();
   const mapWrap = h('div', { class: 'hud-card hud-map-wrap' }, els.minimap);
 
@@ -226,70 +227,73 @@ function updateTracker() {
 }
 
 // ---------------------------------------------------------------- minimap
-const MAP_COLOR = { 1: '#3f7d52', 2: '#6f4622', 3: '#3b4455', 4: '#a9c8e6', 5: '#3a3563', 6: '#5a3a3a', 7: '#b9a874', 8: '#8f8168' };
-const bases = {};           // region id -> { canvas, ox, oz, half, scale }
-function buildMapBase() {
-  const c = document.createElement('canvas');
-  c.width = SIZE * 3; c.height = SIZE * 3;
-  const g = c.getContext('2d');
-  g.fillStyle = 'rgba(6,10,20,0.55)';
-  g.fillRect(0, 0, c.width, c.height);
-  const half = SIZE / 2;
-  for (let z = -half; z < half; z++) for (let x = -half; x < half; x++) {
-    const t = world.typeAt(x, z);
-    if (!t || world.height(x, z) === -Infinity) continue;
-    g.fillStyle = MAP_COLOR[t] || '#555';
-    g.fillRect((x + half) * 3, (z + half) * 3, 3, 3);
-  }
-  bases.hub = { canvas: c, ox: 0, oz: 0, half, scale: 3 };
-}
-/** A region's minimap: its grids' top colours (falls back to grey), sampled once when first shown. */
-function regionBase(id) {
-  if (bases[id]) return bases[id];
-  const def = regionDef(id);
-  if (!def) return null;
-  const half = Math.ceil(Math.max(def.size || 48, 16) / 2) + 2;
-  const scale = (SIZE * 3) / (half * 2);
-  const c = document.createElement('canvas');
-  c.width = SIZE * 3; c.height = SIZE * 3;
-  const g = c.getContext('2d');
-  g.fillStyle = 'rgba(6,10,20,0.55)';
-  g.fillRect(0, 0, c.width, c.height);
-  const [ox, oz] = def.origin;
-  for (let z = -half; z < half; z++) for (let x = -half; x < half; x++) {
-    const wx = ox + x, wz = oz + z;
-    if (world.height(wx, wz) === -Infinity) continue;
-    let colr = null;
-    for (const gr of world.grids) if (gr.colorAt && wx >= gr.x0 && wx < gr.x1 && wz >= gr.z0 && wz < gr.z1) { colr = gr.colorAt(wx, wz); if (colr) break; }
-    g.fillStyle = colr || '#64748b';
-    g.fillRect((x + half) * scale, (z + half) * scale, Math.ceil(scale), Math.ceil(scale));
-  }
-  bases[id] = { canvas: c, ox, oz, half, scale };
-  return bases[id];
-}
+// A round window onto the illustrated map (mapart.js), north up. On the hub it follows you (the island
+// is ~120 cells across; the window shows 56); regions fit whole. Doors off the edge sit on the rim
+// as direction hints.
+const MM = 168;                 // canvas pixels (shown at 144 css px)
+const HUB_PX = 3;               // hub map pixels per cell
+function buildMapBase() { hubMapCanvas(world, HUB_PX); }
 /** Forget a cached region minimap (regions that reshape their terrain can call this via the bus). */
-export function invalidateMinimap(id) { delete bases[id]; }
+export function invalidateMinimap(id) { forgetRegionMap(id); }
 function drawMinimap() {
   const c = els.minimap;
   const g = c.getContext('2d');
-  const B = where.id === 'hub' ? bases.hub : regionBase(where.id);
-  g.clearRect(0, 0, c.width, c.height);
-  if (!B) return;
-  g.drawImage(B.canvas, 0, 0);
-  const dot = (x, z, r, color) => { g.fillStyle = color; g.beginPath(); g.arc((x - B.ox + B.half) * B.scale + B.scale / 2, (z - B.oz + B.half) * B.scale + B.scale / 2, r, 0, Math.PI * 2); g.fill(); };
+  g.clearRect(0, 0, MM, MM);
+  const R = MM / 2;
+  g.save();
+  g.beginPath(); g.arc(R, R, R - 1, 0, Math.PI * 2); g.clip();
+  g.fillStyle = '#07101f'; g.fillRect(0, 0, MM, MM);
+  let toPx;
+  const hub = where.id === 'hub';
+  if (hub) {
+    const B = hubMapCanvas(world, HUB_PX);
+    const cx = player.x, cz = player.z;
+    const sx = (cx + B.half + 0.5) * HUB_PX - R, sz = (cz + B.half + 0.5) * HUB_PX - R;
+    // copy only the part of the source that exists (drawImage with an out-of-range source rect is not portable)
+    const x0 = Math.max(0, sx), z0 = Math.max(0, sz), x1 = Math.min(B.canvas.width, sx + MM), z1 = Math.min(B.canvas.height, sz + MM);
+    if (x1 > x0 && z1 > z0) g.drawImage(B.canvas, x0, z0, x1 - x0, z1 - z0, x0 - sx, z0 - sz, x1 - x0, z1 - z0);
+    toPx = (x, z) => [(x - cx) * HUB_PX + R, (z - cz) * HUB_PX + R];
+  } else {
+    const def = regionDef(where.id);
+    if (!def) { g.restore(); return; }
+    const B = regionMapCanvas(world, def, MM);
+    g.drawImage(B.canvas, 0, 0);
+    toPx = (x, z) => [(x - B.ox + B.half) * B.px + B.px / 2, (z - B.oz + B.half) * B.px + B.px / 2];
+  }
+  const dot = (x, z, r, color) => { const [a, b] = toPx(x, z); if (a < -8 || b < -8 || a > MM + 8 || b > MM + 8) return; g.fillStyle = color; g.beginPath(); g.arc(a, b, r, 0, Math.PI * 2); g.fill(); };
   const m = markers();
-  for (const p of m.tokens || []) dot(p.x, p.z, 2, '#f2b84b');
-  for (const p of m.doors || []) dot(p.x, p.z, 2.6, '#a78bfa');
-  for (const p of m.npcs || []) dot(p.x, p.z, 2.4, p.news ? '#93c5fd' : '#60a5fa');
+  for (const p of m.tokens || []) dot(p.x, p.z, 2, '#f2c14e');
+  for (const p of m.npcs || []) dot(p.x, p.z, 2.6, p.news ? '#93c5fd' : '#60a5fa');
   for (const p of m.enemies || []) dot(p.x, p.z, 2, '#f87171');
   for (const p of m.bosses || []) dot(p.x, p.z, 3.4, '#ef4444');
   if (m.door) dot(m.door.x, m.door.z, 3, m.door.open ? '#e9d5ff' : m.door.ready ? '#e879f9' : '#7c3aed');
-  dot(buddy.x, buddy.z, 2, '#86efac');
-  dot(player.x, player.z, 3, '#ffffff');
-  // facing arrow
-  g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath();
-  const px = (player.x - B.ox + B.half) * B.scale + B.scale / 2, pz = (player.z - B.oz + B.half) * B.scale + B.scale / 2;
-  g.moveTo(px, pz); g.lineTo(px + Math.sin(player.yaw) * 8, pz + Math.cos(player.yaw) * 8); g.stroke();
+  // region doors: a ring in the door's colour, filled once visited; clamped to the rim when off view
+  for (const d of m.doors || []) {
+    let [a, b] = toPx(d.x, d.z);
+    const dx = a - R, dz = b - R, len = Math.hypot(dx, dz);
+    const edge = len > R - 7;
+    if (edge) { a = R + (dx / len) * (R - 7); b = R + (dz / len) * (R - 7); }
+    const known = !!S.world.discovered?.[d.to];
+    g.lineWidth = 2; g.strokeStyle = d.colour || '#a78bfa'; g.fillStyle = known ? d.colour || '#a78bfa' : 'rgba(7,10,18,0.85)';
+    g.beginPath(); g.arc(a, b, edge ? 3 : 4.2, 0, Math.PI * 2); g.fill(); g.stroke();
+  }
+  dot(buddy.x, buddy.z, 2.2, '#86efac');
+  // you: an arrow
+  const [px, pz] = toPx(player.x, player.z);
+  const fx = Math.sin(player.yaw), fz = Math.cos(player.yaw);
+  g.fillStyle = '#ffffff'; g.strokeStyle = 'rgba(0,0,0,0.8)'; g.lineWidth = 1.5;
+  g.beginPath();
+  g.moveTo(px + fx * 8, pz + fz * 8);
+  g.lineTo(px - fx * 4 + fz * 5, pz - fz * 4 - fx * 5);
+  g.lineTo(px - fx * 1.5, pz - fz * 1.5);
+  g.lineTo(px - fx * 4 - fz * 5, pz - fz * 4 + fx * 5);
+  g.closePath(); g.stroke(); g.fill();
+  g.restore();
+  // rim and north
+  g.strokeStyle = 'rgba(233, 236, 241, 0.28)'; g.lineWidth = 2;
+  g.beginPath(); g.arc(R, R, R - 1, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = 'rgba(7,10,18,0.85)'; g.beginPath(); g.arc(R, 10, 8, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#f2c14e'; g.font = '700 11px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('N', R, 10.5);
 }
 
 export function flashSlot(id) {

@@ -73,11 +73,20 @@ export function buildSky(scene, { lowfx = false } = {}) {
   const moon = new THREE.Group();
   moon.position.set(120, -42, -222);
   const disc0 = new THREE.Mesh(new THREE.CircleGeometry(15, 40), new THREE.MeshBasicNodeMaterial({ color: '#f4efd8', fog: false }));
-  const craterMat = new THREE.MeshBasicNodeMaterial({ color: '#d8d2b6', fog: false });
-  for (const [cx, cy, r] of [[-4, 3, 2.6], [4.5, -2, 3.4], [-1, -6, 1.8], [6, 6, 1.5], [-7, -3, 1.4]]) {
-    const c = new THREE.Mesh(new THREE.CircleGeometry(r, 20), craterMat);
-    c.position.set(cx, cy, 0.05);
-    moon.add(c);
+  // the craters: one geometry (was one mesh each)
+  {
+    const pos = [], ind = [];
+    for (const [cx, cy, r] of [[-4, 3, 2.6], [4.5, -2, 3.4], [-1, -6, 1.8], [6, 6, 1.5], [-7, -3, 1.4]]) {
+      const g = new THREE.CircleGeometry(r, 20);
+      const base = pos.length / 3, p = g.attributes.position.array;
+      for (let i = 0; i < p.length; i += 3) pos.push(p[i] + cx, p[i + 1] + cy, 0.05);
+      for (const k of g.index.array) ind.push(base + k);
+      g.dispose();
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setIndex(ind);
+    moon.add(new THREE.Mesh(geo, new THREE.MeshBasicNodeMaterial({ color: '#d8d2b6', fog: false })));
   }
   const halo = new THREE.Mesh(
     new THREE.PlaneGeometry(90, 90),

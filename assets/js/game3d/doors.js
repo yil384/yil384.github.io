@@ -12,10 +12,6 @@ import { S } from './state.js';
 import { on } from './bus.js';
 import { mode } from './mode.js';
 
-export const DOOR_COLOURS = {
-  tsinghua: '#b98cff', picasso: '#a78bfa', stacks: '#fbbf24',
-  starry: '#fb923c', im: '#34d399', oj: '#f472b6', triton: '#60a5fa',
-};
 const PI = Math.PI;
 
 /** Where each door's ring, sign and beacon go (world coordinates). */
@@ -25,7 +21,7 @@ export function doorMarkSpecs() {
   const M = LAYOUT.monuments, G = LAYOUT.gate, C = LAYOUT.cse, T = LAYOUT.tower;
   return doorList().map((d) => {
     const f = flagFor[d.to] ? flagOf[flagFor[d.to]] : null;
-    const colour = f ? f.colour : DOOR_COLOURS[d.to] || '#a78bfa';
+    const colour = d.colour;
     let sign, ring = 1.8, beacon = [d.x, d.z];
     if (f) { sign = { x: f.x - 1.1, z: f.z + 1.3, yaw: 0, w: 2.4, h: 0.62, y: 0.95, post: 0 }; ring = 1.35; }
     else if (d.to === 'tsinghua') { sign = { x: G.x + 5, z: G.z - 2.6, yaw: PI, w: 3.2, h: 0.85, y: 2.1, post: 2 }; ring = 1.5; }

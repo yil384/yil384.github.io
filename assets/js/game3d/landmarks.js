@@ -89,35 +89,33 @@ export function buildGate() {
 // ------------------------------------------------------------------------------------------------
 // A trail flag: wooden pole, gilt finial, waving cloth in the company colour.
 export function buildFlag(colour) {
+  // pole and cloth in one instanced mesh (the first cells are the pole; the rest wave)
   const cells = [];
   cells.push([0, 0, 0, '#6b7280', 0]);
   for (let y = 1; y <= 7; y++) cells.push([0, y, 0, '#8b6f4e', 0]);
   cells.push([0, 8, 0, '#f2c14e', 1.4]);
-  const pole = voxBuild(cells, { roughness: 0.9 });
+  const POLE = cells.length;
   const CLOTH_W = 5, CLOTH_H = 4;
-  const clothCells = [];
   for (let u = 0; u < CLOTH_W; u++) for (let y = 0; y < CLOTH_H; y++) {
     const edge = u === CLOTH_W - 1 && (y === 0 || y === CLOTH_H - 1);
     if (edge) continue;
-    clothCells.push([u, y, 0, shade(colour, (y % 2 ? -0.06 : 0.04)), 0.28]);
+    cells.push([1 + u, 3.5 + y, 0, shade(colour, (y % 2 ? -0.06 : 0.04)), 0.28]);
   }
-  const cloth = voxBuild(clothCells, { roughness: 0.7, shadow: false });
-  cloth.position.set(1, 3.5, 0);
-  const base = cloth.instanceMatrix.array.slice();
+  const flag = voxBuild(cells, { roughness: 0.8 });
+  const base = flag.instanceMatrix.array.slice();
   const group = new THREE.Group();
-  group.add(pole, cloth);
+  group.add(flag);
   return {
-    group, meshes: [pole, cloth], height: 9,
+    group, meshes: [flag], height: 9,
     update(t) {
-      const k = 1;
-      const arr = cloth.instanceMatrix.array;
-      for (let i = 0; i < clothCells.length; i++) {
-        const u = clothCells[i][0];
-        const wave = Math.sin(t * 3.1 * k + u * 0.9) * 0.28 * (u / CLOTH_W);
+      const arr = flag.instanceMatrix.array;
+      for (let i = POLE; i < cells.length; i++) {
+        const u = cells[i][0] - 1;
+        const wave = Math.sin(t * 3.1 + u * 0.9) * 0.28 * (u / CLOTH_W);
         arr[i * 16 + 14] = base[i * 16 + 14] + wave;
-        arr[i * 16 + 13] = base[i * 16 + 13] + Math.sin(t * 2.4 * k + u) * 0.08 * (u / CLOTH_W);
+        arr[i * 16 + 13] = base[i * 16 + 13] + Math.sin(t * 2.4 + u) * 0.08 * (u / CLOTH_W);
       }
-      cloth.instanceMatrix.needsUpdate = true;
+      flag.instanceMatrix.needsUpdate = true;
     },
   };
 }

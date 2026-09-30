@@ -10,12 +10,14 @@ import { mode } from './mode.js';
 import { openModal, closeModal, isModalOpen } from './modal.js';
 import { toast, banner } from './notify.js';
 import { h, pick, icon } from './util.js';
-import { makeActor, makeOrb } from './actors.js';
+import * as THREE from 'three/webgpu';
+import { makeOrb, spriteBatch } from './actors.js';
 import * as fx from './fx.js';
 import { where } from './where.js';
 import { sfx } from './audio.js';
 
 let world = null, scene = null;
+let tokenBatch = null;
 
 // ---------------------------------------------------------------- tokens
 const TOKEN_SPOTS = [
@@ -35,12 +37,16 @@ export function initLoot(w, s, root = s) {
     let x = zn.x + ox, z = zn.z + oz;
     for (let t = 0; t < 40 && (!world.walkable(x, z) || world.isBlocked(x, z)); t++) { x += (Math.random() - 0.5) * 3; z += (Math.random() - 0.5) * 3; }
     if (!world.walkable(x, z)) continue;
-    const mesh = makeActor('token', { scale: 0.16, maxHalf: 1 });
+    // a light proxy per token; all eight are drawn by one batched mesh (tokenBatch)
+    const mesh = new THREE.Object3D();
     mesh.position.set(x, world.surfaceY(x, z) + 1, z);
     mesh.visible = !S.tokens.includes(id);
-    scene.add(mesh);
     tokens.push({ id, x, z, y: world.surfaceY(x, z), mesh, taken: S.tokens.includes(id), ox: 0, oz: 0, anim: Math.random() * 6 });
   }
+  tokenBatch = spriteBatch('token', tokens.length, { scale: 0.16, maxHalf: 1 });
+  tokenBatch.mesh.name = 'tokens';
+  scene.add(tokenBatch.mesh);
+  tokenBatch.sync(tokens.map((t) => t.mesh));
   on('kill', ({ target }) => maybeDrop(target));
 }
 
@@ -63,6 +69,7 @@ export function updateLoot(dt) {
     t.mesh.rotation.y = t.anim;
     if (mode.play && d < 1.1) collect(t);
   }
+  if (where.id === 'hub' && tokenBatch) tokenBatch.sync(tokens.map((t) => t.mesh));
   for (let i = drops.length - 1; i >= 0; i--) {
     const d = drops[i];
     if (clock.t > d.expires || d.region !== where.id) { remove(d); drops.splice(i, 1); continue; }

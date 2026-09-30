@@ -16,6 +16,7 @@ import { toast, banner } from './notify.js';
 import { sfx } from './audio.js';
 import { h, icon } from './util.js';
 import { REGIONS, ensureRegion, regionDef, regionName, regionEntered, regionLeft, interactable, trigger, allBuilt, unlockGlider } from './regions.js';
+import { hubIllustrated, regionMapCanvas } from './mapart.js';
 import { ROAD, hasItem } from './road.js';
 import { clearHostileProjectiles } from './combat.js';
 import { clearFoeHazards } from './foes.js';
@@ -25,10 +26,15 @@ const HUB_BOUND = 100;
 
 // Hub landmark -> region. Positions are world coordinates on the island; `walk` doors fire when you
 // pass through (the gate's centre arch), the rest on E.
+/** Door colours (the flags use their own cloth colour). */
+export const DOOR_COLOURS = {
+  tsinghua: '#b98cff', picasso: '#a78bfa', stacks: '#fbbf24',
+  starry: '#fb923c', im: '#34d399', oj: '#f472b6', triton: '#60a5fa',
+};
 export function doorList() {
   const M = LAYOUT.monuments, flag = (id) => LAYOUT.flags.find((f) => f.id === id);
   const G = LAYOUT.gate, C = LAYOUT.cse;
-  return [
+  const list = [
     { to: 'tsinghua', x: G.x, z: G.z - 0.5, r: 1.4, walk: true, label: '二校门 · to Tsinghua', plateY: 10.5 },
     { to: 'picasso', x: C.x, z: C.z + 4.6, r: 2.4, label: 'CSE · Picasso Lab', prompt: 'E · enter the lab' },
     ...[['samsung', 'flag-samsung'], ['metabit', 'flag-metabit'], ['timi', 'flag-tencent'], ['hotstar', 'flag-hotstar'], ['lark', 'flag-lark']].map(([to, id]) => {
@@ -41,6 +47,9 @@ export function doorList() {
     { to: 'triton', x: M.triton.x, z: M.triton.z, r: 4.2, label: 'TritonGym', prompt: 'E · enter the arena', plateY: 9.5 },
     { to: 'stacks', x: LAYOUT.tower.x, z: LAYOUT.tower.z + 4.2, r: 2.4, label: 'Geisel · the Stacks', prompt: 'E · go down to the stacks', plateY: 4 },
   ];
+  const flagFor = { samsung: 'flag-samsung', metabit: 'flag-metabit', timi: 'flag-tencent', hotstar: 'flag-hotstar', lark: 'flag-lark' };
+  for (const d of list) d.colour = flagFor[d.to] ? flag(flagFor[d.to]).colour : DOOR_COLOURS[d.to] || '#a78bfa';
+  return list;
 }
 
 export function createTravel(env) {
@@ -178,36 +187,71 @@ export function createTravel(env) {
   interactable(env.hubCtx, { x: P.x + 20.5, z: P.z + 3, r: 2.4, label: 'The boat', prompt: 'E · where to?', plateY: 3, onInteract: () => openMap({ boat: true }) });
 
   // ---------------------------------------------------------------- map
+  // Left: an illustrated map of where you are (the island drawn from its terrain: districts, the
+  // shuttle loop, every door with its colour and a tick once visited, you). Right: every region,
+  // discovered or not, with its Road to Dr. items, and the Road to Dr. itself.
   function openMap({ boat = false } = {}) {
     const ids = ['hub', ...Object.keys(REGIONS).filter((id) => id !== 'sandbox' || S.world.discovered.sandbox)];
-    const xs = ids.map((id) => (id === 'hub' ? 0 : REGIONS[id].origin[0])), zs = ids.map((id) => (id === 'hub' ? 0 : REGIONS[id].origin[1]));
-    const minX = Math.min(...xs), maxX = Math.max(...xs), minZ = Math.min(...zs), maxZ = Math.max(...zs);
-    const pos = (id) => {
-      const [x, z] = id === 'hub' ? [0, 0] : REGIONS[id].origin;
-      return { left: `${8 + ((x - minX) / Math.max(1, maxX - minX)) * 84}%`, top: `${10 + ((z - minZ) / Math.max(1, maxZ - minZ)) * 78}%` };
-    };
     const itemFor = (id) => ROAD.filter((r) => r.region === id);
+    const go = (id) => { closeModal('map'); travel(id, null, { via: boat ? 'boat' : 'map' }); };
+    const colourOf = Object.fromEntries(doors.map((d) => [d.to, d.colour]));
     openModal({
       id: 'map', title: boat ? 'The boat · where to?' : 'World map', className: 'wide-panel map-panel',
       body: (b) => {
-        b.append(h('p', { class: 'muted small' }, boat ? 'The skipper knows every island you have already visited.' : 'Discovered places: click to travel. Undiscovered ones open from their door on the island.'));
-        const map = h('div', { class: 'wmap', role: 'list' });
-        for (const id of ids) {
-          const known = !!S.world.discovered[id];
-          const here = where.id === id;
-          const items = itemFor(id);
-          const got = items.filter((r) => hasItem(r.id)).length;
-          const node = h('button', {
-            type: 'button', role: 'listitem', class: `wmap__isle${known ? ' is-known' : ''}${here ? ' is-here' : ''}${id === 'hub' ? ' is-hub' : ''}`,
-            style: pos(id), disabled: !known || here,
-            title: known ? `${regionName(id)}${here ? ' (you are here)' : ''}` : `Undiscovered · door: ${REGIONS[id]?.door || ''}`,
-            onclick: () => { closeModal('map'); travel(id, null, { via: boat ? 'boat' : 'map' }); },
-          }, h('b', null, known ? regionName(id) : '? ? ?'), items.length ? h('small', null, `${got}/${items.length} ${items[0].kind.toLowerCase()}${items.length > 1 ? 's' : ''}`) : null);
-          map.append(node);
+        const inHub = where.id === 'hub';
+        const def = inHub ? null : regionDef(where.id);
+        const art = inHub ? hubIllustrated(env.world, 5) : def ? regionMapCanvas(env.world, def, 480) : null;
+        const map = h('div', { class: `wmap2__map${inHub ? '' : ' is-region'}` });
+        if (art) {
+          const cv = h('canvas', { class: 'wmap2__canvas', width: art.canvas.width, height: art.canvas.height, 'aria-label': `Map of ${regionName(where.id)}` });
+          cv.getContext('2d').drawImage(art.canvas, 0, 0);
+          map.append(cv);
+          const at = (x, z) => ({ left: `${((x - (art.ox || 0) + art.half + 0.5) / art.size) * 100}%`, top: `${((z - (art.oz || 0) + art.half + 0.5) / art.size) * 100}%` });
+          if (inHub) {
+            for (const d of doors) {
+              const known = !!S.world.discovered[d.to];
+              const items = itemFor(d.to), got = items.filter((r) => hasItem(r.id)).length;
+              map.append(h('button', {
+                type: 'button', class: `wmap2__door${known ? ' is-known' : ''}${items.length && got === items.length ? ' is-done' : ''}`,
+                style: { ...at(d.x, d.z), '--dc': d.colour },
+                title: `${regionName(d.to)} · ${known ? 'visited: click to travel' : `not visited yet: ${REGIONS[d.to]?.door || 'find its door'}`}`,
+                'aria-label': `${regionName(d.to)}${known ? '' : ' (not visited yet)'}`,
+                onclick: () => { if (known) go(d.to); else toast(`Find it on the island: ${REGIONS[d.to]?.door || 'its door'}. Walk there and press E.`, { icon: 'treasure-map' }); },
+              }, h('span', { class: 'wmap2__door-dot' }, known ? '✓' : ''), h('span', { class: 'wmap2__door-name' }, regionName(d.to))));
+            }
+            const P = LAYOUT.pier;
+            map.append(h('span', { class: 'wmap2__boat', style: at(P.x + 20.5, P.z + 3), title: 'The boat: sails to every place you have visited' }, icon('treasure-map', { size: 14 })));
+          }
+          map.append(h('span', { class: 'wmap2__me', style: { ...at(player.x, player.z), transform: `translate(-50%, -50%) rotate(${Math.PI - player.yaw}rad)` }, title: 'You are here' }));
         }
-        b.append(map);
-        const got = ROAD.filter((r) => hasItem(r.id)).length;
-        b.append(h('p', { class: 'wmap__legend' }, icon('graduation-cap', { size: 16 }), ` Road to Dr. · ${got} / ${ROAD.length}`, h('span', { class: 'muted' }, ` · you are at ${regionName(where.id)}`)));
+        const legend = h('p', { class: 'wmap2__legend muted small' },
+          h('span', { class: 'wmap2__key wmap2__key--door' }), ' door (✓ visited) ',
+          h('span', { class: 'wmap2__key wmap2__key--me' }), ' you ',
+          inHub ? h('span', { class: 'wmap2__key wmap2__key--loop' }) : null, inHub ? ' shuttle loop' : '');
+        // the regions, and the Road to Dr.
+        const list = h('ul', { class: 'wmap2__list', role: 'list' });
+        for (const id of ids) {
+          const known = !!S.world.discovered[id] || id === 'hub';
+          const here = where.id === id;
+          const items = itemFor(id), got = items.filter((r) => hasItem(r.id)).length;
+          const sub = here ? 'you are here' : !known ? `door: ${REGIONS[id]?.door || ''}` : items.length ? `${got}/${items.length} ${items[0].kind.toLowerCase()}${items.length > 1 ? 's' : ''}` : id === 'hub' ? 'the UCSD island' : 'visited';
+          list.append(h('li', null, h('button', {
+            type: 'button', class: `wmap2__row${known ? ' is-known' : ''}${here ? ' is-here' : ''}${id === 'hub' ? ' is-hub' : ''}${items.length && got === items.length ? ' is-done' : ''}`,
+            style: { '--dc': id === 'hub' ? '#f2c14e' : colourOf[id] || '#94a3b8' }, disabled: !known || here,
+            title: known ? `${regionName(id)}${here ? ' (you are here)' : ''}` : `Undiscovered · door: ${REGIONS[id]?.door || ''}`,
+            onclick: () => go(id),
+          }, h('span', { class: 'wmap2__dot' }), h('b', null, known ? regionName(id) : '? ? ?'), h('small', null, sub))));
+        }
+        const gotAll = ROAD.filter((r) => hasItem(r.id)).length;
+        const road = h('div', { class: 'wmap2__road' },
+          h('p', { class: 'wmap2__road-head' }, icon('graduation-cap', { size: 16 }), h('b', null, ' Road to Dr. '), h('span', { class: 'muted' }, `${gotAll} / ${ROAD.length}`)),
+          h('div', { class: 'wmap2__bar' }, h('i', { style: { width: `${(gotAll / ROAD.length) * 100}%` } })),
+          h('div', { class: 'wmap2__items' }, ...ROAD.map((r) => h('span', { class: `wmap2__item${hasItem(r.id) ? ' is-got' : ''}`, title: `${r.name}${hasItem(r.id) ? ' · collected' : ` · ${regionName(r.region)}`}` }, icon(r.icon, { size: 16 })))));
+        b.append(h('div', { class: 'wmap2' },
+          h('div', { class: 'wmap2__left' }, map, legend),
+          h('div', { class: 'wmap2__side' },
+            h('p', { class: 'muted small' }, boat ? 'The skipper knows every island you have already visited.' : `You are at ${regionName(where.id)}. Click a visited place to travel; new ones open from their door on the island.`),
+            list, road)));
       },
     });
   }

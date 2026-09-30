@@ -6,7 +6,7 @@ import * as THREE from 'three/webgpu';
 import { attribute } from 'three/tsl';
 
 // For each face: the normal, the two in-plane axes and the 4 corners (unit-cube offsets, CCW seen from outside).
-const FACES = [
+export const FACES = [
   { n: [-1, 0, 0], c: [[0, 1, 0], [0, 0, 0], [0, 1, 1], [0, 0, 1]] },
   { n: [1, 0, 0], c: [[1, 1, 1], [1, 0, 1], [1, 1, 0], [1, 0, 0]] },
   { n: [0, -1, 0], c: [[1, 0, 1], [0, 0, 1], [1, 0, 0], [0, 0, 0]] },

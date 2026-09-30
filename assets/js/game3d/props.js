@@ -2,7 +2,8 @@
 // turned into one InstancedMesh with per-instance colour and emissive. Every prop carries a
 // `hi` uniform (0..1) that the stage uses to light a landmark up when the page points at it.
 import * as THREE from 'three/webgpu';
-import { instancedBufferAttribute, uniform } from 'three/tsl';
+import { instancedBufferAttribute, uniform, attribute } from 'three/tsl';
+import { GeoWriter, FACES } from './voxmesh.js';
 
 const BOX = new THREE.BoxGeometry(1, 1, 1);
 const _m = new THREE.Matrix4();
@@ -39,6 +40,7 @@ export function voxBuild(cells, { roughness = 0.85, metalness = 0, shadow = true
   mesh.castShadow = shadow;
   mesh.receiveShadow = shadow;
   mesh.userData.hi = hi;
+  mesh.userData.glowArr = glowArr;        // (stage.js bakes static landmarks into one mesh)
   mesh.userData.setHi = (v) => { hi.value = v; };
   return mesh;
 }
@@ -78,3 +80,37 @@ export const shade = (hex, amt) => {
   _c.setRGB(f(_c.r), f(_c.g), f(_c.b));
   return `#${_c.getHexString()}`;
 };
+
+/**
+ * Bake finished voxBuild meshes (anywhere in the scene graph) into ONE plain mesh in world space,
+ * keeping colours and glow (not the highlight). For static props that never animate or light up.
+ */
+export function bakeInstanced(meshes, { roughness = 0.85, shadow = true } = {}) {
+  const w = new GeoWriter(true);
+  const m = new THREE.Matrix4(), nm = new THREE.Matrix3(), v = new THREE.Vector3(), n = new THREE.Vector3();
+  for (const mesh of meshes) {
+    mesh.updateWorldMatrix(true, false);
+    const glow = mesh.userData.glowArr;
+    for (let i = 0; i < mesh.count; i++) {
+      mesh.getMatrixAt(i, m);
+      m.premultiply(mesh.matrixWorld);
+      nm.getNormalMatrix(m);
+      mesh.getColorAt(i, _c);
+      const gr = glow ? glow[i * 3] : 0, gg = glow ? glow[i * 3 + 1] : 0, gb = glow ? glow[i * 3 + 2] : 0;
+      for (const f of FACES) {
+        const base = w.v;
+        n.set(f.n[0], f.n[1], f.n[2]).applyMatrix3(nm).normalize();
+        for (const cc of f.c) {
+          v.set(cc[0] - 0.5, cc[1] - 0.5, cc[2] - 0.5).applyMatrix4(m);
+          w.vert(v.x, v.y, v.z, n.x, n.y, n.z, _c.r, _c.g, _c.b, gr, gg, gb);
+        }
+        w.quad(base);
+      }
+    }
+  }
+  const mat = new THREE.MeshStandardNodeMaterial({ roughness, vertexColors: true });
+  mat.emissiveNode = attribute('glow', 'vec3');
+  const out = new THREE.Mesh(w.geometry(), mat);
+  out.castShadow = out.receiveShadow = shadow;
+  return out;
+}

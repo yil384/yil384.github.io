@@ -1,51 +1,61 @@
 // Campus life on the hub: tiny students walking Library Walk, Warren Mall and Price Center, a few
 // skateboarders, cyclists on the loop road and the campus shuttle. Purely decorative (no collision,
-// never in the way of the game). Everyone shares three instanced meshes (people, bikes, boards) plus
-// the bus: four draw calls. Anyone far from the camera is hidden, and nothing ticks off the hub.
+// never in the way of the game). Everyone is one instanced mesh (people with their bikes and boards)
+// plus the bus: two draw calls. Anyone far from the camera is hidden, and nothing ticks off the hub.
 import * as THREE from 'three/webgpu';
-import { attribute, instancedBufferAttribute, mix } from 'three/tsl';
+import { attribute, instancedBufferAttribute, mix, float, vec3, positionLocal } from 'three/tsl';
 import { GeoWriter, rgb, voxMesh } from './voxmesh.js';
 import { LAYOUT } from './layout.js';
 import { where } from './where.js';
 import { reducedMotion } from '../three/boot.js';
 
 const SHIRTS = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#f8fafc', '#1f3b73', '#f2c14e', '#14b8a6', '#fb923c', '#64748b'];
-const SKIN = ['#f1c9a5', '#e0ac85', '#c68863', '#8d5a3b', '#f5d6ba'];
-const HAIR = ['#1f1b18', '#3b2a20', '#6b4a2e', '#111827', '#a16207'];
 
-/** Boxes -> geometry with a per-vertex `mask` (1 = takes the instance's shirt colour). */
+/** Boxes -> geometry with per-vertex `mask` (1 = takes the instance's tint) and `part` (0 person, 1 bike, 2 board). */
 function boxesGeo(boxes) {
   const w = new GeoWriter(false);
-  const mask = [];
+  const mask = [], parts = [];
   const F = [
     [[-1, 0, 0], [[0, 1, 0], [0, 0, 0], [0, 1, 1], [0, 0, 1]]], [[1, 0, 0], [[1, 1, 1], [1, 0, 1], [1, 1, 0], [1, 0, 0]]],
     [[0, -1, 0], [[1, 0, 1], [0, 0, 1], [1, 0, 0], [0, 0, 0]]], [[0, 1, 0], [[0, 1, 1], [1, 1, 1], [0, 1, 0], [1, 1, 0]]],
     [[0, 0, -1], [[1, 0, 0], [0, 0, 0], [1, 1, 0], [0, 1, 0]]], [[0, 0, 1], [[0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]]],
   ];
-  for (const [x0, y0, z0, x1, y1, z1, col, m = 0] of boxes) {
+  for (const [x0, y0, z0, x1, y1, z1, col, m = 0, part = 0] of boxes) {
     const [r, g, b] = rgb(col);
     for (const [n, cs] of F) {
       const base = w.v;
       const shade = n[1] > 0 ? 1 : n[1] < 0 ? 0.6 : 0.85;
-      for (const c of cs) { w.vert(c[0] ? x1 : x0, c[1] ? y1 : y0, c[2] ? z1 : z0, n[0], n[1], n[2], r * shade, g * shade, b * shade); mask.push(m); }
+      for (const c of cs) { w.vert(c[0] ? x1 : x0, c[1] ? y1 : y0, c[2] ? z1 : z0, n[0], n[1], n[2], r * shade, g * shade, b * shade); mask.push(m); parts.push(part); }
       w.quad(base);
     }
   }
   const geo = w.geometry();
   geo.setAttribute('mask', new THREE.Float32BufferAttribute(mask, 1));
+  geo.setAttribute('part', new THREE.Float32BufferAttribute(parts, 1));
   return geo;
 }
 
-function tintedInstanced(geo, count) {
-  const tint = new Float32Array(count * 3);
-  const attr = new THREE.InstancedBufferAttribute(tint, 3);
+/**
+ * One instanced mesh for everyone: the geometry holds a person, a bike and a board; each instance's
+ * `kit` (0 walker, 1 cyclist, 2 skater) keeps the person plus its own ride and collapses the rest,
+ * and lifts the rider onto the saddle or the deck. `tint` colours the shirt, `tint2` the ride.
+ */
+function crowdMesh(geo, count) {
+  const tint = new Float32Array(count * 3), tint2 = new Float32Array(count * 3), kit = new Float32Array(count);
+  const tA = new THREE.InstancedBufferAttribute(tint, 3), tB = new THREE.InstancedBufferAttribute(tint2, 3), kA = new THREE.InstancedBufferAttribute(kit, 1);
   const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.8 });
-  mat.colorNode = mix(attribute('color', 'vec3'), instancedBufferAttribute(attr, 'vec3'), attribute('mask', 'float'));
+  const part = attribute('part', 'float'), k = instancedBufferAttribute(kA, 'float');
+  const person = float(1).sub(part.min(1));
+  const show = person.max(float(1).sub(part.sub(k).abs().min(1)));
+  const lift = mix(mix(float(0), float(0.42), k.min(1)), float(0.16), k.sub(1).max(0));
+  mat.positionNode = positionLocal.add(vec3(0, lift.mul(person), 0)).mul(show);
+  const tintSel = mix(instancedBufferAttribute(tB, 'vec3'), instancedBufferAttribute(tA, 'vec3'), person);
+  mat.colorNode = mix(attribute('color', 'vec3'), tintSel, attribute('mask', 'float'));
   const mesh = new THREE.InstancedMesh(geo, mat, count);
   mesh.castShadow = false;
   mesh.receiveShadow = true;
   mesh.frustumCulled = false;
-  return { mesh, tint, attr };
+  return { mesh, tint, tint2, kit, attrs: [tA, tB, kA] };
 }
 
 export function createAmbient(world, parent, { lowfx = false, loop } = {}) {
@@ -53,19 +63,20 @@ export function createAmbient(world, parent, { lowfx = false, loop } = {}) {
   const hub = world.hub;
   // ---- geometry ----
   // a student: legs, shirt (tinted), head with hair, a backpack. ~1.7 units tall.
-  const person = boxesGeo([
+  const geo = boxesGeo([
+    // a student: legs, shirt (tinted), head with hair, a backpack. ~1.7 units tall.
     [-0.3, 0, -0.14, -0.04, 0.72, 0.14, '#2b3140'], [0.04, 0, -0.14, 0.3, 0.72, 0.14, '#2b3140'],
     [-0.33, 0.72, -0.18, 0.33, 1.32, 0.18, '#ffffff', 1],
     [-0.22, 1.32, -0.2, 0.22, 1.72, 0.2, '#f1c9a5'],
     [-0.24, 1.66, -0.22, 0.24, 1.8, 0.22, '#2b2118'],
     [-0.24, 0.8, -0.34, 0.24, 1.24, -0.18, '#334155'],
+    // a bike (part 1)
+    [-0.06, 0.05, -0.62, 0.06, 0.55, -0.22, '#111827', 0, 1], [-0.06, 0.05, 0.22, 0.06, 0.55, 0.62, '#111827', 0, 1],
+    [-0.05, 0.45, -0.45, 0.05, 0.55, 0.45, '#ffffff', 1, 1], [-0.05, 0.45, 0.35, 0.05, 0.9, 0.45, '#ffffff', 1, 1],
+    [-0.25, 0.86, 0.33, 0.25, 0.92, 0.43, '#94a3b8', 0, 1], [-0.1, 0.6, -0.3, 0.1, 0.68, -0.1, '#1f2937', 0, 1],
+    // a skateboard (part 2)
+    [-0.18, 0.08, -0.5, 0.18, 0.16, 0.5, '#ffffff', 1, 2], [-0.16, 0, -0.38, 0.16, 0.08, -0.3, '#111827', 0, 2], [-0.16, 0, 0.3, 0.16, 0.08, 0.38, '#111827', 0, 2],
   ]);
-  const bike = boxesGeo([
-    [-0.06, 0.05, -0.62, 0.06, 0.55, -0.22, '#111827'], [-0.06, 0.05, 0.22, 0.06, 0.55, 0.62, '#111827'],
-    [-0.05, 0.45, -0.45, 0.05, 0.55, 0.45, '#ffffff', 1], [-0.05, 0.45, 0.35, 0.05, 0.9, 0.45, '#ffffff', 1],
-    [-0.25, 0.86, 0.33, 0.25, 0.92, 0.43, '#94a3b8'], [-0.1, 0.6, -0.3, 0.1, 0.68, -0.1, '#1f2937'],
-  ]);
-  const board = boxesGeo([[-0.18, 0.08, -0.5, 0.18, 0.16, 0.5, '#ffffff', 1], [-0.16, 0, -0.38, 0.16, 0.08, -0.3, '#111827'], [-0.16, 0, 0.3, 0.16, 0.08, 0.38, '#111827']]);
 
   // ---- agents ----
   const agents = [];
@@ -95,24 +106,19 @@ export function createAmbient(world, parent, { lowfx = false, loop } = {}) {
   // cyclists on the loop road (keeping right)
   for (let i = 0; i < Math.round(6 * S); i++) agents.push({ kind: 'bike', mode: 'loop', s: rnd() * loop.length, dir: i % 2 ? 1 : -1, speed: 4.5 + rnd() * 1.5, shirt: pickC(SHIRTS), frame: pickC(['#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#e5e7eb']), phase: rnd() * 6 });
 
-  const nP = agents.length, nB = agents.filter((a) => a.kind === 'bike').length, nK = agents.filter((a) => a.kind === 'skate').length;
-  const people = tintedInstanced(person, nP);
-  const bikes = tintedInstanced(bike, Math.max(1, nB));
-  const boards = tintedInstanced(board, Math.max(1, nK));
-  people.mesh.name = 'ambient-people'; bikes.mesh.name = 'ambient-bikes'; boards.mesh.name = 'ambient-boards';
+  const crowd = crowdMesh(geo, agents.length);
+  crowd.mesh.name = 'ambient-crowd';
   const c = new THREE.Color();
-  let bi = 0, ki = 0;
   agents.forEach((a, i) => {
     c.set(a.shirt);
-    people.tint.set([c.r, c.g, c.b], i * 3);
-    // a skin/hair mix is baked into the geometry; vary it slightly with the head via scale later
-    if (a.kind === 'bike') { a.bi = bi; c.set(a.frame); bikes.tint.set([c.r, c.g, c.b], bi * 3); bi++; }
-    if (a.kind === 'skate') { a.ki = ki; c.set(pickC(['#f97316', '#22d3ee', '#a3e635', '#f472b6'])); boards.tint.set([c.r, c.g, c.b], ki * 3); ki++; }
+    crowd.tint.set([c.r, c.g, c.b], i * 3);
+    crowd.kit[i] = a.kind === 'bike' ? 1 : a.kind === 'skate' ? 2 : 0;
+    c.set(a.kind === 'bike' ? a.frame : pickC(['#f97316', '#22d3ee', '#a3e635', '#f472b6']));
+    crowd.tint2.set([c.r, c.g, c.b], i * 3);
     a.x ??= 0; a.z ??= 0; a.y = 0; a.yaw = 0;
   });
-  people.attr.needsUpdate = bikes.attr.needsUpdate = boards.attr.needsUpdate = true;
-  parent.add(people.mesh, bikes.mesh, boards.mesh);
-  void SKIN; void HAIR;
+  for (const at of crowd.attrs) at.needsUpdate = true;
+  parent.add(crowd.mesh);
 
   // ---- the shuttle ----
   const busCells = [];
@@ -177,14 +183,9 @@ export function createAmbient(world, parent, { lowfx = false, loop } = {}) {
       a.y += (gy - a.y) * Math.min(1, dt * 10 || 1);
       const far = Math.hypot(a.x - cam.x, a.z - cam.z) > HIDE;
       const bob = moving && a.kind === 'walk' ? Math.abs(Math.sin(t * 7 + a.phase)) * 0.07 : 0;
-      const lift = a.kind === 'bike' ? 0.42 : a.kind === 'skate' ? 0.16 : 0;
-      place(people.mesh, i, a.x, a.y + bob + lift, a.z, a.yaw + (moving && a.kind === 'walk' ? Math.sin(t * 7 + a.phase) * 0.06 : 0), far ? 0 : 0.95);
-      if (a.kind === 'bike') place(bikes.mesh, a.bi, a.x, a.y, a.z, a.yaw, far ? 0 : 1.05);
-      if (a.kind === 'skate') place(boards.mesh, a.ki, a.x, a.y, a.z, a.yaw, far ? 0 : 1);
+      place(crowd.mesh, i, a.x, a.y + bob, a.z, a.yaw + (moving && a.kind === 'walk' ? Math.sin(t * 7 + a.phase) * 0.06 : 0), far ? 0 : 0.95);
     });
-    people.mesh.instanceMatrix.needsUpdate = true;
-    bikes.mesh.instanceMatrix.needsUpdate = true;
-    boards.mesh.instanceMatrix.needsUpdate = true;
+    crowd.mesh.instanceMatrix.needsUpdate = true;
     // the shuttle: round the loop, a few seconds at every stop
     if (busState.dwell > 0) busState.dwell -= dt;
     else {

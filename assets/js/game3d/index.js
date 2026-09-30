@@ -110,7 +110,9 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   sun.position.set(-30, 46, 24);
   sun.castShadow = !lowfx;
   sun.shadow.mapSize.set(1024, 1024);
-  Object.assign(sun.shadow.camera, { left: -48, right: 48, top: 48, bottom: -48, near: 1, far: 140 });
+  // a box that follows the view (see frame()): tight enough to stay crisp at 1024 and to keep the
+  // shadow pass to what is near you
+  Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 1, far: 140 });
   sun.shadow.bias = -0.0008;
   scene.add(sun, sun.target);
 
@@ -148,6 +150,11 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   placeBuddy();
   initSecret(world, hub);
   initProgress();
+  const shadowActors = [...npcs.map((n) => n.mesh), ...enemies.filter((e) => !e.kind?.flying).map((e) => e.mesh), ...Object.values(bosses).map((b) => b.mesh), stage.sungod, stage.triton, ...stage.seals];
+  // small or airborne things do not cast shadows (seagulls, the floating tomes, flags, the fallen star)
+  for (const e of enemies) if (e.kind?.flying) e.mesh?.traverse((o) => { o.castShadow = false; });
+  for (const id of ['book-triton', 'book-reh2o', 'flag-samsung', 'flag-picasso', 'flag-metabit', 'flag-tencent', 'flag-hotstar', 'flag-lark']) stage.items[id]?.obj.group.traverse((o) => { o.castShadow = false; });
+  stage.find('fallen')?.root.traverse((o) => { o.castShadow = false; });
   initWeapon(scene);
 
   let visY = player.y;           // the scholar mesh's smoothed height (step-ups)
@@ -362,7 +369,16 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     const sh = fx.shakeOffset();
     if (sh && !reducedMotion.matches) { rig.cam.position.x += (Math.random() - 0.5) * sh; rig.cam.position.y += (Math.random() - 0.5) * sh; }
     fx.updateFx(modalOpen() ? 0 : dt);
-    // the key light's shadow box (±48) follows what you are looking at, snapped to 4 units
+    // only actors near the focus cast shadows (the far ones are specks; the shadow pass stays small)
+    if (sun.castShadow && frameNo % 12 === 0 && where.id === 'hub') {
+      const c = mode.play ? player : rig.cur.look;
+      for (const m of shadowActors) {
+        if (!m) continue;
+        const on = Math.hypot(m.position.x - c.x, m.position.z - c.z) < 22;
+        if (m.userData.shadowOn !== on) { m.userData.shadowOn = on; m.traverse((o) => { if (o.isMesh) o.castShadow = on; }); }
+      }
+    }
+    // the key light's shadow box follows what you are looking at, snapped to 4 units
     {
       const c = mode.play ? player : rig.cur.look;
       const sx = Math.round(c.x / 4) * 4, sz = Math.round(c.z / 4) * 4;

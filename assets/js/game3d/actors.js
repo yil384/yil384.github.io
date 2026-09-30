@@ -74,6 +74,48 @@ export function mergeSprites(name, places, { glow = null, maxHalf = 2, shadow = 
   return mesh;
 }
 
+/**
+ * `n` live copies of one sprite in ONE draw call. sync(objects) copies each Object3D's local
+ * transform (position, rotation, scale, visible) onto its copy; hidden objects collapse to nothing.
+ * The batch mesh must share a parent with (the space of) those objects.
+ */
+export function spriteBatch(name, n, { glow = null, maxHalf = 2, scale = 0.2, shadow = false } = {}) {
+  const base = VARIANTS[name] ? VARIANTS[name][0] : name;
+  const art = ART[base];
+  if (!art) throw new Error(`unknown sprite ${name}`);
+  const src = voxelize(art, { overrides: VARIANTS[name] ? VARIANTS[name][1] : null, glow: glow || DEFAULT_GLOW[name] || DEFAULT_GLOW[base] || {}, maxHalf, bevel: 0 });
+  const N = src.count;
+  const mesh = new THREE.InstancedMesh(src.geometry, src.material, Math.max(1, N * n));
+  const local = [];
+  const c = new THREE.Color();
+  const glowSrc = src.material.emissiveNode?.value?.array || null;
+  const glowArr = glowSrc ? new Float32Array(N * n * 3) : null;
+  for (let i = 0; i < N; i++) { const m = new THREE.Matrix4(); src.getMatrixAt(i, m); local.push(m); }
+  for (let k = 0; k < n; k++) for (let i = 0; i < N; i++) {
+    src.getColorAt(i, c);
+    mesh.setColorAt(k * N + i, c);
+    if (glowArr) for (let j = 0; j < 3; j++) glowArr[(k * N + i) * 3 + j] = glowSrc[i * 3 + j];
+  }
+  if (glowArr) { const mat = src.material.clone(); mat.emissiveNode = instancedBufferAttribute(new THREE.InstancedBufferAttribute(glowArr, 3), 'vec3'); mesh.material = mat; }
+  if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  const S = new THREE.Matrix4().makeScale(scale, scale, scale), zero = new THREE.Matrix4().makeScale(0, 0, 0);
+  const tmp = new THREE.Matrix4(), mw = new THREE.Matrix4();
+  mesh.castShadow = shadow;
+  mesh.receiveShadow = false;
+  mesh.frustumCulled = false;
+  function sync(objs) {
+    for (let k = 0; k < n; k++) {
+      const o = objs[k];
+      if (!o || !o.visible) { for (let i = 0; i < N; i++) mesh.setMatrixAt(k * N + i, zero); continue; }
+      o.updateMatrix();
+      tmp.multiplyMatrices(o.matrix, S);
+      for (let i = 0; i < N; i++) mesh.setMatrixAt(k * N + i, mw.multiplyMatrices(tmp, local[i]));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }
+  return { mesh, sync, perCopy: N };
+}
+
 /** Flash an actor white for a moment (hit feedback). */
 const flashing = new Map();
 export function flash(group, ms = 140) {
