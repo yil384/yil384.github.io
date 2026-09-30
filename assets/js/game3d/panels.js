@@ -81,7 +81,7 @@ export function openParty() {
   });
 }
 
-export function openHelp({ onLeave }) {
+export function openHelp({ onLeave, touch = false }) {
   openModal({
     id: 'help',
     title: 'Controls & settings',
@@ -89,7 +89,16 @@ export function openHelp({ onLeave }) {
     body: (b) => {
       const row = (keys, text) => h('div', { class: 'keys__row' }, h('span', null, ...keys.map((k) => h('kbd', null, k))), h('span', null, text));
       b.append(
-        h('div', { class: 'keys' },
+        touch ? h('div', { class: 'keys' },
+          row(['Left thumb'], 'Move: put it down anywhere on the left half and push (all the way out to sprint)'),
+          row(['Right side'], 'Drag to look around · pinch to zoom (all the way in: first person) · tap a name plate to talk'),
+          row(['⚔'], 'Attack · keep tapping for the 3-hit combo'),
+          row(['⤒'], 'Jump (hold for higher; hold while falling to glide once you have the glider; climb while flying)'),
+          row(['E'], 'Talk / use. It lights up when someone or something is in reach'),
+          row(['Spell'], 'Tap to cast · hold to pick Fireball, Mend, Lightning, Meteor or your buddy’s move'),
+          row(['Dodge'], 'Roll, invulnerable for a moment'),
+          row(['Top row'], 'Map · vehicle (flying sword → exosuit → car → on foot) · first / third person · menu'),
+        ) : h('div', { class: 'keys' },
           row(['W', 'A', 'S', 'D'], 'Move where the camera looks (arrow keys work too)'),
           row(['Click'], 'Mouse look (pointer lock; Esc releases it) · or right-drag'),
           row(['Wheel'], 'Zoom · all the way in for first person'),
@@ -134,6 +143,42 @@ function toggle(label, value, onChange) {
   const input = h('input', { type: 'checkbox', checked: value });
   input.addEventListener('change', () => onChange(input.checked));
   return h('label', { class: 'switch' }, input, h('span', { class: 'switch__ui', 'aria-hidden': 'true' }), label);
+}
+
+/** Phones: everything the keyboard reaches directly, in one sheet (plus the way back to the page). */
+export function openMenu(a) {
+  const go = (fn) => () => { closeModal('menu'); fn(); };
+  const item = (ic, label, fn, sub = '') => h('button', { type: 'button', class: 'gmenu__item', onclick: go(fn) }, icon(ic, { size: 22 }), h('span', null, h('b', null, label), sub ? h('small', null, sub) : null));
+  openModal({
+    id: 'menu',
+    title: 'Menu',
+    className: 'menu-panel',
+    body: (b) => {
+      const spells = h('div', { class: 'gmenu__spells', role: 'group', 'aria-label': 'Spell button' },
+        ...Object.entries(a.spells).map(([id, s]) => {
+          const btn = h('button', { type: 'button', class: `gmenu__spell${id === a.spell ? ' is-on' : ''}`, 'aria-pressed': String(id === a.spell) }, icon(s.icon, { size: 20 }), h('small', null, s.name), h('i', null, `${s.mp} MP`));
+          btn.addEventListener('click', () => {
+            a.onSpell(id);
+            for (const x of spells.children) { const on = x === btn; x.classList.toggle('is-on', on); x.setAttribute('aria-pressed', String(on)); }
+          });
+          return btn;
+        }));
+      b.append(
+        h('div', { class: 'gmenu' },
+          item('tied-scroll', 'Quest log', a.questlog, 'Road to Dr.'),
+          item('treasure-map', 'World map', a.map, 'travel'),
+          item('backpack', 'Inventory', a.inventory, 'gear, bag'),
+          item('paw-print', 'Party', a.party, 'companions'),
+          item('body-swapping', 'Swap buddy', a.swap),
+          item('trophy', 'Achievements', a.achievements),
+          item('circle-help', 'Controls & settings', a.help, 'sound, music'),
+        ),
+        h('p', { class: 'modal__sub' }, 'Spell button'),
+        spells,
+        h('div', { class: 'modal__actions' }, h('button', { type: 'button', class: 'btn btn--primary', onclick: go(a.leave) }, 'Back to the page')),
+      );
+    },
+  });
 }
 
 export function openGameOver({ onRespawn, stats }) {

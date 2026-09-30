@@ -241,8 +241,9 @@ export const npcMarkers = () => npcs.filter((n) => isLive(n.region)).map((n) => 
 // ---------------------------------------------------------------- dialog
 let typer = 0;
 
+let chaining = false;              // a choice's action is running: it may open the next dialog
 export function talk(npc) {
-  if (isModalOpen('dialog')) return;
+  if (isModalOpen('dialog') && !chaining) return;
   if (npc.region === 'hub' && !S.npcsMet.includes(npc.id)) {
     S.npcsMet.push(npc.id);
     save();
@@ -308,8 +309,10 @@ export function talk(npc) {
     const c = state.node.choices[i];
     if (!c) return;
     if (c.next) { show(typeof c.next === 'function' ? c.next() : c.next); return; }
-    if (c.action) c.action(); // opens its own modal on top first, so the world stays paused
-    closeModal('dialog');
+    // the action opens its own modal first (so the world stays paused); if that is another dialog it
+    // has already replaced this one, otherwise close this one now
+    if (c.action) { chaining = true; try { c.action(); } finally { chaining = false; } }
+    if (handle.isOpen()) handle.close();
     syncNpcs();
   }
   show(npc.cfg.talk());

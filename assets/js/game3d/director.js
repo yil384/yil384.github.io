@@ -61,7 +61,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     if (!pos || !text) return;
     bubbles.get(who)?.remove();
     const el = h('div', { class: `g__say g__say--${who === 'me' ? 'me' : who === 'bit' ? 'bit' : 'npc'}` }, text);
-    const unpin = fx.pin(el, pos);
+    const unpin = fx.pin(el, pos, { clamp: true });
     const done = () => { el.classList.remove('is-in'); setTimeout(() => { unpin(); }, 260); };
     const rec = { remove() { clearTimeout(rec.t); unpin(); bubbles.delete(who); }, t: 0 };
     rec.t = setTimeout(() => { done(); bubbles.delete(who); }, ms);

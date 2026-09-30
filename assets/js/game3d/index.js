@@ -35,7 +35,7 @@ import { player, initPlayer, tickPlayer, grace, revive, reward as giveReward } f
 import { createMover } from './move.js';
 import { createVehicles, VEHICLES } from './vehicles.js';
 import { initWeapon, attack as swingWeapon, updateWeapon, hitstop, spinYaw, setViewModel } from './weapon.js';
-import { initCombat, castSpell, updateProjectiles, clearHostileProjectiles, clearAllProjectiles, liveTargets } from './combat.js';
+import { initCombat, castSpell, updateProjectiles, clearHostileProjectiles, clearAllProjectiles, liveTargets, SPELLS, cooldownLeft } from './combat.js';
 import { initEnemies, updateEnemies, enemies, liveFoes } from './enemies.js';
 import { clearFoeHazards, patternBosses, foes } from './foes.js';
 import { initBosses, updateBosses, clearBossHazards, bosses } from './bosses.js';
@@ -45,7 +45,7 @@ import { initMonsters, updateGrass, cycleActive, onTravel } from './monsters.js'
 import { initCompanion, updateCompanion, placeBuddy, signature, buddy } from './companion.js';
 import { initProgress, initSecret, updateSecret, interactDoor, nearChest, openChest, recordRun, doorMarker, door as secretDoor, chest as secretChest } from './progress.js';
 import { initHud, updateHud, flashSlot, setHudFlags } from './hud.js';
-import { openAchievements, openInventory, openParty, openHelp, openGameOver } from './panels.js';
+import { openAchievements, openInventory, openParty, openHelp, openGameOver, openMenu } from './panels.js';
 import { initRegions, makeCtx, updateRegions, nearestInteractable, useInteractable, regionName, ensureRegion, REGIONS, dismount } from './regions.js';
 import * as regionsApi from './regions.js';
 import { createTravel, HUB_SPAWN } from './travel.js';
@@ -196,14 +196,34 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   }
 
   const touch = coarse ? createTouch(hudEl, input, {
-    attack: () => doAttack(), interact: () => interact(), spell: () => doSpell('fireball'),
-    vehicle: () => doVehicle(), map: () => travelApi.openMap(), view: () => toggleView(),
-  }) : null;
+    attack: () => doAttack(), interact: () => interact(), spell: (id) => doSpell(id), signature: () => doSignature(),
+    vehicle: () => doVehicle(), map: () => travelApi.openMap(), view: () => toggleView(), menu: () => openPhoneMenu(),
+  }, { spells: SPELLS, spell: S.settings.touchSpell, onSpell: (id) => { if (S.settings.touchSpell !== id) { S.settings.touchSpell = id; save(); } } }) : null;
+  // phones: one menu for everything the keyboard reaches directly (and the way back to the page)
+  function openPhoneMenu() {
+    if (modalOpen()) return;
+    openMenu({
+      spells: SPELLS, spell: touch?.spell, onSpell: (id) => touch?.choose(id),
+      questlog: openQuestLog, map: () => travelApi.openMap(), inventory: openInventory, party: openParty,
+      swap: () => cycleActive(), achievements: openAchievements, help: () => openHelp({ onLeave: exitPlay, touch: true }),
+      leave: () => exitPlay(),
+    });
+  }
+  // the E button lights up when something is in reach (checked a few times a second)
+  let useTag = null;
+  function useReady() {
+    if (player.dead || player.vehicle) return null;
+    if (nearestNpc(4)) return 'Talk';
+    if (nearestInteractable()) return 'Use';
+    if (where.id === 'hub' && (nearChest() || (!S.secret.unsealed && Math.hypot(player.x - secretDoor.x, player.z - secretDoor.z) <= 4.5))) return 'Use';
+    if (player.ride) return 'Off';
+    return null;
+  }
 
   initHud(hudEl, {
     attack: doAttack, spell: doSpell, signature: doSignature, swap: () => { if (!modalOpen()) cycleActive(); },
     achievements: openAchievements, inventory: openInventory, party: openParty,
-    help: () => openHelp({ onLeave: exitPlay }), leave: () => exitPlay(),
+    help: () => openHelp({ onLeave: exitPlay, touch: coarse }), leave: () => exitPlay(),
     map: () => travelApi.openMap(), questlog: openQuestLog, vehicle: () => doVehicle(),
   }, { world, markers: minimapData });
 
@@ -263,7 +283,8 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       pipeline.render();
       smoked = true;
     },
-    { maxDpr: coarse ? 1.25 : 2, antialias: false, alpha: false },
+    // phones and tablets: WebGL2 (the mature, lighter path on mobile GPUs; ?webgpu=1 to try WebGPU there)
+    { maxDpr: coarse ? 1.5 : 2, antialias: false, alpha: false, forceWebGL: coarse && q.get('webgpu') !== '1' },
   );
   if (fixedDpr) renderer.setPixelRatio(fixedDpr);
   const maxPr = renderer.getPixelRatio();
@@ -347,7 +368,11 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       tickPlay(dt, t);
       updateHud();
       setHudFlags({ fp: rig.firstPerson, vehicle: player.vehicle });
-      touch?.sync({ flying: player.vehicle === 'sword' || player.vehicle === 'mech' });
+      if (touch) {
+        if (frameNo % 6 === 0) useTag = useReady();
+        const sp = touch.spell;
+        touch.sync({ flying: player.vehicle === 'sword' || player.vehicle === 'mech', ready: !!useTag, tag: useTag || 'Use', cd: cooldownLeft(sp), poor: player.mp < SPELLS[sp].mp });
+      }
     } else {
       tour.update(dt);
       updateCompanion(dt);
@@ -494,7 +519,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       case 'KeyC': case 'F5': toggleView(); return true;
       default: break;
     }
-    if (key === '?') { openHelp({ onLeave: exitPlay }); return true; }
+    if (key === '?') { openHelp({ onLeave: exitPlay, touch: coarse }); return true; }
     return false;
   };
   input.onPrimary = () => doAttack();
@@ -508,6 +533,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   // in tour mode a modal (an islander's dialog) also locks the page scroll behind it
   on('pause', (paused) => {
     document.documentElement.classList.toggle('modal-open', paused);
+    touch?.pause(paused);
     if (!mode.play) return;
     input.clear();
     if (paused) { input.unlock(); clearHostileProjectiles(); clearBossHazards(); clearFoeHazards(); }
@@ -593,7 +619,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     coach = h('div', { class: 'g__coach', role: 'dialog', 'aria-label': 'How to play' },
       h('p', { class: 'g__coach-title' }, 'You have the controls'),
       coarse
-        ? h('p', null, 'Left thumb: move · drag on the right: look · buttons: attack, jump, E to use, dodge, vehicle, map.')
+        ? h('p', null, 'Left thumb anywhere: move (push far to sprint) · right side: drag to look, pinch to zoom · ⚔ attack · ⤒ jump · E talks and uses (it lights up) · hold the spell button to pick a spell · ☰ menu: quests, bag, settings, back to the page.')
         : h('p', null, k('W'), k('A'), k('S'), k('D'), ' move · click: mouse look · ', k('Space'), ' jump · ', k('Shift'), ' sprint · ', k('K'), ' dodge · ', k('J'), '/click attack (combo) · ', k('E'), ' use · ', k('V'), ' vehicle · ', k('M'), ' map · ', k('C'), ' first person · ', k('Esc'), ' back to the page'),
       h('p', { class: 'muted small' }, `Your journey, the Road to Dr.: collect a diploma, 6 badges, 4 relics and 2 seals (${roadCount()} / ${ROAD.length}). Every landmark on the island is a door: the gate, the CSE building, the flags, the monuments, Geisel. The boat on the pier goes anywhere you have been.`),
       h('button', { type: 'button', class: 'btn btn--small btn--primary', onclick: () => { S.settings.tutorial4 = true; save(); coach.remove(); coach = null; } }, 'Let’s go'),

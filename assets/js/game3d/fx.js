@@ -88,10 +88,11 @@ export function project(x, y, z) {
 // Persistent DOM labels attached to a world point (NPC nameplates, drop tags, door prompt).
 //   region:   only shown while that region is live ('hub' for the island); null = everywhere
 //   nearOnly: hidden (and not re-projected) while the camera is far away (tour overview shots)
+//   clamp:    keep the whole element on screen (speech bubbles); its tail (--tail) still points at the actor
 const pins = [];
-export function pin(el, getPos, { region = null, nearOnly = false } = {}) {
+export function pin(el, getPos, { region = null, nearOnly = false, clamp = false } = {}) {
   labelRoot.append(el);
-  const p = { el, getPos, region, nearOnly, shown: true, tx: '' };
+  const p = { el, getPos, region, nearOnly, clamp, shown: true, tx: '', w: 0, h: 0 };
   pins.push(p);
   return () => { el.remove(); const i = pins.indexOf(p); if (i >= 0) pins.splice(i, 1); };
 }
@@ -117,7 +118,18 @@ export function updateFx(dt) {
     p.pk = pk;
     const s = project(w.x, w.y, w.z);
     if (!s || s.sx < -300 || s.sx > size.w + 300 || s.sy < -300 || s.sy > size.h + 300) { showPin(p, false); continue; }
-    const tx = `translate(-50%, -100%) translate(${s.sx.toFixed(0)}px, ${s.sy.toFixed(0)}px)`;
+    let { sx, sy } = s;
+    if (p.clamp) {
+      showPin(p, true);
+      if (!p.w) { p.w = p.el.offsetWidth; p.h = p.el.offsetHeight; }
+      const hw = p.w / 2, m = 8;
+      const cx = Math.min(Math.max(sx, hw + m), Math.max(hw + m, size.w - hw - m));
+      const tail = Math.round(Math.min(Math.max(sx - cx, -hw + 14), hw - 14));
+      if (tail !== p.tail) { p.tail = tail; p.el.style.setProperty('--tail', `${tail}px`); }
+      sx = cx;
+      sy = Math.min(Math.max(sy, p.h + 64), size.h - m);
+    }
+    const tx = `translate(-50%, -100%) translate(${sx.toFixed(0)}px, ${sy.toFixed(0)}px)`;
     if (tx !== p.tx) { p.tx = tx; p.el.style.transform = tx; }
     showPin(p, true);
   }

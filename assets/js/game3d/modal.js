@@ -29,7 +29,10 @@ export function openModal(opts) {
     label,
   } = opts;
 
-  if (stack.some((m) => m.id === id)) closeModal(id);
+  // replacing a modal with the same id (a dialog that leads to another dialog) must not un-pause the
+  // world for the moment in between
+  const same = stack.findIndex((m) => m.id === id);
+  if (same >= 0) closeModal(id, { replacing: true });
 
   const previousFocus = document.activeElement;
   const panel = h('div', { class: `modal__panel ${className}` });
@@ -78,7 +81,7 @@ export function openModal(opts) {
   };
 }
 
-export function closeModal(id) {
+export function closeModal(id, { replacing = false } = {}) {
   const idx = id == null ? stack.length - 1 : stack.findIndex((m) => m.id === id);
   if (idx < 0) return;
   const wasTop = idx === stack.length - 1;
@@ -92,7 +95,7 @@ export function closeModal(id) {
   if (wasTop && entry.previousFocus && document.contains(entry.previousFocus)) {
     entry.previousFocus.focus?.({ preventScroll: true });
   }
-  if (stack.length === 0) emit('pause', false);
+  if (stack.length === 0 && !replacing) emit('pause', false);
 }
 
 export function closeAllModals() {

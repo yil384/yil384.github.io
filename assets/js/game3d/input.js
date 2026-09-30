@@ -119,6 +119,8 @@ export function createInput(el) {
     },
     addDrag(dx, dy) { dragDelta.dx += dx; dragDelta.dy += dy; dragDelta.touch = true; },
     wheel() { const w = wheelDelta; wheelDelta = 0; return w; },
+    /** Touch pinch: zoom like the mouse wheel (positive = out). */
+    addWheel(d) { wheelDelta += d; },
   };
   return api;
 }
