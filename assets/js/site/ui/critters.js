@@ -49,8 +49,12 @@ function roomFor(card) {
   const sw = seal && seal.offsetWidth ? seal.offsetWidth + 8 : 8;
   const left = tw + 8;
   const room = hw - left - sw;
-  if (room < 48) return null;
-  return { head, left, w: Math.max(0, room - 48) };
+  if (room >= 72) return { head, left, w: Math.max(0, room - 48) };
+  // narrow screens: the ribbon fills its row, so the critter walks the card's top edge instead
+  // (outside the card, right of Bit's dock), which never has text on it either
+  const cw = card.clientWidth;
+  if (cw < 200) return null;
+  return { head: card, left: 64, w: Math.max(0, cw - 64 - 20 - 44), edge: true };
 }
 
 function spawn(sec) {
@@ -80,6 +84,7 @@ function spawn(sec) {
   el.style.left = `${room.left}px`;
   el.style.setProperty('--w', `${Math.round(room.w)}px`);
   el.style.setProperty('--delay', `${-Math.round(Math.random() * 14)}s`);
+  if (room.edge) el.classList.add('critter--edge');
   room.head.classList.add('critter-floor');
   room.head.append(el);
   const rec = { el, def, sec, card, born: performance.now(), hits: 0, shift: 0, timers: [], fry: false };

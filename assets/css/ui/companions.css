@@ -29,7 +29,7 @@ html .hero > .bit.bit { animation: none; } /* the hero's entrance animation woul
 section:not(.is-live) .bit__bob { animation-play-state: paused; }
 html.rm .bit { transition: none; }
 html.rm .bit__bob, html.rm .bit.is-talk .bit__bob { animation: none; }
-html.is-play .bit, html.is-walking .bit.is-gutter { visibility: hidden; }
+html.is-play .bit { visibility: hidden; }
 
 /* Bit's speech: a child of Bit, so it rides along when Bit slides */
 .bit-say { pointer-events: none; max-width: 260px; text-align: left; text-shadow: none; cursor: default; }
@@ -53,6 +53,7 @@ html.is-game .card--about .prose .aside.critter-perch { position: relative; }
   width: 44px; height: 44px; padding: 0; margin: 0; border: 0; background: none; cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+.critter.critter--edge { bottom: auto; top: -35px; }
 .critter:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .critter__walk { position: absolute; inset: 0; display: grid; place-items: end center; padding-bottom: 8px; animation: critter-walk 14s linear var(--delay, 0s) infinite alternate; }
 .critter__shift { display: block; transition: transform 160ms steps(2); }

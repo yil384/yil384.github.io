@@ -5,7 +5,7 @@
 // the page's voice when there is no 3D world: kit.say() → 'ui:say' → Bit shows the line with the
 // speaker's avatar, next to its perch, in the world-side gutter, or (narrow screens) as a toast.
 // Never over CV text: the perch is the card border, bubbles live above the card or in the gutter.
-/* global getComputedStyle, scrollX */
+/* global getComputedStyle */
 import { ART, VARIANTS } from '../../three/art.js';
 import { pushToast } from '../eggs.js';
 import {
