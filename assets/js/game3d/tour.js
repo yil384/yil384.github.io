@@ -3,6 +3,7 @@
 // layers. If the way is blocked for too long the scholar blinks across instead of getting stuck.
 import { player, markAction } from './player.js';
 import * as fx from './fx.js';
+import { reducedMotion } from '../three/env.js';
 
 export function createTour(world) {
   let goal = null;
@@ -41,7 +42,7 @@ export function createTour(world) {
     /** Stand at (x, z) and finish facing `face` (radians, optional). */
     stand(x, z, face = null, { instant = false } = {}) {
       ({ x, z } = freeSpot(x, z));
-      if (instant) { player.x = x; player.z = z; player.y = world.surfaceY(x, z); if (face != null) player.yaw = face; goal = { x, z, face, arrived: true }; return; }
+      if (instant || reducedMotion.matches) { player.x = x; player.z = z; player.y = world.surfaceY(x, z); if (face != null) player.yaw = face; goal = { x, z, face, arrived: true }; return; }
       goal = { x, z, face, arrived: false };
       stuck = 0;
     },

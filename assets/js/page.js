@@ -18,6 +18,8 @@ async function mountWorld() {
   if (!force && (!probe.ok || probe.software || saveData)) return chrome.worldFailed(probe.ok ? (saveData ? 'save-data' : 'software renderer') : probe.reason);
   try {
     chrome.status('loading the island…');
+    // the egg module is small: fetch it alongside the world instead of after it
+    const eggsReady = import('./game3d/eggs3d.js').catch((err) => { console.warn('[eggs] world eggs unavailable:', err); return null; });
     const { createGame } = await import('./game3d/index.js');
     world = await createGame({
       worldEl: document.getElementById('world'),
@@ -27,8 +29,8 @@ async function mountWorld() {
     const canPlay = chrome.attachWorld(world);
     setCapabilities({ world: true, play: canPlay });
     if (q.get('play') === '1') setTimeout(() => world.enterPlay(), 400);
-    const { initWorldEggs } = await import('./game3d/eggs3d.js');
-    initWorldEggs(world);
+    // an egg bug must never take the world down with it
+    try { (await eggsReady)?.initWorldEggs(world); } catch (err) { console.warn('[eggs] failed to start:', err); }
   } catch (err) {
     console.warn('[world] failed to start:', err);
     chrome.worldFailed(String(err?.message || err));

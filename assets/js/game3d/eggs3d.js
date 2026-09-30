@@ -178,4 +178,5 @@ export function initWorldEggs(world) {
   requestAnimationFrame(tilt);
 
   world.eggs = { has };
+  if (window.__g) window.__g.eggs = world.eggs;
 }

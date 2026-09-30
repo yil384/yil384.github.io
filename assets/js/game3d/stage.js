@@ -95,7 +95,7 @@ export function buildStage(world, scene, { lowfx = false } = {}) {
     const c = Math.cos(G.yaw), s = Math.sin(G.yaw);
     for (const [u, v] of gate.pillars) world.block(G.x + u * c + v * s, G.z - u * s + v * c);
   }
-  register('gate', gate, { label: 'Tsinghua · 二校门', link: 'gate' });
+  register('gate', gate, { label: 'Tsinghua · 二校门', link: 'gate', egg: 'gate' });
 
   // King Triton (the Tritons' mascot) stands for TritonGym
   const M = LAYOUT.monuments;
@@ -261,8 +261,8 @@ export function buildStage(world, scene, { lowfx = false } = {}) {
 
   // the moon is a clickable egg; it hangs low behind the island as seen from the opening shot
   sky.placeMoon(-0.5, 0.3);
-  sky.moonHit.parent.userData.pickId = 'moon';
-  pickables.push({ id: 'moon', root: sky.moon, label: 'Make a wish', egg: 'moon' });
+  sky.moonHit.userData.pickId = 'moon';
+  pickables.push({ id: 'moon', root: sky.moonHit, label: 'Make a wish', egg: 'moon' });
 
   // ---------------------------------------------------------------- focus beam
   const beam = new THREE.Mesh(

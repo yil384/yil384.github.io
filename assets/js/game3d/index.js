@@ -208,7 +208,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
 
   // ---- loop ----
   let nearLabels = false;
-  let dirty = 6;                 // frames still owed while animation is off (reduced motion)
+  let awakeUntil = performance.now() + 2500;   // under reduced motion, render only while something is happening
   let last = performance.now();
   let slow = 0;
   function frame(dt, t) {
@@ -253,8 +253,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (reducedMotion.matches && !mode.play) {
-      if (dirty <= 0) return;
-      dirty--;
+      if (performance.now() > awakeUntil && !tour.busy) return;
     }
     // adaptive resolution: a weak GPU trades pixels for smoothness
     if (!fixedDpr && smoked) {
@@ -268,7 +267,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     frame(dt, now / 1000);
   }
   renderer.setAnimationLoop(step);
-  const wake = () => { dirty = 8; };
+  const wake = () => { awakeUntil = performance.now() + 1800; };
   on('progress', wake);
   on('shot', wake);
   window.addEventListener('pointermove', wake, { passive: true });
@@ -428,7 +427,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     director.retarget();
     save();
     emit('mode', 'tour');
-    dirty = 12;
+    wake();
   }
 
   // ---- the opening fly-in ----

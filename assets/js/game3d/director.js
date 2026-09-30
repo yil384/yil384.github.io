@@ -32,6 +32,9 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   let hovered = null;                 // { id, pickable }
   let litEl = null;
   let progress = -1;
+  let maxScroll = 1;
+  const measure = () => { maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight); };
+  new ResizeObserver(measure).observe(document.body);
   const sayCooldown = new WeakMap();
 
   // ---------------------------------------------------------------- tooltip + speech bubbles
@@ -93,21 +96,21 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     return sec;
   }
 
-  function apply(el, { force = false } = {}) {
+  function apply(el, { force = false, restand = false } = {}) {
     if (!el) return;
     const key = el.dataset.focus || el.dataset.shot;
     const shot = stage.shots[key] || stage.shots[el.closest('[data-shot]')?.dataset.shot];
     if (!shot) return;
     const side = sideOf(el);
     const compact = compactMQ.matches;
-    const sig = `${key}|${side}|${compact}|${innerWidth > innerHeight}`;
+    const aspect = innerWidth / Math.max(1, innerHeight);
+    const sig = `${key}|${side}|${compact}|${Math.round(aspect * 8)}`;
     if (!force && sig === currentSig) return;
     const changed = key !== currentKey;
     currentSig = sig;
     currentKey = key;
     currentEl = el;
 
-    const aspect = innerWidth / Math.max(1, innerHeight);
     // portrait screens see a narrower slice of the world: back off just enough to keep the subject in frame
     const distK = compact ? clamp(0.85 / aspect, 1, 1.9) : clamp(1.45 / aspect, 1, 1.5);
     rig.shot({
@@ -117,12 +120,12 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
       shiftY: compact ? -0.17 : 0,
     });
     stage.setFocus(shot.item ?? key);
-    if (changed) {
+    if (changed || restand) {
       if (shot.stand) tour.stand(shot.stand[0], shot.stand[1], shot.face ?? null);
       const sect = el.closest('[data-shot]') || el;
       emit('shot', { key, el, zone: sect.dataset.zone || '', index: sections.indexOf(sect) });
-      const line = el.dataset.say || (el.matches('[data-shot]') ? el.dataset.say : null);
-      if (line && !(reducedMotion.matches && false)) {
+      const line = el.dataset.say;
+      if (line) {
         const last = sayCooldown.get(el) || 0;
         if (performance.now() - last > 20000) {
           sayCooldown.set(el, performance.now());
@@ -146,7 +149,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
 
   // ---------------------------------------------------------------- page -> world
   function onScroll() { queueEval(); }
-  function onResize() { queueEval(); }
+  function onResize() { measure(); queueEval(); }
   function onOver(e) {
     const el = e.target instanceof Element ? e.target.closest('[data-focus]') : null;
     if (!el || el === hoverEl) return;
@@ -192,7 +195,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     const id = hit?.id || null;
     if (id !== hovered?.id) {
       hovered = hit ? { id, pickable: hit.pickable, label: hit.label } : null;
-      stage.setHover(hit?.pickable?.link && stage.items[hit.pickable.link] ? hit.pickable.link : null);
+      stage.setHover(stage.items[id] ? id : (stage.items[hit?.pickable?.link] ? hit.pickable.link : null));
       worldEl.style.cursor = hit ? 'pointer' : '';
       setLit(hit ? elFor(hit.pickable?.link) : null);
       const label = hit?.label || hit?.pickable?.label;
@@ -202,6 +205,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   }
   function clickWorld(e) {
     if (!enabled) return;
+    if (e.target instanceof Element && e.target.closest('.g__plate')) return;
     setNdc(e);
     const hit = hitTest();
     if (hit) {
@@ -253,11 +257,12 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
   window.addEventListener('resize', onResize);
   document.addEventListener('pointerover', onOver);
   document.addEventListener('pointerout', onOut);
-  document.addEventListener('focusin', onOver);
-  document.addEventListener('focusout', onOut);
+  document.addEventListener('focusin', (e) => { const el = e.target instanceof Element ? e.target.closest('[data-focus]') : null; if (el) stage.setHover(el.dataset.focus); });
+  document.addEventListener('focusout', (e) => { const el = e.target instanceof Element ? e.target.closest('[data-focus]') : null; if (el && !hoverEl) stage.setHover(null); });
   compactMQ.addEventListener?.('change', queueEval);
 
   scan();
+  measure();
   queueEval();
 
   return {
@@ -265,7 +270,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
     scan,
     walkTo(x, z) { tour.stand(x, z, null); },
     /** Re-apply the current target (after play mode, or when layout changed). */
-    retarget() { currentSig = ''; scan(); apply(pickTarget(), { force: true }); },
+    retarget() { currentSig = ''; scan(); apply(pickTarget(), { force: true, restand: true }); },
     focus(key) {
       const el = document.querySelector(`[data-focus="${key}"], [data-shot="${key}"]`);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -284,8 +289,7 @@ export function createDirector({ worldEl, overlayEl, stage, rig, tour, world, pl
       ptr.y += (lastPointer.y - ptr.y) * k;
       rig.pointer.x = ptr.x; rig.pointer.y = ptr.y;
       stage.sky.setScroll(scrollY);
-      const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-      const p = clamp(scrollY / max, 0, 1);
+      const p = clamp(scrollY / maxScroll, 0, 1);
       if (Math.abs(p - progress) > 0.002) { progress = p; emit('progress', p); }
     },
   };

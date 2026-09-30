@@ -56,7 +56,7 @@ function build() {
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { const line = input.value; input.value = ''; run(line); }
     else if (e.key === 'ArrowUp') { e.preventDefault(); if (hi > 0) input.value = history[--hi] || ''; }
-    else if (e.key === 'ArrowDown') { e.preventDefault(); input.value = hi < history.length - 1 ? history[++hi] : ''; hi = Math.min(hi + 1, history.length); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); if (hi < history.length - 1) input.value = history[++hi]; else { hi = history.length; input.value = ''; } }
     else if (e.key === 'Tab') { e.preventDefault(); complete(); }
     else if (e.key === 'Escape' || e.key === '`') { e.preventDefault(); close(); }
   });

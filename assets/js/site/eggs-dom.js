@@ -6,8 +6,8 @@ import { on } from '../game3d/bus.js';
 import { spriteUrl } from '../game3d/pixelart.js';
 import { toggleTerminal } from './terminal.js';
 import { openNotes } from './notes.js';
+import { isEditable as editable } from '../game3d/util.js';
 
-const editable = (t) => t instanceof Element && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
 
 export function confetti(n = 90) {
   const colors = ['#f2b84b', '#a78bfa', '#38bdf8', '#4ade80', '#f472b6', '#fde047', '#fb923c'];
