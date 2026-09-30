@@ -3,7 +3,7 @@
 // spot from across the island. Doors you have not been through yet pulse; visited ones glow steady
 // and their sign ticks. All rings are one instanced mesh, all beacons another.
 import * as THREE from 'three/webgpu';
-import { time, uv, float, sin, instancedBufferAttribute, smoothstep, vec3 } from 'three/tsl';
+import { time, uv, float, sin, instancedBufferAttribute, smoothstep, vec3, positionWorld, cameraPosition } from 'three/tsl';
 import { doorList } from './travel.js';
 import { LAYOUT } from './layout.js';
 import { regionName } from './regions.js';
@@ -84,7 +84,9 @@ export function buildDoorMarks(world, parent, signsApi) {
   const beamGeo = new THREE.CylinderGeometry(0.28, 0.4, 16, 8, 1, true);
   beamGeo.translate(0, 8, 0);
   const beamMat = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
-  beamMat.opacityNode = smoothstep(float(1), float(0), uv().y).mul(float(0.16).add(fr.mul(pulse).mul(0.16)));
+  // fades out as you walk up to it (a beacon is for finding a door from afar, not a wall of light)
+  const near = smoothstep(float(5), float(24), positionWorld.xz.distance(cameraPosition.xz));
+  beamMat.opacityNode = smoothstep(float(1), float(0), uv().y).mul(float(0.16).add(fr.mul(pulse).mul(0.16))).mul(near);
   const beams = new THREE.InstancedMesh(beamGeo, beamMat, n);
   specs.forEach((m, i) => {
     const y = world.surfaceY(m.door.x, m.door.z) + 0.07;

@@ -169,9 +169,10 @@ export function createTravel(env) {
   for (const d of doors) {
     if (d.walk) {
       trigger(env.hubCtx, { x: d.x, z: d.z, r: d.r, onEnter: () => travel(d.to, null, { via: 'door' }) });
-      interactable(env.hubCtx, { x: d.x, z: d.z, r: d.r + 1.2, label: d.label, prompt: 'walk through · or E', plateY: d.plateY, onInteract: () => travel(d.to, null, { via: 'door' }) });
+      interactable(env.hubCtx, { x: d.x, z: d.z, r: d.r + 1.2, label: d.label, prompt: 'walk through · or E', plateY: d.plateY, see: 1.5, onInteract: () => travel(d.to, null, { via: 'door' }) });
     } else {
-      interactable(env.hubCtx, { x: d.x, z: d.z, r: d.r, label: d.label, prompt: d.prompt, plateY: d.plateY ?? 3, onInteract: () => travel(d.to, null, { via: 'door' }) });
+      // (the signpost names the door from afar; the plate only appears once you are at it)
+      interactable(env.hubCtx, { x: d.x, z: d.z, r: d.r, label: d.label, prompt: d.prompt, plateY: d.plateY ?? 3, see: 0.8, onInteract: () => travel(d.to, null, { via: 'door' }) });
     }
   }
   // the Torrey Pines bluff summit hands out the glider (so does waving at a paraglider from the page)
@@ -224,10 +225,12 @@ export function createTravel(env) {
           }
           map.append(h('span', { class: 'wmap2__me', style: { ...at(player.x, player.z), transform: `translate(-50%, -50%) rotate(${Math.PI - player.yaw}rad)` }, title: 'You are here' }));
         }
-        const legend = h('p', { class: 'wmap2__legend muted small' },
-          h('span', { class: 'wmap2__key wmap2__key--door' }), ' door (✓ visited) ',
-          h('span', { class: 'wmap2__key wmap2__key--me' }), ' you ',
-          inHub ? h('span', { class: 'wmap2__key wmap2__key--loop' }) : null, inHub ? ' shuttle loop' : '');
+        const legend = inHub
+          ? h('p', { class: 'wmap2__legend muted small' },
+            h('span', { class: 'wmap2__key wmap2__key--door' }), ' door (✓ visited) ',
+            h('span', { class: 'wmap2__key wmap2__key--me' }), ' you ',
+            h('span', { class: 'wmap2__key wmap2__key--loop' }), ' shuttle loop')
+          : h('p', { class: 'wmap2__legend muted small' }, h('span', { class: 'wmap2__key wmap2__key--me' }), ` you · ${regionName(where.id)} · every region has a portal home`);
         // the regions, and the Road to Dr.
         const list = h('ul', { class: 'wmap2__list', role: 'list' });
         for (const id of ids) {

@@ -43,7 +43,7 @@ import { initNpcs, updateNpcs, nearestNpc, talk, npcs, npcMarkers } from './npcs
 import { initLoot, updateLoot, tokenMarkers } from './loot.js';
 import { initMonsters, updateGrass, cycleActive, onTravel } from './monsters.js';
 import { initCompanion, updateCompanion, placeBuddy, signature, buddy } from './companion.js';
-import { initProgress, initSecret, updateSecret, interactDoor, nearChest, openChest, recordRun, doorMarker } from './progress.js';
+import { initProgress, initSecret, updateSecret, interactDoor, nearChest, openChest, recordRun, doorMarker, door as secretDoor, chest as secretChest } from './progress.js';
 import { initHud, updateHud, flashSlot, setHudFlags } from './hud.js';
 import { openAchievements, openInventory, openParty, openHelp, openGameOver } from './panels.js';
 import { initRegions, makeCtx, updateRegions, nearestInteractable, useInteractable, regionName, ensureRegion, REGIONS, dismount } from './regions.js';
@@ -112,7 +112,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   sun.shadow.mapSize.set(1024, 1024);
   // a box that follows the view (see frame()): tight enough to stay crisp at 1024 and to keep the
   // shadow pass to what is near you
-  Object.assign(sun.shadow.camera, { left: -34, right: 34, top: 34, bottom: -34, near: 1, far: 140 });
+  Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 140 });
   sun.shadow.bias = -0.0008;
   scene.add(sun, sun.target);
 
@@ -150,7 +150,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   placeBuddy();
   initSecret(world, hub);
   initProgress();
-  const shadowActors = [...npcs.map((n) => n.mesh), ...enemies.filter((e) => !e.kind?.flying).map((e) => e.mesh), ...Object.values(bosses).map((b) => b.mesh), stage.sungod, stage.triton, ...stage.seals];
+  const shadowActors = [...npcs.map((n) => n.mesh), ...enemies.filter((e) => !e.kind?.flying).map((e) => e.mesh), ...Object.values(bosses).map((b) => b.mesh), stage.sungod, stage.triton, ...stage.seals, secretDoor.mesh, secretChest.mesh];
   // small or airborne things do not cast shadows (seagulls, the floating tomes, flags, the fallen star)
   for (const e of enemies) if (e.kind?.flying) e.mesh?.traverse((o) => { o.castShadow = false; });
   for (const id of ['book-triton', 'book-reh2o', 'flag-samsung', 'flag-picasso', 'flag-metabit', 'flag-tencent', 'flag-hotstar', 'flag-lark']) stage.items[id]?.obj.group.traverse((o) => { o.castShadow = false; });
@@ -374,7 +374,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       const c = mode.play ? player : rig.cur.look;
       for (const m of shadowActors) {
         if (!m) continue;
-        const on = Math.hypot(m.position.x - c.x, m.position.z - c.z) < 22;
+        const on = Math.hypot(m.position.x - c.x, m.position.z - c.z) < 18;
         if (m.userData.shadowOn !== on) { m.userData.shadowOn = on; m.traverse((o) => { if (o.isMesh) o.castShadow = on; }); }
       }
     }

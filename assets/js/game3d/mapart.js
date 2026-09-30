@@ -115,7 +115,10 @@ export function hubIllustrated(world, px = 5) {
   for (const [k, name] of DISTRICTS) {
     const zn = ZONES[k];
     if (!zn) continue;
-    const [a, b] = P(zn.x, zn.z);
+    // names by the rim are anchored so they read inward
+    const edge = Math.hypot(zn.x, zn.z) > 44;
+    g.textAlign = edge ? (zn.x > 0 ? 'right' : 'left') : 'center';
+    const [a, b] = P(zn.x + (edge ? (zn.x > 0 ? 3 : -3) : 0), zn.z);
     const big = ['forest', 'price', 'rimac', 'warren', 'libwalk', 'plaza'].includes(k);
     g.font = `${big ? 700 : 600} ${Math.round(px * (big ? 2.4 : 2))}px system-ui, "Segoe UI", sans-serif`;
     g.lineWidth = px * 0.9; g.strokeStyle = 'rgba(5, 9, 20, 0.85)'; g.lineJoin = 'round';

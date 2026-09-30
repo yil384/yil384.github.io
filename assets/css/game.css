@@ -430,8 +430,8 @@ html.is-play .g__hud { animation: g-hud-in 0.6s ease-out 0.35s both; }
 .wmap2__road-head { display: flex; align-items: center; gap: 4px; margin: 0 0 8px; font-size: 13.5px; }
 .wmap2__bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
 .wmap2__bar i { display: block; height: 100%; background: linear-gradient(90deg, #f2c14e, #fde68a); }
-.wmap2__items { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-.wmap2__item { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); opacity: 0.38; }
+.wmap2__items { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.wmap2__item { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 7px; background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); opacity: 0.38; }
 .wmap2__item.is-got { opacity: 1; border-color: rgba(242, 193, 78, 0.7); background: rgba(242, 193, 78, 0.12); }
 @media (max-width: 760px) {
   .wmap2 { grid-template-columns: 1fr; }

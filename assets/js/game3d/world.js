@@ -678,9 +678,11 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
   let baked = null;
   function bake() {
     if (baked) return baked;
+    const tb = performance.now();
     const solidTerrain = (x, y, z) => inRange(x, z) && HV[idx(x, z)] !== VOID && y <= HV[idx(x, z)];
     baked = voxMesh(statics, { roughness: 0.86, solidExtra: solidTerrain });
     baked.name = 'statics';
+    baked.userData.ms = performance.now() - tb;
     group.add(baked);
     return baked;
   }

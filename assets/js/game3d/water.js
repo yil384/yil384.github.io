@@ -76,7 +76,7 @@ export function buildWater(grid) {
   const body = mix(wall, sea, surface);
   mat.colorNode = mix(body, color('#eaf6ff'), foam.mul(0.85));
   mat.opacityNode = mix(mix(float(0.95), float(0.6), shore), float(0.9), float(1).sub(surface)).max(foam.mul(0.95));
-  mat.emissiveNode = body.mul(0.18).add(color('#bfe3ff').mul(foam.mul(0.12)));
+  mat.emissiveNode = body.mul(0.18).add(color('#bfe3ff').mul(foam.mul(0.08)));
   const mesh = new THREE.Mesh(geo, mat);
   mesh.name = 'sea';
   mesh.receiveShadow = true;

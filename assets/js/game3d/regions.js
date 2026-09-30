@@ -349,7 +349,7 @@ const pickups = [];
  * prompt, and E (or the touch E button) calls onInteract. handle: { x, z (local), enabled, label,
  * prompt, setLabel(t), setPrompt(t), remove(), mesh (if sprite) }.
  */
-export function interactable(ctx, { x, z, r = 2.2, label = '', prompt = 'E · use', onInteract, once = false, y = null, plateY = 2.6, sprite: sp = null, spriteScale = 0.2, face = 0 }) {
+export function interactable(ctx, { x, z, r = 2.2, label = '', prompt = 'E · use', onInteract, once = false, y = null, plateY = 2.6, sprite: sp = null, spriteScale = 0.2, face = 0, see = 6 }) {
   const mesh = sp ? sprite(ctx, sp, { x, z, scale: spriteScale, face }) : null;
   const gy = y ?? ctx.surfaceY(x, z);
   const hint = h('span', { class: 'g__plate-hint' }, prompt);
@@ -365,7 +365,7 @@ export function interactable(ctx, { x, z, r = 2.2, label = '', prompt = 'E · us
     remove() { it.enabled = false; it.unpin(); if (mesh) ctx.group.remove(mesh); const i = interactables.indexOf(it); if (i >= 0) interactables.splice(i, 1); },
   };
   // in play, a plate only shows when you're close to it, so a row of doors doesn't turn into a pile of labels
-  const seeR = r + 6;
+  const seeR = r + see;
   it.unpin = fx.pin(plate, () => {
     if (!it.enabled) return null;
     if (mode.play && Math.hypot(player.x - x - ctx.ox, player.z - z - ctx.oz) > seeR) return null;

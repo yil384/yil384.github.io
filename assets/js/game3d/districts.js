@@ -198,7 +198,7 @@ export function buildDistricts(world, parent, { lowfx = false } = {}) {
     if (sy > -Infinity) {
       for (let yy = 1; yy <= 2; yy++) put(sx, sy + yy, sz, '#394152');
       hub.block(sx, sz);
-      sign({ id: 'blacks', text: 'Black’s Beach', sub: 'No stairs down. Glide (hold Space).', colour: '#38bdf8', x: sx, y: sy + 3.1, z: sz, yaw: PI / 2, w: 3.8, h: 0.95 });
+      sign({ id: 'blacks', text: 'Black’s Beach', sub: 'Glide down (hold Space) or walk round from the cove', colour: '#38bdf8', x: sx, y: sy + 3.1, z: sz, yaw: PI / 2, w: 3.8, h: 0.95 });
     }
   }
 
