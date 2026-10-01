@@ -22,7 +22,7 @@ import { where } from './where.js';
 import { cellSet } from './worldgrid.js';
 import { voxBuild, boxCells, ringCells, hash3, shade } from './props.js';
 import { makeActor, registerArt, mergeSprites } from './actors.js';
-import { Foe, PatternBoss, KINDS, registerEnemyKind as regKind } from './foes.js';
+import { Foe, PatternBoss, KINDS, foes, patternBosses, registerEnemyKind as regKind } from './foes.js';
 import { addNpc, npcs, talk } from './npcs.js';
 import { player } from './player.js';
 import { registerQuest as regQuest, award, hasItem, ROAD } from './road.js';
@@ -114,6 +114,7 @@ function build(def) {
   built[def.id] = ctx;
   building = ctx;
   try { def.build(ctx); } catch (err) { console.error(`[regions] ${def.id}.build failed:`, err); }
+  try { settleProps(ctx); } catch (err) { console.warn(`[regions] ${def.id}: settling props failed:`, err); }
   building = null;
   delete loading[def.id];
   emit('region:built', def.id);
@@ -227,15 +228,77 @@ export function terrain(ctx, { size = ctx.def?.size || 48, height, type = () => 
 /**
  * props(ctx, cells, { block = false, shadow = true, roughness, metalness }) -> InstancedMesh
  * cells: [[x, y, z, '#colour', glow?], ...] in local x/z, absolute y (see props.js boxCells / ringCells).
- * block: true marks every column the prop covers as solid (walls, statues).
+ * block: true marks every column the prop covers as solid (walls, statues). Otherwise, once build()
+ * returns, the columns where a (still visible) voxel stands on the ground at knee height are blocked
+ * anyway, so nobody wades through a curb or a lamp base up to the knees; walk: true opts out (a puddle,
+ * a hologram you are meant to walk through). Higher voxels (signs, lamps, arches) never block.
  * The mesh has userData.setHi(0..1) to light it up (like the hub landmarks).
  */
-export function props(ctx, cells, { block: solid = false, ...opts } = {}) {
+export function props(ctx, cells, { block: solid = false, walk = false, ...opts } = {}) {
   const mesh = voxBuild(cells, opts);
   mesh.position.set(ctx.ox, 0, ctx.oz);
   ctx.group.add(mesh);
-  if (solid) for (const c of cells) block(ctx, c[0], c[2]);
+  // (a voxel on a half cell covers two columns: both are solid; whole cells block just their own)
+  if (solid) for (const c of cells) for (const [u, v] of SETTLE) block(ctx, c[0] + u, c[2] + v);
+  else if (!walk && building === ctx) (ctx.soft ||= []).push(mesh);
   return mesh;
+}
+// Block the columns where a non-solid prop's voxels (as drawn: moved, scaled, turned) fill the space
+// from the feet to knee height, measured against the finished terrain and platforms. These blocks live
+// in a grid of their own that asks the prop: hide the mesh (an opened door, a lowered gate) and the
+// columns are free again, whatever the region's own block()/unblock() calls do.
+const _sm = new THREE.Matrix4();
+const SETTLE = [[0, 0], [0.3, 0.3], [-0.3, 0.3], [0.3, -0.3], [-0.3, -0.3]];
+function settleProps(ctx) {
+  const soft = new Map();               // "x,z" -> [meshes standing in that column]
+  const newly = new Set();
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (const mesh of ctx.soft || []) {
+    if (!mesh.visible || !mesh.parent) continue;
+    mesh.updateWorldMatrix(true, false);
+    for (let i = 0; i < mesh.count; i++) {
+      mesh.getMatrixAt(i, _sm);
+      _sm.premultiply(mesh.matrixWorld);
+      const e = _sm.elements, half = 0.5 * Math.hypot(e[4], e[5], e[6]);
+      for (const [u, v] of SETTLE) {
+        const x = e[0] * u + e[8] * v + e[12], z = e[2] * u + e[10] * v + e[14];
+        const feet = env.world.surfaceY(x, z);
+        if (!(feet > -Infinity) || e[13] - half >= feet + 1.2 || e[13] + half <= feet + 0.3) continue;
+        const xi = Math.round(x), zi = Math.round(z), k = `${xi},${zi}`;
+        let l = soft.get(k);
+        if (!l) { soft.set(k, (l = [])); if (!env.world.isBlocked(xi, zi)) newly.add(k); }
+        if (!l.includes(mesh)) l.push(mesh);
+        x0 = Math.min(x0, xi); x1 = Math.max(x1, xi); z0 = Math.min(z0, zi); z1 = Math.max(z1, zi);
+      }
+    }
+  }
+  ctx.soft = null;
+  ctx.settled = newly.size;
+  if (soft.size) env.world.addGrid({
+    id: `${ctx.id}:props`, region: ctx.id, x0: x0 - 0.5, x1: x1 + 0.5, z0: z0 - 0.5, z1: z1 + 0.5,
+    height: () => -Infinity,
+    isBlocked: (x, z) => !!soft.get(`${Math.round(x)},${Math.round(z)}`)?.some((m) => m.visible && m.parent),
+  });
+  // whoever was spawned in a column that turned solid later in build() (inside a prop, a portal's pillar)
+  // steps out to the nearest free spot
+  const hit = (o) => o.region === ctx.id && env.world.isBlocked(o.x, o.z);
+  const free = (o) => {
+    for (let r = 1; r <= 4; r += 0.5) for (let k = 0; k < 12; k++) {
+      const x = o.x + Math.cos((k / 12) * Math.PI * 2) * r, z = o.z + Math.sin((k / 12) * Math.PI * 2) * r;
+      if (env.world.walkable(x, z) && !env.world.isBlocked(x, z) && Math.abs(env.world.height(x, z) - env.world.height(o.x, o.z)) <= 1) return [x, z];
+    }
+    return null;
+  };
+  for (const f of [...foes, ...patternBosses]) {
+    if (!hit(f)) continue;
+    const p = free(f);
+    if (p) { f.x = f.hx = f.tx = p[0]; f.z = f.hz = f.tz = p[1]; f.y = env.world.surfaceY(p[0], p[1]); }
+  }
+  for (const npc of npcs) {
+    if (!hit(npc)) continue;
+    const p = free(npc);
+    if (p) { npc.x = p[0]; npc.z = p[1]; npc.y = env.world.surfaceY(p[0], p[1]); npc.mesh.position.set(npc.x, npc.y, npc.z); }
+  }
 }
 /** Mark a local cell as solid (nothing walks into it) / clear it again. */
 export function block(ctx, x, z) { env.world.block(x + ctx.ox, z + ctx.oz); }

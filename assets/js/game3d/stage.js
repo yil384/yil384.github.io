@@ -9,6 +9,7 @@ import { voxelize } from '../three/voxel.js';
 import { ART } from '../three/art.js';
 import { makeActor, spriteBatch } from './actors.js';
 import { LAYOUT, snakePoints } from './layout.js';
+import { ZONES } from './world.js';
 import { buildSky } from './sky.js';
 import { voxBuild, bakeInstanced } from './props.js';
 import * as L from './landmarks.js';
@@ -36,12 +37,36 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   const surface = (x, z) => world.surfaceY(x, z);
   const anchor = (id, x, z, dy = 0) => (anchors[id] = { x, z, y: surface(x, z) + dy });
 
-  function put(obj, x, z, { yaw = 0, dy = 0 } = {}) {
+  function put(obj, x, z, { yaw = 0, dy = 0, solid = true } = {}) {
     obj.group.position.set(x, surface(x, z) + 0.5 + dy, z);
     obj.group.rotation.y = yaw;
     group.add(obj.group);
     if (obj.update) updaters.push(obj.update);
+    if (solid) blockFootprint(obj);
     return obj;
+  }
+  // Block every cell where the prop's voxels (rotated and scaled as drawn) fill the space just above the
+  // ground, so nobody walks into a plinth, a tent or a boulder up to the knees. Hand-made blockRects
+  // only add to this.
+  // Props on half-cell positions (or turned) straddle cells: every cell under 80% of a voxel's base counts.
+  const _fm = new THREE.Matrix4();
+  const CORNERS = [[0, 0], [0.4, 0.4], [-0.4, 0.4], [0.4, -0.4], [-0.4, -0.4]];
+  function blockFootprint(obj) {
+    obj.group.updateMatrixWorld(true);
+    for (const mesh of obj.meshes || []) {
+      if (!mesh?.isInstancedMesh) continue;
+      for (let i = 0; i < mesh.count; i++) {
+        mesh.getMatrixAt(i, _fm);
+        _fm.premultiply(mesh.matrixWorld);
+        const e = _fm.elements, cy = e[13];
+        const half = 0.5 * Math.hypot(e[4], e[5], e[6]);
+        for (const [u, v] of CORNERS) {
+          const x = e[0] * u + e[8] * v + e[12], z = e[2] * u + e[10] * v + e[14];
+          const feet = surface(x, z);
+          if (feet > -Infinity && cy - half < feet + 1.2 && cy + half > feet + 0.3) world.block(x, z);
+        }
+      }
+    }
   }
   function blockRect(cx, cz, hx, hz) {
     for (let x = Math.round(cx - hx); x <= Math.round(cx + hx); x++) for (let z = Math.round(cz - hz); z <= Math.round(cz + hz); z++) world.block(x, z);
@@ -177,8 +202,11 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
 
   const P = LAYOUT.pier;
   const pier = L.buildPier(18);
-  put(pier, P.x, P.z, { yaw: 0, dy: 0.5 });
-  const deckY = surface(P.x, P.z) + 0.5;
+  // the walkable deck is its own height grid (index.js addPierDeck, built before the stage): surface()
+  // at the pier's root is already the deck, so the planks' tops go exactly there (they used to sit 1.5
+  // higher, with everyone on the pier walking through them); its rails and hut are blocked by that grid
+  const deckY = surface(P.x, P.z);
+  put(pier, P.x, P.z, { yaw: 0, dy: -1, solid: false });
   anchors.pier = { x: P.x + 14, z: P.z, y: deckY + 2 };
   anchors.pierEnd = { x: P.x + 22, z: P.z, y: deckY + 3 };
   register('pier', pier, { label: 'Scripps-style pier', pick: false });
@@ -303,8 +331,25 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     pier:    { look: [P.x + 12, A.pier.y + 2, P.z], yaw: 0.78, pitch: 0.24, dist: 46, shiftX: 0.2, fov: 34, stand: [P.x - 1.5, P.z + 1.5], face: 1.5 },
     mailbox: { look: sub('mailbox', 0), yaw: 0.75, pitch: 0.34, dist: 34, shiftX: 0.2, fov: 34, stand: [MB.x - 2, MB.z + 1], face: 1.5 },
   };
+  // The flags stand just north of the Torrey Pines bluff, where the Deadline Dragon perches: from straight
+  // south the bluff (and the dragon on it) hid the newest flags. Each flag shot looks down a little more,
+  // or turns a little, until the sight line clears the ground (the bluff by the dragon's height).
+  const clearShot = (look, yaw0, pitch0, dist) => {
+    const pk = ZONES.peak;
+    const clear = (yaw, pitch) => {
+      const c = Math.cos(pitch);
+      for (let s = 4; s < dist; s += 0.5) {
+        const x = look[0] + Math.sin(yaw) * c * s, z = look[2] + Math.cos(yaw) * c * s, y = look[1] + Math.sin(pitch) * s;
+        if (world.height(x, z) + 1.5 + (Math.hypot(x - pk.x, z - pk.z) < pk.r ? 6 : 0) > y) return false;
+      }
+      return true;
+    };
+    for (const d of [0, 0.25, -0.25, 0.5, -0.5, 0.75, -0.75]) for (const p of [0, 0.1, 0.2, 0.3, 0.4]) if (clear(yaw0 + d, pitch0 + p)) return { yaw: yaw0 + d, pitch: pitch0 + p };
+    return { yaw: yaw0, pitch: pitch0 };
+  };
   for (const f of LAYOUT.flags) {
-    shots[f.id] = { look: sub(f.id, -1.5), yaw: -0.1, pitch: 0.32, dist: 30, shiftX: 0.2, fov: 34, stand: [f.x + 1.6, f.z + 2.2], face: 0.3 };
+    const look = sub(f.id, -1.5);
+    shots[f.id] = { look, ...clearShot(look, -0.1, 0.32, 30), dist: 30, shiftX: 0.2, fov: 34, stand: [f.x + 1.6, f.z + 2.2], face: 0.3 };
   }
   // (the Warren Mall buildings stand behind the monuments now: these look down a little more)
   shots['mon-starry'] = { look: sub('mon-starry', 1), yaw: 3.3, pitch: 0.42, dist: 34, shiftX: 0.2, fov: 34, stand: [M.starry.x - 0.5, M.starry.z - 4.5], face: 3.14 };

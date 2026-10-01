@@ -35,8 +35,12 @@ export function refreshBuddy() {
 }
 
 export function placeBuddy() {
-  buddy.x = player.x - Math.sin(player.yaw) * 1.6;
-  buddy.z = player.z - Math.cos(player.yaw) * 1.6;
+  // behind the scholar, or beside, or (last resort) right there: never inside a wall, a tree or a prop
+  for (const a of [0, 0.8, -0.8, 1.6, -1.6, Math.PI]) {
+    const x = player.x - Math.sin(player.yaw + a) * 1.6, z = player.z - Math.cos(player.yaw + a) * 1.6;
+    if (world.walkable(x, z) && !world.isBlocked(x, z)) { buddy.x = x; buddy.z = z; return; }
+  }
+  buddy.x = player.x; buddy.z = player.z;
 }
 
 const power = (sp) => sp.field.power * (1 + (buddyLevel(buddy.id) - 1) * 0.1);
@@ -47,8 +51,11 @@ export function updateCompanion(dt) {
   const tx = player.x - Math.sin(player.yaw) * 1.6 - Math.cos(player.yaw) * 0.7;
   const tz = player.z - Math.cos(player.yaw) * 1.6 + Math.sin(player.yaw) * 0.7;
   const k = Math.min(1, dt * 5);
-  buddy.x += (tx - buddy.x) * k;
-  buddy.z += (tz - buddy.z) * k;
+  // slide along walls and props like everyone else (out of one freely, if it ever starts inside)
+  const nx = buddy.x + (tx - buddy.x) * k, nz = buddy.z + (tz - buddy.z) * k;
+  const stuck = world.isBlocked(buddy.x, buddy.z);
+  if (stuck || !world.isBlocked(nx, buddy.z)) buddy.x = nx;
+  if (stuck || !world.isBlocked(buddy.x, nz)) buddy.z = nz;
   if (Math.hypot(buddy.x - player.x, buddy.z - player.z) > 20) placeBuddy();
   if (!world.walkable(buddy.x, buddy.z)) placeBuddy();
   buddy.y = world.surfaceY(buddy.x, buddy.z);

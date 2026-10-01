@@ -159,7 +159,7 @@ export default {
     const lamps = new THREE.InstancedMesh(new THREE.BoxGeometry(0.6, 0.9, 0.6), basic('#ffffff'), 16);
     lamps.castShadow = false; lamps.frustumCulled = false;
     ctx.group.add(lamps);
-    for (let k = 1; k <= 4; k++) [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz], j) => { const d = HW[k] - 0.8; _m.makeTranslation(sx * d + ctx.ox, HT[k] + 0.95, C + sz * d + ctx.oz); lamps.setMatrixAt((k - 1) * 4 + j, _m); });
+    for (let k = 1; k <= 4; k++) [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz], j) => { const d = HW[k] - 0.8; _m.makeTranslation(sx * d + ctx.ox, HT[k] + 0.95, C + sz * d + ctx.oz); lamps.setMatrixAt((k - 1) * 4 + j, _m); block(ctx, sx * d, C + sz * d); });
     const paintLamps = () => { for (let k = 1; k <= 4; k++) for (let j = 0; j < 4; j++) lamps.setColorAt((k - 1) * 4 + j, col.set(st.passed[k] ? '#4ade80' : '#ef4444')); lamps.instanceColor.needsUpdate = true; };
     paintLamps();
     const N_Q = 9;

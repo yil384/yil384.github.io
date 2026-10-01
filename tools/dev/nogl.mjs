@@ -4,7 +4,7 @@ const p = await b.newPage({ viewport: { width: 1440, height: 900 } });
 const logs = [];
 p.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ': ' + m.text().slice(0, 200)); });
 p.on('pageerror', e => logs.push('PAGEERR: ' + e.message.slice(0, 300)));
-await p.goto('http://localhost:8000/', { waitUntil: 'load' });
+await p.goto(process.env.BASE || 'http://localhost:8000/', { waitUntil: 'load' });
 await p.waitForTimeout(3500);
 console.log('body class:', await p.evaluate(() => document.body.className), '| canvas:', await p.evaluate(() => !!document.querySelector('#world canvas')), '| play btn hidden:', await p.evaluate(() => document.getElementById('play-btn').hidden));
 await p.evaluate(() => window.scrollTo(0, 1000)); await p.waitForTimeout(1200);

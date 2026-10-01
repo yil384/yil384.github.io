@@ -102,9 +102,16 @@ never build walkable ground below about y = -10. Handles that return world coord
   1-block steps automatically; 2-block ledges need a jump; 3+ are walls.
 - May be called several times (separate islands, raised floors). Where grids overlap the higher wins.
 
-**`props(ctx, cells, { block = false, shadow = true, roughness, metalness })`** → InstancedMesh
+**`props(ctx, cells, { block = false, walk = false, shadow = true, roughness, metalness })`** → InstancedMesh
 - `cells: [[x, y, z, '#colour', glow?], …]` local x/z, absolute y (one voxel each; glow = emissive multiplier).
-- `block: true` marks every column a cell covers as solid. `mesh.userData.setHi(0..1)` lights it up.
+- `block: true` marks every column a cell covers as solid (a cell on a half coordinate covers two columns).
+  `mesh.userData.setHi(0..1)` lights it up.
+- Without `block`, when build() returns the columns where a still-visible voxel fills the space from the
+  feet to knee height (as drawn: after any move/scale/turn of the mesh, against the finished terrain) are
+  blocked anyway, for as long as the mesh stays visible (hide a door or gate mesh and they are free again).
+  Actors spawned in such a column step out. `walk: true` opts out (something you are meant to wade through).
+  Higher voxels (signs, lamps, arches, roofs) never block. Your own InstancedMeshes are not covered: block()
+  the columns of anything static that stands on the floor. `tools/dev/ground.mjs <id>` audits a region.
 - Cell helpers re-exported from props.js: `boxCells(x0, x1, y0, y1, z0, z1, colour, { hollow, glow, pick(x,y,z) })`,
   `ringCells(cx, cz, hw, y, colour | (x,z)=>colour, { glow })`, `shade(hex, amount)`, `hash3(x, y, z)`.
 

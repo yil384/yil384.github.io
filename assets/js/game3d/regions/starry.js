@@ -10,7 +10,7 @@ import * as THREE from 'three/webgpu';
 import {
   terrain, props, registerArt, registerEnemyKind, spawnEnemy, spawnBoss, spawnNpc, interactable, trigger,
   pickup, portal, quest, egg, say, banner, toast, sfx, onUpdate, onEnter, onLeave, dialog, hash3, hasItem,
-  cinematic,
+  cinematic, block,
 } from '../regions.js';
 import { STARRY_ART } from './art-starry.js';
 
@@ -140,7 +140,7 @@ export default {
     // layer lamps: 5 per layer along its floor
     const lamps = inst(new THREE.BoxGeometry(0.5, 0.5, 0.5), 20, basic('#ffffff'));
     const LAMP_AT = [[[-6, -8], [-7, -5], [6, -5], [-4, -9], [4, -9]], [[-8, -11], [-10, -8], [9, -9], [-5, -13], [10, -7]], [[-9, -14.5], [-12, -11], [12, -11], [8, -15], [-13, -9]], [[-9, -20.5], [-14, -17], [14, -17], [9, -20.5], [-3, -22.5]]];
-    LAMP_AT.forEach((list, k) => list.forEach(([x, z], j) => { _m.makeTranslation(x + ctx.ox, H[k] + 0.9, z + ctx.oz); lamps.setMatrixAt(k * 5 + j, _m); }));
+    LAMP_AT.forEach((list, k) => list.forEach(([x, z], j) => { _m.makeTranslation(x + ctx.ox, H[k] + 0.9, z + ctx.oz); lamps.setMatrixAt(k * 5 + j, _m); block(ctx, x, z); }));
     const paintLamps = () => { for (let k = 0; k < 4; k++) for (let j = 0; j < 5; j++) lamps.setColorAt(k * 5 + j, col.set(st.layers > k ? HEADER_COL[k] : '#3f3f46')); lamps.instanceColor.needsUpdate = true; };
     paintLamps();
     // handshake pads

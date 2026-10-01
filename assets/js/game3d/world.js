@@ -668,7 +668,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
   };
   // Ice crystals in the cold aisle: one instanced mesh for all of them
   const crystalSpots = [];
-  tryPlace('ice', 6, 2.5, (x, z) => crystalSpots.push({ x, y: height(x, z) + 0.5, z, rotY: rand() * 6.28, scale: 0.4 + rand() * 0.3 }));
+  tryPlace('ice', 6, 2.5, (x, z) => { crystalSpots.push({ x, y: height(x, z) + 0.5, z, rotY: rand() * 6.28, scale: 0.4 + rand() * 0.3 }); blocked.add(`${x},${z}`); });
   if (crystalSpots.length) {
     const crystals = mergeSprites('crystal', crystalSpots, { maxHalf: 1, glow: { V: 1.4, v: 0.8, W: 2.2 } });
     group.add(crystals);
@@ -684,6 +684,15 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     baked.name = 'statics';
     baked.userData.ms = performance.now() - tb;
     group.add(baked);
+    // A static voxel resting on walkable ground (a bush's second leaf, a post, a tree crown on a slope,
+    // a district prop) fills the space where feet would stand: block that cell, as trunks are, instead
+    // of letting the scholar wade through it up to the knees. (Overhangs higher up stay walkable.)
+    for (const [x, y, z] of statics) {
+      const xi = Math.round(x), zi = Math.round(z);
+      if (!inRange(xi, zi)) continue;
+      const h = H[idx(xi, zi)];
+      if (h !== VOID && y - 0.5 < h + 1.7 && y + 0.5 > h + 0.8) blocked.add(`${xi},${zi}`);
+    }
     return baked;
   }
 

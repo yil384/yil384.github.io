@@ -13,7 +13,7 @@ import * as THREE from 'three/webgpu';
 import {
   terrain, props, platform, registerArt, registerEnemyKind, spawnEnemy, spawnBoss, spawnNpc, interactable,
   trigger, pickup, portal, quest, egg, say, banner, toast, sfx, onUpdate, onEnter, onLeave, dialog, cinematic,
-  sprite, hash3, hasItem, award, ROAD, unblock, regionName,
+  sprite, hash3, hasItem, award, ROAD, block, unblock, regionName,
 } from '../regions.js';
 import { on } from '../bus.js';
 import { player, hurt } from '../player.js';
@@ -374,7 +374,7 @@ export default {
     const cars = Array.from({ length: NCAR }, (_, i) => ({ on: false, lane: 0, z: 0, speed: 0, i }));
     _m.makeScale(0, 0, 0);
     for (let i = 0; i < NCAR; i++) { bodies.setMatrixAt(i, _m); cabins.setMatrixAt(i, _m); bodies.setColorAt(i, _c.set(CAR_COL[i])); cabins.setColorAt(i, _c.set('#bae6fd')); }
-    LANES.forEach((ln, i) => { _m.makeTranslation(ln.x + ctx.ox, 4.9, (ln.dir > 0 ? TRACK.z0 - 1 : TRACK.z1 + 1) + ctx.oz); lamps.setMatrixAt(i, _m); lamps.setColorAt(i, _c.set('#14532d')); });
+    LANES.forEach((ln, i) => { _m.makeTranslation(ln.x + ctx.ox, 4.9, (ln.dir > 0 ? TRACK.z0 - 1 : TRACK.z1 + 1) + ctx.oz); lamps.setMatrixAt(i, _m); lamps.setColorAt(i, _c.set('#14532d')); block(ctx, ln.x, ln.dir > 0 ? TRACK.z0 - 1 : TRACK.z1 + 1); });
     const laneStart = (ln) => (ln.dir > 0 ? TRACK.z0 + 0.5 : TRACK.z1 - 0.5);
     const laneEnd = (ln) => (ln.dir > 0 ? TRACK.z1 + 0.2 : TRACK.z0 - 0.2);
     const sealion = sprite(ctx, 'sealion', { x: TRACK.x1, z: -9, scale: 0.16, face: -Math.PI / 2 });

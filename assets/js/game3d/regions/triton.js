@@ -13,7 +13,7 @@ import * as THREE from 'three/webgpu';
 import {
   terrain, props, registerArt, registerEnemyKind, spawnEnemy, spawnBoss, spawnNpc, interactable, trigger,
   pickup, portal, quest, egg, say, banner, toast, sfx, onUpdate, onEnter, onLeave, dialog, hash3, hasItem,
-  cinematic,
+  cinematic, block,
 } from '../regions.js';
 import { TRITON_ART } from './art-triton.js';
 
@@ -119,7 +119,7 @@ export default {
     const inst = (geo, n, color = '#ffffff') => { const m = new THREE.InstancedMesh(geo, new THREE.MeshBasicNodeMaterial({ color }), n); m.castShadow = false; m.frustumCulled = false; ctx.group.add(m); return m; };
     const N_BAR = 28;
     const bar = inst(new THREE.BoxGeometry(0.8, 0.8, 0.8), N_BAR);
-    for (let i = 0; i < N_BAR; i++) { const a = (i / N_BAR) * Math.PI * 2 + Math.PI / 2; _m.makeTranslation(ARENA.x + Math.cos(a) * 10.6 + ctx.ox, 3.9, ARENA.z + Math.sin(a) * 10.6 + ctx.oz); bar.setMatrixAt(i, _m); }
+    for (let i = 0; i < N_BAR; i++) { const a = (i / N_BAR) * Math.PI * 2 + Math.PI / 2; _m.makeTranslation(ARENA.x + Math.cos(a) * 10.6 + ctx.ox, 3.9, ARENA.z + Math.sin(a) * 10.6 + ctx.oz); bar.setMatrixAt(i, _m); block(ctx, ARENA.x + Math.cos(a) * 10.6, ARENA.z + Math.sin(a) * 10.6); }
     const handles = inst(new THREE.BoxGeometry(0.25, 1.6, 0.25), 4, '#f43f5e');
     const pulled = [0, 0, 0, 0];
     const N_STREAM = 20;

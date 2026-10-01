@@ -17,9 +17,16 @@ export function initEnemies(world, parent, ZONES) {
   for (const [kind, zone, ox, oz] of SPAWNS) {
     const zn = ZONES[zone];
     let x = zn.x + ox, z = zn.z + oz;
-    // nudge onto walkable ground
-    for (let tries = 0; tries < 20 && (!world.walkable(x, z) || world.isBlocked(x, z)); tries++) { x += (Math.random() - 0.5) * 3; z += (Math.random() - 0.5) * 3; }
-    if (!world.walkable(x, z)) continue;
+    // the nearest walkable, unblocked spot (a home on a plinth or a tree would trap the foe inside it)
+    const ok = (px, pz) => world.walkable(px, pz) && !world.isBlocked(px, pz);
+    for (let r = 1; r <= 8 && !ok(x, z); r++) {
+      const a0 = Math.random() * Math.PI * 2;
+      for (let k = 0; k < 12; k++) {
+        const px = zn.x + ox + Math.cos(a0 + (k / 12) * Math.PI * 2) * r, pz = zn.z + oz + Math.sin(a0 + (k / 12) * Math.PI * 2) * r;
+        if (ok(px, pz)) { x = px; z = pz; break; }
+      }
+    }
+    if (!ok(x, z)) continue;
     enemies.push(new Foe(world, parent, kind, x, z, { region: 'hub' }));
   }
 }

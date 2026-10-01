@@ -456,6 +456,7 @@ export function buildFallenStar() {
 export function buildPier(len = 18) {
   const cells = [];
   for (let x = 0; x < len; x++) for (let z = -2; z <= 2; z++) cells.push([x, 0, z, (x + z) % 2 ? '#8b6f4e' : '#7a6040', 0]);
+  for (let z = -1; z <= 1; z++) cells.push([-1, -0.75, z, '#6b5238', 0]);     // the step up from the sand (index.js addPierDeck)
   for (let x = 1; x < len; x += 3) for (const z of [-2, 2]) for (let y = -9; y < 0; y++) cells.push([x, y, z, '#4a3b2a', 0]);
   for (let x = 0; x < len; x += 2) for (const z of [-2, 2]) { cells.push([x, 1, z, '#6b5238', 0]); }
   for (let x = 0; x < len; x++) for (const z of [-2, 2]) cells.push([x, 2, z, '#6b5238', 0]);

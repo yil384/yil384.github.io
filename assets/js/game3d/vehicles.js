@@ -112,6 +112,8 @@ export function createVehicles({ scene, world, input, rig, mover, onOut }) {
     if (prev) model(prev).visible = false;
     player.vehicle = id;
     player.vy = Math.max(0, player.vy);
+    // leaving a flyer over a building (flyers cross blocked cells high enough up): land beside it, not inside
+    if ((!id || id === 'car') && (prev === 'sword' || prev === 'mech')) clearOfBlocks();
     if (id) {
       model(id).visible = true;
       if (id === 'car') { player.carYaw = player.yaw; player.carSpeed = Math.hypot(player.vx, player.vz); }
@@ -122,6 +124,14 @@ export function createVehicles({ scene, world, input, rig, mover, onOut }) {
       player.grounded = false;
     }
     emit('vehicle', id);
+  }
+  /** Move the player (x/z only) off a blocked cell to the nearest open, walkable one. */
+  function clearOfBlocks() {
+    if (!world.isBlocked(player.x, player.z)) return;
+    for (let r = 1; r <= 16; r += 0.5) for (let a = 0; a < 16; a++) {
+      const x = player.x + Math.cos((a / 16) * Math.PI * 2) * r, z = player.z + Math.sin((a / 16) * Math.PI * 2) * r;
+      if (world.height(x, z) > -Infinity && !world.isBlocked(x, z)) { player.x = x; player.z = z; player.vx = player.vz = 0; return; }
+    }
   }
   function cycle() {
     const i = VEHICLES.findIndex((v) => v.id === (player.vehicle || null));

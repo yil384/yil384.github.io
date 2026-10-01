@@ -167,6 +167,7 @@ html.is-play .g__toasts { right: auto; left: 20px; top: 232px; }
 .g__coach { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); width: min(520px, 90vw); padding: 14px 18px; border-radius: 12px; background: rgba(7, 10, 18, 0.85); border: 1px solid var(--line-2); pointer-events: auto; display: grid; gap: 8px; font-size: 14px; }
 .g__coach-title { font-family: var(--serif); font-size: 20px; }
 .g__coach .btn { justify-self: start; }
+.g__hud:has(> .g__coach) .hud-help { visibility: hidden; }   /* the coach lists the same keys; the hint ran under it */
 
 /* ---------------- modals ---------------- */
 .g__modals { position: absolute; inset: 0; pointer-events: none; }
@@ -337,6 +338,8 @@ html.is-play .g__toasts { right: auto; left: 20px; top: 232px; }
 
 @media (max-width: 1100px) {
   .hud-tracker { display: none; }
+  /* the centred action bar (~725 px) ran under the minimap (left 20-178 px) below ~1100 px: start it past the map */
+  .hud-actions { left: max(50%, 548px); }
 }
 
 

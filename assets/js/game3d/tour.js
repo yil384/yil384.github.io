@@ -34,6 +34,7 @@ export function createTour(world) {
   function blink(x, z) {
     fx.burst(player.x, player.y + 1.2, player.z, '#a5b4fc', 14, 4, 0.5, 0.6);
     player.x = x; player.z = z; player.y = world.surfaceY(x, z);
+    if (goal) { goal.best = 0; goal.idle = 0; }
     fx.burst(player.x, player.y + 1.2, player.z, '#c7d2fe', 14, 4, 0.5, 0.6);
     stuck = 0;
   }
@@ -118,7 +119,7 @@ export function createTour(world) {
       if (warp) { restoreScale(); warp = null; }
       ({ x, z } = freeSpot(x, z));
       if (instant || reducedMotion.matches) { player.x = x; player.z = z; player.y = world.surfaceY(x, z); if (face != null) player.yaw = face; goal = { x, z, face, arrived: true }; return; }
-      goal = { x, z, face, arrived: false };
+      goal = { x, z, face, arrived: false, best: Infinity, idle: 0 };
       stuck = 0;
     },
     update(dt) {
@@ -148,11 +149,18 @@ export function createTour(world) {
       }
       player.walking = moved;
       if (moved) {
+        // the feet follow the ground (the walker climbs and drops one voxel a step; index.js smooths the
+        // mesh over the step). Without this the scholar kept the height it set off from and sank into
+        // (or floated over) every slope on the way.
+        player.y = world.surfaceY(player.x, player.z);
+        player.grounded = true;
         stuck = Math.max(0, stuck - dt);
         markAction();
         if (speed > 14) { dashFx -= dt; if (dashFx <= 0) { dashFx = 0.05; fx.burst(player.x, player.y + 0.4, player.z, '#c7d2fe', 1, 1.5, 0.35, 0.5); } }
       } else stuck += dt;
-      if (stuck > 1.1) blink(goal.x, goal.z);
+      // walking in circles round an obstacle counts as stuck too: no real progress for 1.5 s -> blink
+      if (!(d > goal.best - 0.5)) { goal.best = d; goal.idle = 0; } else goal.idle = (goal.idle || 0) + dt;
+      if (stuck > 1.1 || goal.idle > 1.5) blink(goal.x, goal.z);
       player.t += dt * (player.walking ? 8 + speed * 0.25 : 2);
     },
   };

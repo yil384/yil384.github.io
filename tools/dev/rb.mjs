@@ -13,7 +13,7 @@ const ev = (fn, arg) => p.evaluate(fn, arg);
 const sim = (s) => ev((s) => window.__g.sim(s), s);
 const S = '/tmp/yl';
 const shot = async (name, wait = 2500) => { if (shots === '0') return; await p.waitForTimeout(wait); await p.screenshot({ path: `${S}/rb_${region}_${name}.png` }); };
-await p.goto(`http://localhost:8000/?force=1&dpr=1&intro=0&lowfx=1&webgl=1&region=${region}`, { waitUntil: 'load' });
+await p.goto(`${process.env.BASE || "http://localhost:8000/"}?force=1&dpr=1&intro=0&lowfx=1&webgl=1&region=${region}`, { waitUntil: 'load' });
 await p.waitForFunction(() => document.body.classList.contains('world-live'), null, { timeout: 150000 });
 await p.waitForFunction((r) => window.__g?.where?.id === r, region, { timeout: 60000 }).catch(() => logs.push('never arrived'));
 await p.waitForTimeout(1500);
