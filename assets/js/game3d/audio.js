@@ -111,11 +111,12 @@ function windNodes(c) {
   if (wind || !bufs.loop) return wind;
   const src = c.createBufferSource(); src.buffer = bufs.loop; src.loop = true;
   src.playbackRate.value = 0.85;                    // a little slower = rounder, never a whistle
-  // two gentle low-pass stages: the air stays soft and dark, the hiss never comes through
-  const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 520; f.Q.value = 0.4;
-  const f2 = c.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = 900; f2.Q.value = 0.4;
+  // a light band of air: the rumble below ~280 Hz goes (that was the heaviness), the hiss above ~1 kHz never comes
+  const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 280; hp.Q.value = 0.5;
+  const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 800; f.Q.value = 0.4;
+  const f2 = c.createBiquadFilter(); f2.type = 'lowpass'; f2.frequency.value = 1100; f2.Q.value = 0.4;
   const g = c.createGain(); g.gain.value = 0;
-  src.connect(f).connect(f2).connect(g).connect(master);
+  src.connect(hp).connect(f).connect(f2).connect(g).connect(master);
   src.start();
   wind = { src, f, g };
   return wind;
@@ -130,18 +131,23 @@ export function scrollWind(pxPerSec) {
   const k = Math.min(1, pxPerSec / 3000);              // 0: still, ~0.1: reading, 1: flinging
   // reading: barely a breath; flinging: clearly louder, but only a little brighter and never higher
   // the top is capped low and eased (a fast fling or momentum glide swells gently instead of rushing)
-  w.g.gain.setTargetAtTime(k < 0.015 ? 0 : 0.012 + 0.055 * Math.sqrt(k), t, k < 0.015 ? 0.6 : 0.35);
-  w.f.frequency.setTargetAtTime(460 + 200 * k, t, 0.4);
+  // stops within half a second of the page stopping (release 0.12 s), swells over ~0.25 s
+  w.g.gain.setTargetAtTime(k < 0.02 ? 0 : 0.01 + 0.045 * Math.sqrt(k), t, k < 0.02 ? 0.12 : 0.25);
+  w.f.frequency.setTargetAtTime(760 + 220 * k, t, 0.3);
 }
 /** The gust recording, once (a new section while reading, the teleport). */
 function gust(level = 0.5) {
   if (!ctx || ctx.state !== 'running') return;
   if (!bufs.gust) { loadWind(ctx); return; }
-  const s = ctx.createBufferSource(); s.buffer = bufs.gust; s.playbackRate.value = 0.9;
-  const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 800; f.Q.value = 0.4;
-  const g = ctx.createGain(); g.gain.value = 0.16 * level;
-  s.connect(f).connect(g).connect(master);
-  s.start();
+  // only a short puff of the recording (its build-up), faded out after about a second
+  const s = ctx.createBufferSource(); s.buffer = bufs.gust;
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 280;
+  const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1000; f.Q.value = 0.4;
+  const g = ctx.createGain(), t = ctx.currentTime;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12 * level, t + 0.25); g.gain.setTargetAtTime(0, t + 0.6, 0.18);
+  s.connect(hp).connect(f).connect(g).connect(master);
+  s.start(t, 1.2);          // skip the recording's slow fade-in
+  s.stop(t + 1.6);
 }
 const BRIGHT = new Set(['coin', 'tick', 'pop', 'flip', 'buddy', 'ring', 'squeak', 'stamp']);
 let lastThump = 0;

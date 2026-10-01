@@ -56,9 +56,9 @@ export function initChrome() {
   let lastY = scrollY, lastT = performance.now(), v = 0, windRaf = 0, tickT = 0;
   const windTick = (now) => {
     const dt = Math.min(0.1, (now - (tickT || now)) / 1000); tickT = now;
-    v *= Math.exp(-dt / 0.22);                        // the gust dies down within ~half a second of stopping
+    v *= Math.exp(-dt / 0.1);                         // the air settles within ~0.3 s of the page stopping
     scrollWind(document.documentElement.classList.contains('is-play') ? 0 : v);
-    if (v > 8) windRaf = requestAnimationFrame(windTick); else { v = 0; scrollWind(0); windRaf = 0; tickT = 0; }
+    if (v > 40) windRaf = requestAnimationFrame(windTick); else { v = 0; scrollWind(0); windRaf = 0; tickT = 0; }
   };
   window.addEventListener('scroll', () => {
     const now = performance.now(), dt = Math.max(12, now - lastT);
