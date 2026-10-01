@@ -146,7 +146,9 @@ const NOTES = [
 // `original` keeps the clip's speech untouched; `tts` uses voice/*.wav (Kokoro, voice/gen.py) on the speech slots.
 const VOICE = opt('--voice', 'edit');
 const PIECES = { edit: [[0, 1.28, 0], [2.26, 3.16, 1.36], [4.74, 9.6, 4.74]], original: [[0, 9.6, 0]], tts: [[7.05, 9.6, 7.05]] }[VOICE];
-const LINES = VOICE === 'tts' ? [['hey', 0.05], ['name', 1.15], ['great', 4.84]] : []; // source seconds
+// edit also fills the gap after "the Green Ninja" (he keeps talking on screen) with voice/mission.wav, a line in the
+// clip's own voice (F5-TTS clone of the clip's first sentence, voice/clone.py): "Secret mission: find free pizza at Geisel!"
+const LINES = { tts: [['hey', 0.05], ['name', 1.15], ['great', 4.84]], edit: [['mission', 2.45]] }[VOICE] || []; // source seconds
 // tts only: the blade's ring, and a little fanfare where the clip's own laugh was (src 8.05-8.85, ducked)
 const duck = "volume='if(lt(t,7.25),(t-7.05)/0.2,if(lt(t,7.95),1,if(lt(t,8.01),1-(t-7.95)/0.06*0.85,if(lt(t,8.85),0.15,if(lt(t,8.91),0.15+(t-8.85)/0.06*0.85,1)))))':eval=frame,";
 if (VOICE === 'tts') NOTES.push([2093, B.shing[0], 0.5, 0.022], [3136, B.shing[0] + 0.02, 0.4, 0.014], [784, 9.05, 0.14, 0.06], [988, 9.15, 0.14, 0.06], [1175, 9.25, 0.14, 0.06], [1568, 9.35, 0.45, 0.06]);
@@ -156,7 +158,7 @@ const mix = (norm) => {
   PIECES.forEach(([t0, t1, at], i) => fc.push(`[c${i}]atrim=${t0}:${t1},asetpts=PTS-STARTPTS,aresample=48000,afade=t=in:d=0.012,afade=t=out:st=${(t1 - t0 - 0.012).toFixed(3)}:d=0.012,adelay=${Math.round(at * 1000)}:all=1,asetpts=N/SR/TB,apad=whole_dur=9.6,atrim=end_sample=${9.6 * 48000}[p${i}]`));
   fc.push(`${PIECES.map((_, i) => `[p${i}]`).join('')}amix=inputs=${PIECES.length}:normalize=0,afftdn=nr=10:nf=-45,${VOICE === 'tts' ? duck : ''}afade=t=out:st=8.9:d=0.7,adelay=1000:all=1,${fit}[v]`);
   const ins = ['[v]'];
-  LINES.forEach(([, at], i) => { fc.push(`[${i + 1}:a]aresample=48000,adelay=${Math.round((at + 1) * 1000)}:all=1,${fit}[l${i}]`); ins.push(`[l${i}]`); });
+  LINES.forEach(([, at], i) => { fc.push(`[${i + 1}:a]aresample=48000,afade=t=in:d=0.015,areverse,afade=t=in:d=0.04,areverse,adelay=${Math.round((at + 1) * 1000)}:all=1,${fit}[l${i}]`); ins.push(`[l${i}]`); });
   NOTES.forEach((n, i) => { fc.push(`${note(...n)},${fit}[n${i}]`); ins.push(`[n${i}]`); });
   fc.push(`${ins.join('')}amix=inputs=${ins.length}:normalize=0,${norm},aresample=48000,${fit}[a]`);
   return fc.join(';');
