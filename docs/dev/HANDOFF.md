@@ -113,6 +113,10 @@ The software GPU renders ~1 fps: prefer `__g.sim(seconds)` (runs the game withou
   `node rb.mjs ...` (industry regions; see each file's header). Run them from `tools/dev/`.
 - `camjit.mjs` camera oscillation metrics; `warp.mjs` samples the Education teleport; `perf.mjs` / `*_perf.mjs`
   draw calls and CPU ms (`?perf=1`).
+- `coldload.mjs [desk|phone] [throttle] [runs] [query] [port]`: first-visit jank probe (fresh context, cache off, CDP CPU
+  throttle, scrolling during load): long frames (LoAF), long tasks, time to live, and the world build phases
+  (`performance.mark('yl:*')` from `game3d/index.js`). `WEBGPU=1` for the WebGPU backend, `PROFILE=1` for a CPU profile,
+  `OUT=<label>` keeps the raw entries (`--summarize <files>` re-reads them). See its header.
 - Lint: `npx eslint -c tools/dev/eslint.config.mjs "assets/js/**/*.js" --ignore-pattern "assets/vendor/**"`.
 - URL flags: `force=1` (world even on weak devices), `intro=0`, `lowfx=1`, `dpr=<n>`, `region=<id>`, `road=all`
   (debug grant, with region), `perf=1`, `norender=1`, `world=0`, `webgl=1`.
@@ -124,4 +128,10 @@ The software GPU renders ~1 fps: prefer `__g.sim(seconds)` (runs the game withou
   `git worktree add --detach /tmp/wt HEAD` copy served on another port.
 - The page can grow after you reach the bottom (post-credits); "at the end" = the Enter panel is on screen.
 - Headless smooth scroll is slow: use `scrollTo({ behavior: 'instant' })` in tests.
+- First load (cold cache) must stay smooth: `createGame` builds in phases that yield to a paint (`util.js`
+  `yieldToPaint`; `buildWorld` / `buildStage` take a `pause`), every hub pipeline is compiled asynchronously for the
+  scene pass's real render context BEFORE the first frame (`precompile` + `warmUp` in index.js: three r186 keys render
+  contexts by call depth, and the pass renders inside RenderPipeline.render() with tone mapping off), so the first
+  render compiles nothing. Small 2D canvases that are read back (toDataURL / getImageData) use
+  `willReadFrequently: true` (a GPU readback waits behind the world's shader work). Check with `coldload.mjs`.
 - `__g.sim` advances game time faster than wall clock: never use `performance.now()` for gameplay/camera easing.

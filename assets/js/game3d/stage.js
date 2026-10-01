@@ -17,7 +17,7 @@ import { reducedMotion } from '../three/boot.js';
 
 const TAU = Math.PI * 2;
 
-export function buildStage(world, scene, { lowfx = false, parent = scene } = {}) {
+export async function buildStage(world, scene, { lowfx = false, parent = scene, pause = async () => {} } = {}) {
   const group = new THREE.Group();
   parent.add(group);
   const sky = buildSky(scene, { lowfx });
@@ -81,6 +81,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     return items[id];
   }
 
+  await pause();
   // ---------------------------------------------------------------- UC San Diego
   const T = LAYOUT.tower;
   const tower = L.buildTower();
@@ -149,6 +150,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   sungod.userData.pickId = 'sungod';
   pickables.push({ id: 'sungod', root: sungod, label: 'The Sun God', egg: 'sungod' });
 
+  await pause();
   // ---------------------------------------------------------------- experience trail
   for (const f of LAYOUT.flags) {
     const flag = L.buildFlag(f.colour);
@@ -159,6 +161,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     register(f.id, flag, { label: FLAG_LABELS[f.id] });
   }
 
+  await pause();
   // ---------------------------------------------------------------- camp / projects
   const camp = LAYOUT.camp;
   const tent = L.buildTent('#c2571a');
@@ -192,6 +195,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   anchor('mon-oj', M.oj.x, M.oj.z, 4);
   register('mon-oj', judge, { label: 'CST-OJ · click for a verdict', egg: 'judge' });
 
+  await pause();
   // ---------------------------------------------------------------- meadow / contact
   const MB = LAYOUT.mailbox;
   const mailbox = L.buildMailbox();
@@ -243,6 +247,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
     anchors.snakeHead = { x: head[0], z: head[1], y: surface(head[0], head[1]) };
   }
 
+  await pause();
   // ---------------------------------------------------------------- paragliders, tomes, orbiters
   const gliders = [];
   for (let i = 0; i < 3; i++) {
@@ -288,6 +293,7 @@ export function buildStage(world, scene, { lowfx = false, parent = scene } = {})
   sky.moonHit.userData.pickId = 'moon';
   pickables.push({ id: 'moon', root: sky.moonHit, label: 'Make a wish', egg: 'moon' });
 
+  await pause();
   // ---------------------------------------------------------------- static props -> one mesh
   // (props that never animate and never light up for the page: one draw call instead of seven)
   {

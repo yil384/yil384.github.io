@@ -9,7 +9,12 @@ export const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
  * rasteriser (SwiftShader / llvmpipe) is available; callers should then show a
  * static poster instead of a live scene (unless ?force=1).
  */
+let probed = null;
 export function probeGPU() {
+  // one probe per page: creating a WebGL context is not free (tens of ms on phones, seconds on software GL)
+  return (probed ??= probeOnce());
+}
+function probeOnce() {
   const out = { ok: false, reason: '', software: false, renderer: '' };
   try {
     const c = document.createElement('canvas');

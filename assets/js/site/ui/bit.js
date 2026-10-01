@@ -28,7 +28,7 @@ export function frameUrls(name, edit = null, key = '') {
     const w = Math.max(...grid.map((r) => r.length)), hh = grid.length;
     const c = document.createElement('canvas');
     c.width = w; c.height = hh;
-    const g = c.getContext('2d');
+    const g = c.getContext('2d', { willReadFrequently: true });   // CPU-backed: toDataURL without a GPU readback
     grid.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const col = pal[row[x]]; if (col) { g.fillStyle = col; g.fillRect(x, y, 1, 1); } } });
     return { url: c.toDataURL(), w, h: hh };
   });

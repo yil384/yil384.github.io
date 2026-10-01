@@ -62,3 +62,39 @@ export function isEditable(target) {
 export function fmt(n) {
   return Math.round(n).toLocaleString('en-US');
 }
+
+// ---- cooperative startup: give the main thread back between build steps (scroll, input and paint run in between)
+const mc = typeof globalThis.MessageChannel === 'function' ? new globalThis.MessageChannel() : null;
+const waiting = [];
+if (mc) mc.port1.onmessage = () => waiting.shift()?.();
+/** Yield to the browser: scheduler.yield() where it exists, else a message-channel task (not throttled in hidden tabs). */
+export function yieldToMain() {
+  if (globalThis.scheduler?.yield) return globalThis.scheduler.yield();
+  if (!mc) return new Promise((r) => setTimeout(r, 0));
+  return new Promise((r) => { waiting.push(r); mc.port2.postMessage(0); });
+}
+/**
+ * Yield until the browser has painted a frame (then run as a fresh task), so a long startup becomes a series of
+ * short frames instead of one long one. scheduler.yield() alone lets input in but Chrome may run the continuation
+ * before it paints. Hidden tabs (no frames) fall back to yieldToMain(); a frame that never comes times out.
+ */
+export function yieldToPaint() {
+  if (typeof document === 'undefined' || document.hidden || typeof requestAnimationFrame !== 'function') return yieldToMain();
+  return new Promise((resolve) => {
+    let done = false;
+    const go = () => { if (!done) { done = true; clearTimeout(t); yieldToMain().then(resolve); } };
+    const t = setTimeout(go, 100);
+    requestAnimationFrame(go);
+  });
+}
+/** A time-sliced yielder: `await slice()` yields only once `budgetMs` of work has run since the last yield. */
+export function slicer(budgetMs = 12) {
+  let t = performance.now();
+  return async () => {
+    if (performance.now() - t < budgetMs) return;
+    await yieldToMain();
+    t = performance.now();
+  };
+}
+/** performance.mark('yl:<name>') for tools/dev/coldload.mjs (no-op where marks are missing). */
+export const mark = (name) => { try { performance.mark(`yl:${name}`); } catch { /* old browser */ } };

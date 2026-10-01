@@ -9,6 +9,7 @@ import { hud, initHud } from './hud.js';
 import { initKeys } from './keys.js';
 import { initChapters } from './chapters.js';
 import { P } from './pstate.js';
+import { yieldToPaint } from '../../game3d/util.js';
 
 const MODULES = ['hero', 'about', 'edu', 'trail', 'pubs', 'quests', 'equip', 'attrs', 'contact', 'credits', 'bit', 'critters', 'walk'];
 const ctx = { kit, progress, hud, mode, P };
@@ -30,6 +31,7 @@ async function loadSections() {
   const mods = await Promise.all(MODULES.map((name) => import(`./${name}.js`).catch((err) => { console.error(`[ui] ${name}.js failed to load:`, err); return null; })));
   for (let i = 0; i < MODULES.length; i++) {
     try { await mods[i]?.init?.(ctx); } catch (err) { console.error(`[ui] ${MODULES[i]}.js failed:`, err); }
+    await yieldToPaint();  // one module per frame: a first visit keeps scrolling while the sections wake up
   }
   kit.emit('ui:ready', ctx);
 }

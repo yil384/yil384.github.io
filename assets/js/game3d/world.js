@@ -120,11 +120,12 @@ const strata = (x, y, z) => {
 };
 
 /**
- * Builds the island. Returns { group, height, walkable, zoneAt, surfaceY, grid, statics, bake(), ... }.
+ * Builds the island. Resolves to { group, height, walkable, zoneAt, surfaceY, grid, statics, bake(), ... }.
+ * `pause` is awaited between the build steps (index.js hands the main thread back to the browser there).
  *   height(x, z)   -> integer column height (top voxel y) or -Infinity off-island / deep water
  *   walkable(x, z) -> bool
  */
-export function buildWorld(seed = 7, { lowfx = false } = {}) {
+export async function buildWorld(seed = 7, { lowfx = false, pause = async () => {} } = {}) {
   const t0 = performance.now();
   const rand = mulberry(seed);
   const noise = makeNoise(rand);
@@ -196,6 +197,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     return noise4(Math.cos(a) * 3 + 2, Math.sin(a) * 3 + 2) > 0.5;
   };
 
+  await pause();
   // ---------------------------------------------------------------- heights and types
   for (let z = -HALF; z < HALF; z++) for (let x = -HALF; x < HALF; x++) {
     const i = idx(x, z);
@@ -274,6 +276,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     }
   }
 
+  await pause();
   // ---------------------------------------------------------------- the shuttle loop road
   const loop = loopPath(1);
   const hs = loop.map((p) => { const xi = Math.round(p.x), zi = Math.round(p.z); return land(xi, zi) ? H[idx(xi, zi)] : 3; });
@@ -377,6 +380,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
   for (let z = LAYOUT.libwalk.z0; z <= LAYOUT.libwalk.z1; z++) { const x = (LAYOUT.libwalk.x0 + LAYOUT.libwalk.x1) / 2; if (land(x, z) && T[idx(x, z)] === TYPE.PAVE) D[idx(x, z)] = 3; }
   for (let x = 1; x <= 25; x++) for (const z of [-43, -42]) if (land(x, z) && T[idx(x, z)] === TYPE.PAVE && x % 3) D[idx(x, z)] = 3;
 
+  await pause();
   // ---------------------------------------------------------------- the sea floor
   for (let z = -HALF; z < HALF; z++) for (let x = -HALF; x < HALF; x++) {
     const i = idx(x, z);
@@ -418,14 +422,15 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     return (PAL[T[i]] || ['#888'])[0];
   };
 
+  await pause();
   // ---------------------------------------------------------------- the terrain mesh
   const group = new THREE.Group();
-  const terrain = meshTerrain();
+  const terrain = await meshTerrain();
   terrain.receiveShadow = true;
   terrain.castShadow = true;
   terrain.name = 'terrain';
   group.add(terrain);
-  function meshTerrain() {
+  async function meshTerrain() {
     const w = new GeoWriter(false);
     const hv = (x, z) => (inRange(x, z) ? HV[idx(x, z)] : VOID);
     const topCol = (x, z, i) => {
@@ -457,6 +462,7 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
       { n: [0, 1], c: [[0, 0, 1], [1, 0, 1], [0, 1, 1], [1, 1, 1]] },
     ];
     for (let z = -HALF; z < HALF; z++) for (let x = -HALF; x < HALF; x++) {
+      if (x === -HALF && (z + HALF) % 32 === 31) await pause();   // four slices
       const i = idx(x, z);
       const h = HV[i];
       if (h === VOID) continue;
@@ -495,10 +501,12 @@ export function buildWorld(seed = 7, { lowfx = false } = {}) {
     return mesh;
   }
 
+  await pause();
   // ---------------------------------------------------------------- the sea
   const water = buildWater({ HV, LAND, seaD, idx, inRange, inDisc, SIZE, HALF, VOID, WATER });
   group.add(water.mesh);
 
+  await pause();
   // ---------------------------------------------------------------- trees and static scenery
   // Everything static goes into `statics` ([x, y, z, colour, glow?] cells) and becomes one merged
   // mesh in bake() (districts.js adds its buildings before that).

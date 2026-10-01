@@ -55,7 +55,7 @@ import { createAmbient } from './ambient.js';
 import { checkQuests, openQuestLog, roadCount, ROAD } from './road.js';
 import { createTouch } from './touch.js';
 import { sfx, startMusic, stopMusic } from './audio.js';
-import { h } from './util.js';
+import { h, yieldToPaint, mark } from './util.js';
 import { registerEgg, found } from '../site/eggs.js';
 import { initPageLink } from './pagelink.js';
 import { createEmotes } from './emotes.js';
@@ -82,6 +82,15 @@ const ENGINE_EGGS = [
  *   root     the overlay for HUD, dialogs and toasts
  */
 export async function createGame({ worldEl, root, progress = () => {} }) {
+  mark('game');
+  // the build runs in steps with the main thread handed back in between (a first visit must keep scrolling)
+  let resumed = performance.now();
+  const phase = async (name) => {
+    mark(name);
+    try { performance.measure(`yl:${name}`, { start: resumed }); } catch { /* old browser */ }
+    await yieldToPaint();
+    resumed = performance.now();
+  };
   const q = new URLSearchParams(location.search);
   const probe = probeGPU();
   const coarse = matchMedia('(pointer: coarse)').matches;
@@ -123,14 +132,20 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   const hub = new THREE.Group();               // everything that belongs to the UCSD island
   hub.name = 'hub';
   scene.add(hub);
-  const island = buildWorld(7, { lowfx });
+  await phase('lights');
+  const island = await buildWorld(7, { lowfx, pause: yieldToPaint });
   hub.add(island.group);
   const world = createComposite(island);
   addPierDeck(world);
-  const stage = buildStage(world, scene, { lowfx, parent: hub });
+  await phase('world');
+  const stage = await buildStage(world, scene, { lowfx, parent: hub, pause: yieldToPaint });
+  await phase('stage');
   const campus = buildDistricts(world, hub, { lowfx });
+  await phase('districts');
   island.bake();
+  await phase('bake');
   const ambient = createAmbient(world, hub, { lowfx, loop: island.loop });
+  await phase('ambient');
   const rig = createCamera();
   // camera collision: terrain, plus blocked cells (buildings, statues, trunks) up to their highest voxel where
   // that is known (the hub's static cells, region props), else as ~9-voxel obstacles
@@ -168,6 +183,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   for (const id of ['book-triton', 'book-reh2o', 'flag-samsung', 'flag-picasso', 'flag-metabit', 'flag-tencent', 'flag-hotstar', 'flag-lark']) stage.items[id]?.obj.group.traverse((o) => { o.castShadow = false; });
   stage.find('fallen')?.root.traverse((o) => { o.castShadow = false; });
   initWeapon(scene);
+  await phase('actors');
 
   let visY = player.y;           // the scholar mesh's smoothed height (step-ups)
   let glider = null;             // the Torrey Pines paraglider over his head while gliding
@@ -222,6 +238,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       leave: () => exitPlay(),
     });
   }
+  await phase('regions');
   // the E button lights up when something is in reach (checked a few times a second)
   let useTag = null;
   function useReady() {
@@ -242,6 +259,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     help: () => openHelp({ onLeave: exitPlay, touch: coarse }), leave: () => exitPlay(),
     map: () => travelApi.openMap(), questlog: openQuestLog, vehicle: () => doVehicle(),
   }, { world, markers: minimapData });
+  await phase('hud');
 
   director = createDirector({
     worldEl, overlayEl: root, stage, rig, tour, world, player, buddy, npcs, camera: rig.cam,
@@ -256,16 +274,17 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   // play-mode toys: emotes (X), the crowd and islanders reacting, Bit's commentary; balls, food stands, flyers
   const emotes = createEmotes({ hudEl, director, ambient, input, touch });
   createToys({ hubCtx, ambient });
+  await phase('director');
 
   // ---- renderer ----
   progress('compiling shaders');
-  let pipeline;
+  let pipeline, scenePass;
   function build(r) {
     r.toneMapping = THREE.NeutralToneMapping;
     r.shadowMap.enabled = !lowfx;
     r.shadowMap.type = THREE.PCFShadowMap;
     const p = new THREE.RenderPipeline(r);
-    const sp = pass(scene, rig.cam);
+    const sp = scenePass = pass(scene, rig.cam);
     if (lowfx) { p.outputNode = sp; return p; }
     sp.setMRT(mrt({ output, emissive }));
     // BloomNode already renders at half resolution (its default resolutionScale is 0.5)
@@ -281,6 +300,54 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     r.setSize(w, hh, false);
     rig.update(player, null, 0, 0);
   }
+  /**
+   * Compile every hub pipeline asynchronously BEFORE the first frame, for the render target the scene pass
+   * really draws into (compiling for the canvas would leave the first render to compile it all again,
+   * synchronously). Off-screen scenery is included, so the tour does not hitch when it first comes into view.
+   */
+  async function precompile(r) {
+    // what PassNode.setup() does on the first render: the target's sample count and buffer type
+    const rt = scenePass.renderTarget;
+    rt.samples = scenePass.options?.samples ?? r.samples;
+    if (r.getOutputBufferType) rt.texture.type = r.getOutputBufferType();
+    const restore = uncull();
+    // the scene pass draws inside RenderPipeline.render(), which turns tone mapping and the output colour space off
+    // and from inside the pipeline's own render call (three r186 keys render contexts by call depth: 1 there)
+    const tm = r.toneMapping, cs = r.outputColorSpace;
+    r.toneMapping = THREE.NoToneMapping;
+    r.outputColorSpace = THREE.ColorManagement.workingColorSpace;
+    const rc = r._renderContexts, get = rc?.get;
+    if (get) rc.get = function (target, mrtNode, depth = 0) { return get.call(this, target, mrtNode, depth || 1); };
+    try { await scenePass.compileAsync(r); } finally {
+      if (get) rc.get = get;
+      r.toneMapping = tm; r.outputColorSpace = cs;
+      restore();
+    }
+  }
+  /** Turn frustum culling off for the whole hub (precompile everything, not only what the first shot sees). */
+  function uncull() {
+    const culled = [];
+    hub.traverse((o) => { if ((o.isMesh || o.isPoints || o.isLine || o.isSprite) && o.frustumCulled) { culled.push(o); o.frustumCulled = false; } });
+    return () => { for (const o of culled) o.frustumCulled = true; };
+  }
+  /**
+   * What the scene pass does not cover (the shadow map pass, bloom and the output quad): one render pass over the
+   * scene that only creates the missing pipelines, asynchronously, then waits for them.
+   */
+  async function warmUp(r) {
+    const pl = r._pipelines ?? null;
+    const promises = [];
+    const upd = pl?.updateForRender;
+    if (!upd) return;
+    pl.updateForRender = (ro) => { pl.getForRender(ro, promises); };
+    // compile only, draw nothing: a draw makes the GPU build its pipeline state right then, and the next sync GL
+    // call (three checks every new program's link status) would wait for all of it on the main thread
+    const ready = pl.isReady;
+    pl.isReady = () => false;
+    const restore = uncull();
+    try { pipeline.render(); } finally { pl.updateForRender = upd; pl.isReady = ready; restore(); }
+    await Promise.all(promises);
+  }
   let smoked = false;
   const { renderer, backend } = await createRobustRenderer(
     () => {
@@ -290,6 +357,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       return c;
     },
     async (r) => {
+      await phase('gl-init');
       resize(r);
       director.retarget();
       tour.stand(shotStand().x, shotStand().z, shotStand().face, { instant: true });
@@ -298,9 +366,20 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       rig.settle();
       stage.update(0, 0);
       applyCutout(hub);              // see-through scenery in play (cutout.js), before the shaders compile
-      await r.compileAsync(scene, rig.cam);
+      await phase('renderer');
       pipeline = build(r);
+      // both lean on three r186 internals: if either throws or stalls, the first frame simply compiles synchronously
+      // (the old, slower path) instead of the world never showing up
+      const safely = (name, run) => Promise.race([run(), new Promise((res) => setTimeout(res, 10000, 'timeout'))])
+        .then((v) => { if (v === 'timeout') console.warn(`[world] ${name} timed out`); })
+        .catch((err) => console.warn(`[world] ${name} skipped:`, err));
+      await safely('precompile', () => precompile(r));
+      mark('compiled');
+      await safely('warm-up', () => warmUp(r));
+      mark('warmed');
+      if (sun.castShadow) sun.shadow.needsUpdate = true;
       pipeline.render();
+      mark('first-frame');
       smoked = true;
     },
     // phones and tablets: WebGL2 (the mature, lighter path on mobile GPUs; ?webgpu=1 to try WebGPU there)

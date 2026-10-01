@@ -20,7 +20,7 @@ export function init({ kit, progress, hud, P }) {
       try {
         const N = 48;
         cv.width = N; cv.height = N;
-        const g = cv.getContext('2d');
+        const g = cv.getContext('2d', { willReadFrequently: true });   // getImageData below: keep it on the CPU
         g.imageSmoothingEnabled = true;
         const s = Math.min(img.naturalWidth, img.naturalHeight);
         g.drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, N, N);
@@ -31,10 +31,12 @@ export function init({ kit, progress, hud, P }) {
         portrait.classList.add('has-px');
       } catch (err) { console.warn('[about] portrait', err); }
     };
+    // decode off the main thread first (drawImage of an undecoded image decodes it synchronously)
+    const drawDecoded = () => (img.decode ? img.decode().then(draw, draw) : draw());
     img.loading = 'eager';
-    if (img.complete) draw(); else img.addEventListener('load', draw, { once: true });
+    if (img.complete) drawDecoded(); else img.addEventListener('load', drawDecoded, { once: true });
     // the portrait egg (eggs-dom) swaps the src: redraw only for the real photo
-    img.addEventListener('load', () => { if (!portrait.classList.contains('is-voxel')) draw(); });
+    img.addEventListener('load', () => { if (!portrait.classList.contains('is-voxel')) drawDecoded(); });
     const show = (on) => portrait.classList.toggle('is-photo', on);
     portrait.addEventListener('pointerenter', () => show(true));
     portrait.addEventListener('pointerleave', () => show(false));

@@ -15,7 +15,7 @@ export function spriteUrl(name) {
   const w = Math.max(...grid.map((r) => r.length)), h = grid.length;
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
-  const g = c.getContext('2d');
+  const g = c.getContext('2d', { willReadFrequently: true });   // CPU-backed: toDataURL without a GPU readback
   grid.forEach((row, y) => { for (let x = 0; x < row.length; x++) { const col = pal[row[x]]; if (col) { g.fillStyle = col; g.fillRect(x, y, 1, 1); } } });
   const url = c.toDataURL();
   cache.set(name, url);
