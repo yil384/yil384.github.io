@@ -8,7 +8,7 @@
 //   node tools/dev/introvid/render.mjs --shots 1.5,3.5,6.5         single frames -> /tmp/yl/introvid/qa/t_<s>.png (+ _340)
 //   node tools/dev/introvid/render.mjs --serve                     only serve on :8123 (open /tools/dev/introvid/?t=6.5)
 //   --no-encode (render frames only), --encode-only (reuse /tmp/yl/introvid/out), --vbr <kbps> (video bitrate, 1250)
-//   --voice original (keep the clip's own speech instead of voice/*.wav)
+//   --voice edit|original|tts (default edit: the clip's voice without the character's name; see step 4)
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
@@ -139,24 +139,29 @@ const NOTES = [
   ...B.chips.map((t, i) => [[659, 784, 988][i], t, 0.16, 0.06]),
   [523, B.cont, 0.18, 0.07], [659, B.cont + 0.12, 0.18, 0.07], [784, B.cont + 0.24, 0.18, 0.07], [1047, B.cont + 0.36, 0.6, 0.07],
 ];
-// Voice: by default the clip's own speech (it names the clip's character) is replaced by voice/*.wav, Yichen
-// introducing himself (Kokoro TTS, see voice/gen.py), placed on the clip's speech slots; the source keeps only the
-// whoosh and applause after 7.05 s (its laugh ducked under a short fanfare). `--voice original` keeps the clip's own speech.
-const TTS = opt('--voice', 'tts') !== 'original';
-const LINES = [['hey', 0.05], ['name', 1.15], ['great', 4.84]]; // source seconds
-// the blade's ring, and a little fanfare where the clip's own laugh was (src 8.05-8.85, ducked)
-if (TTS) NOTES.push([2093, B.shing[0], 0.5, 0.022], [3136, B.shing[0] + 0.02, 0.4, 0.014], [784, 9.05, 0.14, 0.06], [988, 9.15, 0.14, 0.06], [1175, 9.25, 0.14, 0.06], [1568, 9.35, 0.45, 0.06]);
-// smooth 60 ms ramps: silent through the old speech, in for the whoosh, ducked under the old laugh
-const env = "volume='if(lt(t,7.05),0,if(lt(t,7.25),(t-7.05)/0.2,if(lt(t,7.95),1,if(lt(t,8.01),1-(t-7.95)/0.06*0.85,if(lt(t,8.85),0.15,if(lt(t,8.91),0.15+(t-8.85)/0.06*0.85,1))))))':eval=frame,";
+// Voice (--voice): `edit` (default) is the clip's own voice with the character's name and title cut out, so it says
+// "Hey everyone! I'm the Green Ninja. It's great to be here at UCSD..." (word gaps found from the 20 ms energy
+// envelope and checked with whisper): "I'm" runs to 1.28 s, "the Green Ninja" (2.26-3.16) follows it at 1.36 s,
+// silence until "It's great..." at its own time (4.74 s), then the clip as is (laugh, whoosh, applause).
+// `original` keeps the clip's speech untouched; `tts` uses voice/*.wav (Kokoro, voice/gen.py) on the speech slots.
+const VOICE = opt('--voice', 'edit');
+const PIECES = { edit: [[0, 1.28, 0], [2.26, 3.16, 1.36], [4.74, 9.6, 4.74]], original: [[0, 9.6, 0]], tts: [[7.05, 9.6, 7.05]] }[VOICE];
+const LINES = VOICE === 'tts' ? [['hey', 0.05], ['name', 1.15], ['great', 4.84]] : []; // source seconds
+// tts only: the blade's ring, and a little fanfare where the clip's own laugh was (src 8.05-8.85, ducked)
+const duck = "volume='if(lt(t,7.25),(t-7.05)/0.2,if(lt(t,7.95),1,if(lt(t,8.01),1-(t-7.95)/0.06*0.85,if(lt(t,8.85),0.15,if(lt(t,8.91),0.15+(t-8.85)/0.06*0.85,1)))))':eval=frame,";
+if (VOICE === 'tts') NOTES.push([2093, B.shing[0], 0.5, 0.022], [3136, B.shing[0] + 0.02, 0.4, 0.014], [784, 9.05, 0.14, 0.06], [988, 9.15, 0.14, 0.06], [1175, 9.25, 0.14, 0.06], [1568, 9.35, 0.45, 0.06]);
 const mix = (norm) => {
-  const fc = [`[0:a]atrim=0:9.6,asetpts=PTS-STARTPTS,aresample=48000,afftdn=nr=10:nf=-45,${TTS ? env : ''}afade=t=out:st=8.9:d=0.7,adelay=1000:all=1,${fit}[v]`];
+  // each piece: cut, 12 ms fades at the seams, moved to its place on the clip's timeline
+  const fc = [`[0:a]asplit=${PIECES.length}${PIECES.map((_, i) => `[c${i}]`).join('')}`];
+  PIECES.forEach(([t0, t1, at], i) => fc.push(`[c${i}]atrim=${t0}:${t1},asetpts=PTS-STARTPTS,aresample=48000,afade=t=in:d=0.012,afade=t=out:st=${(t1 - t0 - 0.012).toFixed(3)}:d=0.012,adelay=${Math.round(at * 1000)}:all=1,asetpts=N/SR/TB,apad=whole_dur=9.6,atrim=end_sample=${9.6 * 48000}[p${i}]`));
+  fc.push(`${PIECES.map((_, i) => `[p${i}]`).join('')}amix=inputs=${PIECES.length}:normalize=0,afftdn=nr=10:nf=-45,${VOICE === 'tts' ? duck : ''}afade=t=out:st=8.9:d=0.7,adelay=1000:all=1,${fit}[v]`);
   const ins = ['[v]'];
-  if (TTS) LINES.forEach(([k, at], i) => { fc.push(`[${i + 1}:a]aresample=48000,adelay=${Math.round((at + 1) * 1000)}:all=1,${fit}[l${i}]`); ins.push(`[l${i}]`); });
+  LINES.forEach(([, at], i) => { fc.push(`[${i + 1}:a]aresample=48000,adelay=${Math.round((at + 1) * 1000)}:all=1,${fit}[l${i}]`); ins.push(`[l${i}]`); });
   NOTES.forEach((n, i) => { fc.push(`${note(...n)},${fit}[n${i}]`); ins.push(`[n${i}]`); });
   fc.push(`${ins.join('')}amix=inputs=${ins.length}:normalize=0,${norm},aresample=48000,${fit}[a]`);
   return fc.join(';');
 };
-const inputs = ['-i', srcMp4, ...(TTS ? LINES.flatMap(([k]) => ['-i', path.join(DIR, 'voice', `${k}.wav`)]) : [])];
+const inputs = ['-i', srcMp4, ...LINES.flatMap(([k]) => ['-i', path.join(DIR, 'voice', `${k}.wav`)])];
 const measure = spawnSync('ffmpeg', ['-hide_banner', ...inputs, '-filter_complex', mix('loudnorm=I=-18:TP=-1.5:LRA=11:print_format=json'), '-map', '[a]', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
 const m = JSON.parse(measure.slice(measure.lastIndexOf('{'), measure.lastIndexOf('}') + 1));
 const lin = `loudnorm=I=-18:TP=-1.5:LRA=11:linear=true:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}`;
