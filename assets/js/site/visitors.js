@@ -45,12 +45,9 @@ export function initVisitorMap(root) {
   if (!root || root.dataset.ready) return;
   root.dataset.ready = '1';
   root.innerHTML = '<canvas class="vmap__c" role="img" aria-label="Map of where visitors come from"></canvas>'
-    + '<dl class="vmap__stats">'
-    + '<div><dt>Visits</dt><dd data-v="n">–</dd></div>'
-    + '<div><dt>Regions</dt><dd data-v="c">–</dd></div>'
-    + '<div class="vmap__latest"><dt><span class="vmap__live" aria-hidden="true"></span>Latest</dt><dd data-v="l">–</dd></div>'
-    + '</dl>'
-    + '<p class="vmap__note">City-level and approximate. No IP addresses are stored or shown.</p>'
+    + '<p class="vmap__stats" title="City-level and approximate. No IP addresses are stored or shown."><span class="vmap__live" aria-hidden="true"></span>'
+    + '<b data-v="n">–</b> visits · <b data-v="c">–</b> regions</p>'
+    + '<p class="vmap__latest">latest: <span data-v="l">–</span></p>'
     + '<div class="vmap__tip" hidden></div>';
   // the site's own palette: gold for the newest visits, teal for the rest, navy land
   const css = window.getComputedStyle(document.documentElement);
@@ -85,8 +82,8 @@ export function initVisitorMap(root) {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     const t = (now - t0) / 1000;
     for (const p of pings) {
-      const [x, y] = project(p.lon, p.lat), rad = Math.min(4.2, 1.4 + Math.sqrt(p.n) * 0.55);
-      if (p.live) { const k = (t * 0.6 + p.phase) % 1; g.globalAlpha = 0.55 * (1 - k); g.strokeStyle = GOLD; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, rad + k * 9, 0, 6.283); g.stroke(); g.globalAlpha = 1; }
+      const [x, y] = project(p.lon, p.lat), rad = Math.min(2.8, 1.1 + Math.sqrt(p.n) * 0.35);
+      if (p.live) { const k = (t * 0.6 + p.phase) % 1; g.globalAlpha = 0.55 * (1 - k); g.strokeStyle = GOLD; g.lineWidth = 1.2; g.beginPath(); g.arc(x, y, rad + k * 6, 0, 6.283); g.stroke(); g.globalAlpha = 1; }
       g.shadowColor = p.live ? GOLD : TEAL; g.shadowBlur = 6;
       g.fillStyle = p.live ? GOLD : TEAL;
       g.beginPath(); g.arc(x, y, rad, 0, 6.283); g.fill();
@@ -110,7 +107,7 @@ export function initVisitorMap(root) {
     pings = [...agg.values()].sort((a, b) => b.t - a.t);
     pings.forEach((p, i) => { p.live = i < 3; p.phase = i * 0.33; });
     set('n', rows.length.toLocaleString('en-US')); set('c', countries.size);
-    set('l', pings[0] ? `${pings[0].where}${pings[0].t ? ` · ${ago(pings[0].t)}` : ''}` : '–');
+    set('l', pings[0] ? pings[0].where : '–');
     kick();
   }
 
@@ -121,7 +118,7 @@ export function initVisitorMap(root) {
     for (const p of pings) { const [x, y] = project(p.lon, p.lat), d = Math.hypot(x - mx, y - my); if (d < hd) { hd = d; hit = p; } }
     if (!hit) { tip.hidden = true; return; }
     tip.innerHTML = `<b>${esc(hit.where)}</b> ${hit.n} visit${hit.n > 1 ? 's' : ''}${hit.t ? ` · ${ago(hit.t)}` : ''}`;
-    tip.style.left = `${Math.min(mx + 12, b.width - 180)}px`; tip.style.top = `${my + 12}px`; tip.hidden = false;
+    tip.hidden = false;   // sits just above the widget (CSS)
   });
   cv.addEventListener('pointerleave', () => { tip.hidden = true; });
   new window.ResizeObserver(() => { layout(); draw(performance.now()); }).observe(cv);
