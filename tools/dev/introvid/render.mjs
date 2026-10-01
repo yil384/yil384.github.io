@@ -8,10 +8,11 @@
 //   node tools/dev/introvid/render.mjs --shots 1.5,3.5,6.5         single frames -> /tmp/yl/introvid/qa/t_<s>.png (+ _340)
 //   node tools/dev/introvid/render.mjs --serve                     only serve on :8123 (open /tools/dev/introvid/?t=6.5)
 //   --no-encode (render frames only), --encode-only (reuse /tmp/yl/introvid/out), --vbr <kbps> (video bitrate, 1250)
+//   --voice original (keep the clip's own speech instead of voice/*.wav)
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 
 const ROOT = path.resolve(new URL('../../../', import.meta.url).pathname);
 const DIR = path.join(ROOT, 'tools/dev/introvid');
@@ -121,18 +122,45 @@ function sheetFromFrames(file) {
 if (partial && !encodeOnly) { if (step < 12) sheetFromFrames(path.join(WORK, 'partial_sheet.png')); process.exit(0); }
 if (flag('--no-encode')) { sheetFromFrames(path.join(WORK, 'qa_sheet.png')); process.exit(0); }
 
-// 4. audio: source delayed 1.0 s, applause extended under the outro by cross-faded loops of the clip's tail, faded
-// out by the end, loudness-normalised to about -18 LUFS
+// 4. audio: the source delayed 1.0 s, lightly de-noised. After the laugh (src ~8.05-8.85 s) the clip only has a
+// drifting 620-780 Hz hum: it fades out instead of being looped (looping it under the outro made the laugh's tail
+// warble). The quiet outro gets soft chiptune pops for the SUPERPOWERS chips and a little ta-da on TO BE CONTINUED,
+// in the site's own sfx style. Loudness: two-pass linear loudnorm to about -18 LUFS (one fixed gain, no pumping).
 const wav = path.join(WORK, 'audio.wav');
 const srcMp4 = path.join(DIR, 'source.mp4');
-const loops = [8.72, 8.86, 8.66, 8.8];
-const fc = ['[0:a]atrim=0:10,asetpts=PTS-STARTPTS,aresample=48000[m0]'];
-loops.forEach((s, i) => fc.push(`[0:a]atrim=${s}:10,asetpts=PTS-STARTPTS,aresample=48000[s${i}]`));
-loops.forEach((_, i) => fc.push(`[${i ? 'm' + i : 'm0'}][s${i}]acrossfade=d=0.45:c1=qsin:c2=qsin[m${i + 1}]`));
+const { B } = await import('./timeline.js');
+const DUR = FRAMES / FPS;
 // (timestamps are rebuilt from sample counts: atrim after adelay/apad otherwise cuts at the wrong place)
-const fit = `asetpts=N/SR/TB,apad=whole_dur=${FRAMES / FPS},atrim=end_sample=${(FRAMES / FPS) * 48000}`;
-fc.push(`[m${loops.length}]adelay=1000:all=1,${fit},afade=t=out:st=12.2:d=1.8,loudnorm=I=-18:TP=-1.5:LRA=11,aresample=48000,${fit}[a]`);
-ff(['-i', srcMp4, '-filter_complex', fc.join(';'), '-map', '[a]', '-ac', '1', '-ar', '48000', wav]);
+const fit = `asetpts=N/SR/TB,apad=whole_dur=${DUR},atrim=end_sample=${DUR * 48000}`;
+// a triangle-ish note (fundamental + odd harmonics) with a fast attack and an exponential decay
+const note = (f, at, dur, gain) => `aevalsrc='${gain}*(sin(2*PI*${f}*t)+sin(6*PI*${f}*t)/9+sin(10*PI*${f}*t)/25)*min(1\\,t*200)*exp(-t*${(5 / dur).toFixed(2)})':s=48000:d=${dur},adelay=${Math.round(at * 1000)}:all=1`;
+const NOTES = [
+  [784, B.powers, 0.16, 0.05], [1047, B.powers + 0.07, 0.2, 0.05],
+  ...B.chips.map((t, i) => [[659, 784, 988][i], t, 0.16, 0.06]),
+  [523, B.cont, 0.18, 0.07], [659, B.cont + 0.12, 0.18, 0.07], [784, B.cont + 0.24, 0.18, 0.07], [1047, B.cont + 0.36, 0.6, 0.07],
+];
+// Voice: by default the clip's own speech (it names the clip's character) is replaced by voice/*.wav, Yichen
+// introducing himself (Kokoro TTS, see voice/gen.py), placed on the clip's speech slots; the source keeps only the
+// whoosh and applause after 7.05 s (its laugh ducked under a short fanfare). `--voice original` keeps the clip's own speech.
+const TTS = opt('--voice', 'tts') !== 'original';
+const LINES = [['hey', 0.05], ['name', 1.15], ['great', 4.84]]; // source seconds
+// the blade's ring, and a little fanfare where the clip's own laugh was (src 8.05-8.85, ducked)
+if (TTS) NOTES.push([2093, B.shing[0], 0.5, 0.022], [3136, B.shing[0] + 0.02, 0.4, 0.014], [784, 9.05, 0.14, 0.06], [988, 9.15, 0.14, 0.06], [1175, 9.25, 0.14, 0.06], [1568, 9.35, 0.45, 0.06]);
+// smooth 60 ms ramps: silent through the old speech, in for the whoosh, ducked under the old laugh
+const env = "volume='if(lt(t,7.05),0,if(lt(t,7.25),(t-7.05)/0.2,if(lt(t,7.95),1,if(lt(t,8.01),1-(t-7.95)/0.06*0.85,if(lt(t,8.85),0.15,if(lt(t,8.91),0.15+(t-8.85)/0.06*0.85,1))))))':eval=frame,";
+const mix = (norm) => {
+  const fc = [`[0:a]atrim=0:9.6,asetpts=PTS-STARTPTS,aresample=48000,afftdn=nr=10:nf=-45,${TTS ? env : ''}afade=t=out:st=8.9:d=0.7,adelay=1000:all=1,${fit}[v]`];
+  const ins = ['[v]'];
+  if (TTS) LINES.forEach(([k, at], i) => { fc.push(`[${i + 1}:a]aresample=48000,adelay=${Math.round((at + 1) * 1000)}:all=1,${fit}[l${i}]`); ins.push(`[l${i}]`); });
+  NOTES.forEach((n, i) => { fc.push(`${note(...n)},${fit}[n${i}]`); ins.push(`[n${i}]`); });
+  fc.push(`${ins.join('')}amix=inputs=${ins.length}:normalize=0,${norm},aresample=48000,${fit}[a]`);
+  return fc.join(';');
+};
+const inputs = ['-i', srcMp4, ...(TTS ? LINES.flatMap(([k]) => ['-i', path.join(DIR, 'voice', `${k}.wav`)]) : [])];
+const measure = spawnSync('ffmpeg', ['-hide_banner', ...inputs, '-filter_complex', mix('loudnorm=I=-18:TP=-1.5:LRA=11:print_format=json'), '-map', '[a]', '-f', 'null', '-'], { encoding: 'utf8' }).stderr;
+const m = JSON.parse(measure.slice(measure.lastIndexOf('{'), measure.lastIndexOf('}') + 1));
+const lin = `loudnorm=I=-18:TP=-1.5:LRA=11:linear=true:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}`;
+ff([...inputs, '-filter_complex', mix(lin), '-map', '[a]', '-ac', '1', '-ar', '48000', wav]);
 
 // 5. encode (two-pass, size-targeted: both files <= 2.5 MB)
 const vbr = parseInt(opt('--vbr', '1250'), 10);
