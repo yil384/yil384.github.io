@@ -12,8 +12,11 @@
 //             foot, C toggles first person, spells 1-4 cast and cool down, Esc back to the page, Reviewer mode (R) on
 //             and off, play again, W still walks.
 //   cam       world: hub + every region (REGIONS=a,b to pick), the player dropped on CAMN (40) random walkable cells,
-//             random yaw, 1.5 s sim: camera under the terrain, inside a blocked cell, or a raycast head -> camera hitting
-//             scene geometry (the scholar hidden). CAMV=n prints n cases per region; CAMSHOTS=0 skips the screenshots.
+//             random yaw, 1.5 s sim: camera under the terrain, inside a blocked cell, too close (the model hidden), or a
+//             raycast scholar -> camera hitting drawn geometry (the scholar hidden; surfaces the play-mode cutout dithers
+//             away don't count). Then CAMWALK (2) s of walking with a drifting view per spot: the same checks at 6 Hz,
+//             plus pumps (reversals of the camera distance) and the largest per-frame distance step.
+//             CAMV=n prints n cases per region; CAMSHOTS=0 skips the screenshots.
 //   portals   every region: spawn on open ground, falling off the island respawns in the region, walking into the
 //             region's portal arches reaches the hub.
 //   save      travel to a region, reload: discovered regions and the resume hint survive, the page reloads on the hub.
@@ -200,30 +203,45 @@ async function overlays() {
   return res;
 }
 
-// camera checks (in page): under the ground, inside a blocked cell, line of sight head -> camera
+// camera checks (in page): under the ground, inside a blocked cell, line of sight scholar -> camera. A hit on a
+// material with the play-mode cutout (game3d/cutout.js) counts only where the cutout leaves it mostly drawn.
 async function camProbeInit(p) {
   await p.evaluate(async () => {
     const THREE = await import('three/webgpu');
+    let cutAlpha = null;
+    try { ({ cutAlpha } = await import(new URL('assets/js/game3d/cutout.js', document.baseURI).href)); } catch { /* a build without the cutout */ }
     const g = window.__g;
     const rc = new THREE.Raycaster();
-    const tmp = new THREE.Vector3(), dir = new THREE.Vector3();
-    const skip = (o) => { for (let x = o; x; x = x.parent) { if (x.visible === false) return true; if (x === g.scene) return false; } return true; };
-    window.__camcheck = () => {
+    const from = new THREE.Vector3(), dir = new THREE.Vector3();
+    const hiddenObj = (o) => { for (let x = o; x; x = x.parent) { if (x.visible === false) return true; if (x === g.scene) return false; } return true; };
+    const isActor = (o) => { for (let x = o; x; x = x.parent) if (x.userData?.setFrame || x.userData?.actor || x === g.player.mesh) return true; return false; };
+    let objs = null;
+    const collect = () => { const o = []; g.scene.traverseVisible((m) => { if ((m.isMesh || m.isInstancedMesh) && !m.isSprite && m.material && !m.material.transparent && m.material.depthWrite !== false && m.geometry && !m.userData.noCam && !isActor(m)) o.push(m); }); return o; };
+    // first drawn solid surface between a point on the scholar and the camera (null: the camera sees that point)
+    const ray = (pt, near) => {
+      const c = g.rig.cam.position;
+      from.copy(pt); dir.subVectors(c, from); const L = dir.length(); dir.normalize();
+      rc.set(from, dir); rc.near = near; rc.far = Math.max(0, L - 0.15);
+      for (const h of rc.intersectObjects(objs, false)) {
+        if (hiddenObj(h.object)) continue;
+        const m = Array.isArray(h.object.material) ? h.object.material[0] : h.object.material;
+        if (m?.userData?.cutout && cutAlpha && cutAlpha(h.point, c, m.userData.cutout === 'terrain') >= 0.5) continue;
+        return { at: +h.distance.toFixed(2), of: +L.toFixed(2), name: (h.object.name || h.object.parent?.name || h.object.type), p: [h.point.x, h.point.y, h.point.z].map((v) => +v.toFixed(1)), blk: g.world.isBlocked(h.point.x, h.point.z) };
+      }
+      return null;
+    };
+    const P = new THREE.Vector3();
+    window.__camcheck = (refresh = true) => {
+      if (refresh || !objs) objs = collect();
       const cam = g.rig.cam, look = g.rig.cur.look, w = g.world;
       const c = cam.position;
       const gy = w.surfaceY(c.x, c.z);
-      const res = { under: c.y < gy - 0.45 + 0.5 - 0.1 && gy > -1e9, blocked: w.isBlocked(c.x, c.z) && c.y < gy + 6, hit: null, dist: +c.distanceTo(look).toFixed(2), fp: g.rig.firstPerson };
+      // inside a blocked column: below its highest voxel where the world knows it (world.topAt), else below 6 up
+      const top = w.topAt?.(c.x, c.z);
+      const res = { under: c.y < gy - 0.1 && gy > -1e9, blocked: w.isBlocked(c.x, c.z) && c.y < (top === undefined ? gy + 6 : top + 0.2), near: !!g.rig.tooClose, hit: null, part: false, dist: +c.distanceTo(look).toFixed(2), fp: g.rig.firstPerson };
       if (res.fp) return res;
-      // raycast from the head to the camera: anything solid in between hides the scholar
-      tmp.set(look.x, look.y, look.z);
-      dir.subVectors(c, tmp); const L = dir.length(); dir.normalize();
-      rc.set(tmp, dir); rc.near = 0.9; rc.far = Math.max(0, L - 0.15);
-      const objs = [];
-      g.scene.traverseVisible((o) => { if ((o.isMesh || o.isInstancedMesh) && !o.isSprite && o.material && !o.material.transparent && o.geometry && !o.userData.noCam) objs.push(o); });
-      const hits = rc.intersectObjects(objs, false).filter((h) => !skip(h.object));
-      // ignore actors (player, buddy, enemies): they're small and move
-      const solid = hits.filter((h) => { let x = h.object; for (; x; x = x.parent) if (x.userData?.actor || x.name === 'player' || /scholar|buddy|enemy|npc/i.test(x.name || '')) return false; return true; });
-      if (solid.length) { const h = solid[0]; res.hit = { at: +h.distance.toFixed(2), of: L.toFixed(2), name: (h.object.name || h.object.parent?.name || h.object.type), inst: h.instanceId ?? null, p: [h.point.x, h.point.y, h.point.z].map((v) => +v.toFixed(1)), blk: w.isBlocked(h.point.x, h.point.z), gy: +w.surfaceY(h.point.x, h.point.z).toFixed(1), pc: [c.x, c.y, c.z].map((v) => +v.toFixed(1)) }; }
+      res.hit = ray(P.set(look.x, look.y, look.z), 0.9);
+      res.part = !!(res.hit || ray(P.set(look.x, look.y + 1.3, look.z), 0.6) || ray(P.set(look.x, look.y - 1.1, look.z), 0.6));
       return res;
     };
   });
@@ -238,22 +256,26 @@ async function cam() {
   await camProbeInit(p);
   const regions = (process.env.REGIONS || 'hub,tsinghua,picasso,samsung,metabit,timi,hotstar,lark,starry,im,oj,triton,stacks,finale').split(',');
   const N = +(process.env.CAMN || 40);
+  const WALK = +(process.env.CAMWALK ?? 2);       // seconds of walking (W, drifting yaw) after each spot settles
+  const tot = { n: 0, hidden: 0, part: 0, inside: 0, near: 0, wn: 0, wHidden: 0, wInside: 0, wNear: 0, flips: 0, frames: 0, maxJump: 0 };
   for (const id of regions) {
-    const r = await p.evaluate(async ({ id, N }) => {
+    const r = await p.evaluate(async ({ id, N, WALK }) => {
       const g = window.__g;
       for (let k = 0; k < 20 && g.where.id !== id; k++) { if (!await g.travelApi.travel(id, null, { instant: true })) await new Promise((r) => setTimeout(r, 500)); }
       g.closeAllModals();
       const def = id === 'hub' ? { origin: [0, 0], size: 150 } : g.regions.regionDef(id);
-      if (!def) return { n: 0, under: 0, blocked: 0, hidden: 0, cases: [{ error: 'no region ' + id }] };
+      if (!def) return { n: 0, cases: [{ error: 'no region ' + id }] };
       const [ox, oz] = def.origin, half = (def.size || 48) / 2 + 4;
       let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-      const out = { n: 0, under: 0, blocked: 0, hidden: 0, cases: [] };
+      const key = (code, d) => dispatchEvent(new KeyboardEvent(d ? 'keydown' : 'keyup', { key: code.replace('Key', '').toLowerCase(), code, bubbles: true }));
+      const out = { n: 0, under: 0, blocked: 0, hidden: 0, part: 0, near: 0, wn: 0, wHidden: 0, wInside: 0, wNear: 0, flips: 0, frames: 0, maxJump: 0, cases: [] };
       for (let i = 0, tries = 0; i < N && tries < N * 30; tries++) {
         const x = ox + (rnd() * 2 - 1) * half, z = oz + (rnd() * 2 - 1) * half;
         if (!g.world.walkable(x, z) || g.world.isBlocked(x, z)) continue;
         i++;
         g.teleport(x, z);
-        g.rig.want.yaw = rnd() * Math.PI * 2; g.rig.cur.yaw = g.rig.want.yaw;
+        const yaw = rnd() * Math.PI * 2;
+        g.rig.want.yaw = yaw; g.rig.cur.yaw = yaw;
         g.sim(1.5);
         if (g.modalOpen()) g.closeAllModals();
         if (g.where.id !== id) { out.cases.push({ x, z, left: g.where.id }); await g.travelApi.travel(id, null, { instant: true }); continue; }
@@ -262,22 +284,67 @@ async function cam() {
         if (c.under) out.under++;
         if (c.blocked) out.blocked++;
         if (c.hit) out.hidden++;
-        if (c.under || c.blocked || (c.hit && c.hit.at < 0.7 * +c.hit.of)) out.cases.push({ x: +x.toFixed(1), z: +z.toFixed(1), yaw: +g.rig.cur.yaw.toFixed(2), ...c });
+        if (c.part) out.part++;
+        if (c.near) out.near++;
+        if (c.under || c.blocked || c.near || c.hit) out.cases.push({ x: +x.toFixed(1), z: +z.toFixed(1), yaw: +yaw.toFixed(2), ...c });
+        if (!WALK) continue;
+        // walk on (W) with the view drifting: occlusion per sampled frame, and how much the camera distance pumps
+        const drift = (rnd() - 0.5) * 1.2;
+        const flips0 = out.flips;
+        let prevD = null, prevDd = 0, px = g.player.x, pz = g.player.z;
+        key('KeyW', 1);
+        for (let f = 0; f < WALK * 60; f++) {
+          g.rig.want.yaw += drift / 60;
+          g.sim(1 / 60);
+          if (g.where.id !== id || g.modalOpen()) break;
+          const D = g.rig.debug, cam = g.rig.cam.position;
+          const d = cam.distanceTo(D.look);
+          // a respawn / teleport, or a fall (off the island, off a ledge): not camera motion
+          const tp = Math.hypot(g.player.x - px, g.player.z - pz) > 0.8 || !g.player.grounded;
+          px = g.player.x; pz = g.player.z;
+          if (tp) prevD = null;
+          if (prevD != null) {
+            const dd = d - prevD;
+            // a reversal of a real (> 2 cm) distance change is a pump; ordinary easing never reverses
+            if (Math.abs(dd) > 0.02 && Math.abs(prevDd) > 0.02 && Math.sign(dd) !== Math.sign(prevDd)) out.flips++;
+            if (Math.abs(dd) > out.maxJump) { out.maxJump = Math.abs(dd); out.maxAt = { f, x: +x.toFixed(1), z: +z.toFixed(1), yaw: +yaw.toFixed(2), drift: +drift.toFixed(3), from: +prevD.toFixed(2), to: +d.toFixed(2) }; }
+            prevDd = Math.abs(dd) > 0.02 ? dd : prevDd;
+          }
+          prevD = d; out.frames++;
+          if (f % 10 === 9) {
+            const w = window.__camcheck(false);
+            out.wn++;
+            if (w.hit) out.wHidden++;
+            if (w.under || w.blocked) out.wInside++;
+            if (w.near) out.wNear++;
+            if ((w.hit || w.under || w.blocked) && out.cases.length < 40) out.cases.push({ walk: f, x: +g.player.x.toFixed(1), z: +g.player.z.toFixed(1), yaw: +g.rig.cur.yaw.toFixed(2), ...w });
+          }
+        }
+        key('KeyW', 0);
+        if (out.flips - flips0 > (out.pumpiest?.pumps || 0)) out.pumpiest = { pumps: out.flips - flips0, x: +x.toFixed(1), z: +z.toFixed(1), yaw: +yaw.toFixed(2), drift: +drift.toFixed(3) };
+        g.sim(0.1);
       }
+      if (g.where.id !== id) await g.travelApi.travel(id, null, { instant: true });
       return out;
-    }, { id, N });
-    res.notes.push(`${id}: n=${r.n} under=${r.under} inWall=${r.blocked} hiddenByGeometry=${r.hidden}`);
+    }, { id, N, WALK });
+    const pct = (a, b) => (b ? `${Math.round((100 * a) / b)}%` : '-');
+    res.notes.push(`${id}: n=${r.n} under=${r.under} inWall=${r.blocked} hidden=${r.hidden} (${pct(r.hidden, r.n)}) partly=${r.part} tooClose=${r.near} | walk ${r.wn} samples: hidden=${r.wHidden} inside=${r.wInside} tooClose=${r.wNear}; pumps=${r.flips}/${r.frames} frames (worst spot ${JSON.stringify(r.pumpiest || null)}), maxStep=${(+r.maxJump).toFixed(2)} ${JSON.stringify(r.maxAt || null)}`);
     console.log(`  cam ${res.notes.at(-1)} ${JSON.stringify(r.cases.slice(0, +(process.env.CAMV || 2)))}`);
-    if (r.under || r.blocked) res.problems.push(`${id}: camera under ground ${r.under} / inside a blocked cell ${r.blocked} of ${r.n}`);
+    for (const k of ['n', 'part', 'near', 'wn', 'wHidden', 'wInside', 'wNear', 'flips', 'frames']) tot[k] += r[k] || 0;
+    tot.hidden += r.hidden || 0; tot.inside += (r.under || 0) + (r.blocked || 0); tot.maxJump = Math.max(tot.maxJump, r.maxJump || 0);
+    if (r.under || r.blocked || r.wInside) res.problems.push(`${id}: camera under ground ${r.under} / inside a blocked cell ${r.blocked} of ${r.n}, ${r.wInside} of ${r.wn} walking samples`);
+    if (r.hidden || r.wHidden) res.problems.push(`${id}: scholar hidden behind geometry at ${r.hidden} of ${r.n} spots, ${r.wHidden} of ${r.wn} walking samples`);
     for (const c of r.cases.slice(0, 3)) res.worst.push({ id, ...c });
     // screenshot the first bad case of this region
-    const bad = r.cases.find((c) => c.under || c.blocked) || r.cases.find((c) => c.hit);
+    const bad = r.cases.find((c) => (c.under || c.blocked) && c.walk == null) || r.cases.find((c) => c.hit && c.walk == null) || r.cases.find((c) => c.near && c.walk == null);
     if (bad && bad.yaw != null && process.env.CAMSHOTS !== '0') {
       await p.evaluate(({ x, z, yaw }) => { const g = window.__g; g.teleport(x, z); g.rig.want.yaw = g.rig.cur.yaw = yaw; g.sim(1.5); }, bad);
       await sleep(p, 2500);
       await p.screenshot({ path: `${out}-cam-${id}.png`, timeout: 120000 }).catch(() => res.notes.push(`${id}: screenshot timed out`));
     }
   }
+  res.notes.push(`TOTAL: spots ${tot.n}: hidden ${tot.hidden}, partly ${tot.part}, inside ${tot.inside}, tooClose ${tot.near} | walking ${tot.wn} samples: hidden ${tot.wHidden}, inside ${tot.wInside}, tooClose ${tot.wNear} | pumps ${tot.flips} in ${tot.frames} frames, max step ${tot.maxJump.toFixed(2)}`);
+  console.log(`  cam ${res.notes.at(-1)}`);
   res.logs = s.logs;
   await s.close();
   return res;

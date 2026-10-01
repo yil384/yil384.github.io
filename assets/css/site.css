@@ -316,7 +316,7 @@ details.more pre { max-width: 100%; overflow-x: auto; padding: 10px 12px; border
 
 /* ---------------- egg toasts, Field Notes, terminal ---------------- */
 .egg-toasts { position: fixed; z-index: 90; right: 18px; top: calc(var(--bar-h) + 14px); display: grid; gap: 8px; width: min(340px, calc(100vw - 36px)); pointer-events: none; }
-html.is-play .egg-toasts { top: 76px; right: 20px; }
+html.is-play .egg-toasts { top: max(76px, var(--toast-top, 0px)); right: 20px; }  /* below the quest tracker (hud.js) */
 .egg-toast {
   display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; padding: 11px 14px; border-radius: 14px;
   background: linear-gradient(135deg, rgba(31, 44, 20, 0.92), rgba(12, 18, 12, 0.92)); border: 1px solid rgba(163, 230, 53, 0.45);

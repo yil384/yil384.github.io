@@ -197,6 +197,7 @@ export function terrain(ctx, { size = ctx.def?.size || 48, height, type = () => 
   for (let i = 0; i < cells.length; i += 4) { m.makeTranslation(cells[i], cells[i + 1], cells[i + 2]); mesh.setMatrixAt(i / 4, m); mesh.setColorAt(i / 4, col.set(cells[i + 3])); }
   mesh.count = cells.length / 4;
   mesh.receiveShadow = shadow; mesh.castShadow = shadow;
+  mesh.name = 'terrain';                 // (solid ground: the camera pulls in for it; cutout.js only cones it)
   ctx.group.add(mesh);
   const blocked = cellSet();
   const zones = ctx.def?.zones || {};
@@ -238,6 +239,8 @@ export function props(ctx, cells, { block: solid = false, walk = false, ...opts 
   const mesh = voxBuild(cells, opts);
   mesh.position.set(ctx.ox, 0, ctx.oz);
   ctx.group.add(mesh);
+  // column tops for the camera (a voxel on a half cell tops both columns it covers)
+  for (const c of cells) for (const u of [-0.3, 0.3]) for (const v of [-0.3, 0.3]) env.world.setTop?.(c[0] + u + ctx.ox, c[2] + v + ctx.oz, c[1] + 0.5);
   // (a voxel on a half cell covers two columns: both are solid; whole cells block just their own)
   if (solid) for (const c of cells) for (const [u, v] of SETTLE) block(ctx, c[0] + u, c[2] + v);
   else if (!walk && building === ctx) (ctx.soft ||= []).push(mesh);

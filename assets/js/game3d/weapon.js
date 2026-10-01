@@ -186,6 +186,9 @@ export const hitstop = () => hitstopT;
 /** Extra yaw for the scholar mesh (spin slash). */
 export const spinYaw = () => spin;
 export const swinging = () => !!swing;
+let armPose = null;
+/** Emotes: hold the blade at { rx, ry, rz } (pivot rotation) instead of the idle sway; null releases it. */
+export function setArmPose(p) { armPose = p; }
 
 /** Pose for the current frame. rest: blade held low and forward; swings sweep around the body. */
 export function updateWeapon(dt, { vehicle = null } = {}) {
@@ -233,6 +236,11 @@ export function updateWeapon(dt, { vehicle = null } = {}) {
       if (queued && step < 2) start(nextStep);
       queued = false;
     }
+    return;
+  }
+  if (armPose && castT <= 0) {                         // an emote holds the blade (emotes.js)
+    if (castGlow.visible) castGlow.visible = false;
+    pivot.rotation.set(armPose.rx, armPose.ry, armPose.rz);
     return;
   }
   if (castT > 0) {

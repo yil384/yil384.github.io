@@ -4,11 +4,14 @@
 //   play: mouse look. Pointer lock (click the world) or right-drag turns the view; the wheel zooms the
 //         third-person distance, and zooming all the way in (or C / F5) switches to first person.
 //         The follow is critically damped (1 - exp(-k·dt)), so it is frame-rate independent and never
-//         snaps; the orbit is pulled in whenever terrain would come between the camera and the player.
+//         snaps; the orbit is pulled in whenever thick ground (terrain, a run of blocked cells) would come
+//         between the camera and the player, or the camera would end up inside it. Thin things in the way
+//         (tree crowns, lamps, props, one-cell walls) are not zoomed for: cutout.js dithers them away.
 // Both modes steer the same damped "current" pose toward a "wanted" pose, so entering or leaving
 // play is a glide rather than a cut.
 import * as THREE from 'three/webgpu';
 import { reducedMotion } from '../three/boot.js';
+import { cut } from './cutout.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const TAU = Math.PI * 2;
@@ -37,6 +40,7 @@ export function createCamera() {
   let occPitch = 0;               // extra pitch while a wall behind the player leaves no room: look from above instead
   let near = false;               // the camera ended up very close to the player (index.js hides the model)
   const TP_MIN = 2.8;             // third person never comes closer than this (the head, the backpack…)
+  const LENS = 0.45;              // room kept around the lens (blocked columns)
   let frameDt = 0.016;
   const occDt = () => { const d = frameDt; frameDt = 0; return d; }; // consumed once per update
   let lastFov = 0, lastSx = NaN, lastSy = NaN, lastW = 0, lastH = 0;
@@ -219,25 +223,33 @@ export function createCamera() {
       // the pull-in eases (fast in, slow back out) instead of snapping.
       const pdt = Math.min(occDt(), 0.1);
       if (play && ground) {
-        // how far back the camera can sit along this pitch before terrain gets in the way
+        // how far back the camera can sit along this pitch before terrain gets in the way. A short hit in
+        // the middle (a trunk, a lamp, a one-cell wall: < 1.4 units along the ray) is left to the cutout;
+        // a longer one, or one the camera itself would sit in (the back to a wall), brings it in front.
+        // (the lens gets some room: a blocked column within ~0.45 of it counts, so walking past a corner
+        // starts the dolly before the camera would be inside, instead of a snap)
+        const wallAt = (x, z, y) => { const gy = ground(x, z); return gy > y - 0.6 && (!floor || gy > floor(x, z) + 0.5); };
         const reach = (pt) => {
           const c = Math.cos(pt), sx = Math.sin(yaw) * c, sy = Math.sin(pt), sz = Math.cos(yaw) * c;
           let first = -1;
-          for (let s = 1.5; s < dist; s += 0.75) {
+          for (let s = 1.5; ; s += 0.5) {
+            const end = s >= dist;
+            if (end) s = dist;
             const x = cur.look.x + sx * s, y = cur.look.y + sy * s, z = cur.look.z + sz * s;
-            if (ground(x, z) > y - 0.6) {
+            if (ground(x, z) > y - 0.6 || (end && (wallAt(x + LENS, z, y) || wallAt(x - LENS, z, y) || wallAt(x, z + LENS, y) || wallAt(x, z - LENS, y)))) {
               if (first < 0) first = s;
               else if (s - first >= 1.4) return Math.max(1.2, first - 0.8);
             } else first = -1;
+            if (end) break;
           }
-          return dist;
+          return first >= 0 ? Math.max(1.2, first - 0.8) : dist;
         };
         let want = reach(pitch);
         // no room behind (a wall, a cliff, a slope): rather than sliding into the head and backpack, rise
         // and look down from over the obstacle; only if even that is blocked does the camera come in
         let lift2 = 0;
         if (want < Math.min(dist, 6)) {
-          for (const pt of [0.95, 1.15, 1.35]) {
+          for (const pt of [0.95, 1.15, 1.35, 1.45]) {
             if (pt <= pitch) continue;
             const r = reach(pt);
             if (r > want + 1) { want = r; lift2 = pt - pitch; }
@@ -249,12 +261,26 @@ export function createCamera() {
         if (occ == null || occ > dist) occ = dist;
         // hysteresis: once pulled in, hold for a moment before easing back out, so a ray grazing an
         // edge (hit, miss, hit…) doesn't pump the distance every frame
-        if (want < occ - 0.05) { occHold = 0.45; occ += (want - occ) * (1 - Math.exp(-10 * pdt)); }
+        // (coming in is fast but capped at ~80 units/s, so a wall stepping into the ray is a quick dolly
+        // rather than a one-frame cut; the cutout keeps the scholar in sight meanwhile)
+        if (want < occ - 0.05) { occHold = 0.45; occ += Math.max((want - occ) * (1 - Math.exp(-12 * pdt)), -80 * pdt); }
         else if ((occHold -= pdt) <= 0) occ += (want - occ) * (1 - Math.exp(-2.5 * pdt));
         dist = Math.min(dist, occ);
       } else { occ = null; lift = 0; occPitch = 0; }
       const pt = Math.min(1.45, pitch + occPitch), cq = Math.cos(pt);
-      pos.set(cur.look.x + Math.sin(yaw) * cq * dist, cur.look.y + Math.sin(pt) * dist, cur.look.z + Math.cos(yaw) * cq * dist);
+      const ox = Math.sin(yaw) * cq, oy = Math.sin(pt), oz = Math.cos(yaw) * cq;
+      // the eased pose can still end inside a blocked column (pitch and distance are mid-glide): step in along
+      // the actual ray until the lens is clear, and hold that as the pulled-in distance
+      if (play && ground && floor) {
+        const inside = (s) => { const x = cur.look.x + ox * s, z = cur.look.z + oz * s; return ground(x, z) > floor(x, z) + 0.5 && ground(x, z) > cur.look.y + oy * s - 0.6; };
+        if (inside(dist)) {
+          let s = dist;
+          while (s > TP_MIN && inside(s)) s -= 0.25;
+          dist = Math.max(TP_MIN, s);
+          if (occ != null) { occ = Math.min(occ, dist); occHold = Math.max(occHold, 0.6); }
+        }
+      }
+      pos.set(cur.look.x + ox * dist, cur.look.y + oy * dist, cur.look.z + oz * dist);
       // stay above the ground, eased: terrain height steps a whole block per cell, and snapping to it
       // made the camera hop up and down while walking over uneven ground
       if (play && ground) {
@@ -267,6 +293,15 @@ export function createCamera() {
       cam.position.copy(pos);
       cam.lookAt(cur.look);
       near = play && cam.position.distanceTo(cur.look) < TP_MIN + 0.4;
+    }
+    // the see-through cone (cutout.js): third person in play only; tour shots and first person are untouched
+    const camL = cam.position.distanceTo(cur.look);
+    cut.on.value = play && !fp && !cine && camL > 1 ? 1 : 0;
+    if (cut.on.value) {
+      cut.target.value.copy(cur.look);
+      cut.feet.value = cur.look.y - 1.6;
+      cut.end.value = Math.max(0, 1 - 0.55 / camL);   // stop just short of the body (~0.5 wide)
+      cut.fe.value = 0.35 / camL;
     }
     const dirty = Math.abs(cur.fov - lastFov) > 1e-3 || cur.shiftX !== lastSx || cur.shiftY !== lastSy || size.w !== lastW || size.h !== lastH;
     if (dirty) {

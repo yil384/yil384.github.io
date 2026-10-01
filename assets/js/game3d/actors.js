@@ -118,6 +118,7 @@ export function spriteBatch(name, n, { glow = null, maxHalf = 2, scale = 0.2, sh
 
 /** Flash an actor white for a moment (hit feedback). */
 const flashing = new Map();
+const SQUASH = new THREE.Vector3(1.2, 0.84, 1.2);
 export function flash(group, ms = 140) {
   for (const f of group.userData.frames) {
     if (!f.material.userData.base) f.material.userData.base = f.material.emissiveNode;
@@ -126,9 +127,10 @@ export function flash(group, ms = 140) {
   flashing.set(group, until);
   group.traverse((o) => { if (o.isInstancedMesh) o.material.emissiveIntensity = 1; });
   group.userData.flashUntil = until;
-  group.scale.multiplyScalar(1.12);
+  // squash on impact (wider, shorter; the feet stay put), back to shape when the flash ends
+  group.scale.multiply(SQUASH);
   setTimeout(() => {
-    group.scale.divideScalar(1.12);
+    group.scale.divide(SQUASH);
     flashing.delete(group);
   }, ms);
 }

@@ -126,6 +126,16 @@ export function initHud(root, actions, opts) {
   els.help = h('div', { class: 'hud-help' }, h('kbd', null, 'WASD'), ' move · click: mouse look · ', h('kbd', null, 'Space'), ' jump · ', h('kbd', null, 'J'), ' attack · ', h('kbd', null, 'E'), ' use · ', h('kbd', null, 'V'), ' vehicle · ', h('kbd', null, 'M'), ' map · ', h('kbd', null, 'C'), ' view · wheel zoom');
   els.cross = h('div', { class: 'hud-cross', 'aria-hidden': 'true' });
   hudRoot.append(top, card, actionBar, tracker, mapWrap, els.help, els.cross);
+  // The egg / kit toasts (site/eggs.js pushToast) share their corner with the tracker (top right on a desktop,
+  // top left on a phone): while the tracker sits in the toasts' column, in the upper half of the screen, the
+  // toasts stack below it (--toast-top, read by game.css) instead of covering it.
+  const markTracker = () => {
+    const r = tracker.getBoundingClientRect(), t = document.getElementById('egg-toasts')?.getBoundingClientRect();
+    const under = r.height > 0 && t && r.left < t.right && r.right > t.left && r.top < innerHeight / 2;
+    document.documentElement.style.setProperty('--toast-top', under ? `${Math.round(Math.min(r.bottom + 10, innerHeight - 240))}px` : '0px');
+  };
+  if (typeof ResizeObserver === 'function') new ResizeObserver(markTracker).observe(tracker);
+  addEventListener('resize', markTracker);
   // Mouse clicks on HUD controls must not leave them focused (Space would re-trigger them).
   hudRoot.addEventListener('mousedown', (e) => { if (e.target.closest('button')) e.preventDefault(); });
 }

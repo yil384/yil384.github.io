@@ -54,6 +54,12 @@ export function createComposite(hub) {
   const zoneInfo = (x, z) => { for (const g of grids) if (inside(g, x, z)) { const zn = g.zoneAt?.(x, z); if (zn) return zn; } return null; };
   /** The region id whose grid covers (x, z) (the first registered one), or null over open sea. */
   const regionAt = (x, z) => { for (const g of grids) if (inside(g, x, z)) return g.region; return null; };
+  // The highest scenery voxel top per column (y of its upper face), where known: the camera uses it to see a
+  // blocked column as a 2-high maze wall rather than a tower (camera.js; unknown columns count as tall).
+  const tops = new Map();
+  const tkey = (x, z) => (Math.round(x) + 32768) * 65536 + Math.round(z) + 32768;
+  const setTop = (x, z, y) => { const k = tkey(x, z), v = tops.get(k); if (v === undefined || y > v) tops.set(k, y); };
+  const topAt = (x, z) => tops.get(tkey(x, z));
 
   return {
     ...hub,
@@ -72,6 +78,8 @@ export function createComposite(hub) {
     zoneAt: (x, z) => zoneInfo(x, z)?.key || null,
     zoneInfo,
     regionAt,
+    setTop,
+    topAt,
   };
 }
 

@@ -25,6 +25,7 @@ import { createComposite } from './worldgrid.js';
 import { buildStage } from './stage.js';
 import { LAYOUT } from './layout.js';
 import { createCamera } from './camera.js';
+import { applyCutout } from './cutout.js';
 import { createInput } from './input.js';
 import { createTour } from './tour.js';
 import { createDirector } from './director.js';
@@ -57,6 +58,8 @@ import { sfx, startMusic, stopMusic } from './audio.js';
 import { h } from './util.js';
 import { registerEgg, found } from '../site/eggs.js';
 import { initPageLink } from './pagelink.js';
+import { createEmotes } from './emotes.js';
+import { createToys } from './toys.js';
 
 const BG = '#070a12';
 // the hub's night: a cool sky light with a lifted ground bounce, a warm key (the "sun" is a big warm
@@ -129,8 +132,17 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   island.bake();
   const ambient = createAmbient(world, hub, { lowfx, loop: island.loop });
   const rig = createCamera();
-  // camera collision: terrain, plus blocked cells (buildings, statues, trunks) as ~9-voxel obstacles
-  rig.setGround((x, z) => world.surfaceY(x, z) + (world.isBlocked(x, z) ? 9 : 0), (x, z) => world.surfaceY(x, z));
+  // camera collision: terrain, plus blocked cells (buildings, statues, trunks) up to their highest voxel where
+  // that is known (the hub's static cells, region props), else as ~9-voxel obstacles
+  for (const c of island.statics) world.setTop(c[0], c[2], c[1] + 0.5);
+  rig.setGround((x, z) => {
+    const y = world.surfaceY(x, z);
+    if (!world.isBlocked(x, z)) return y;
+    const top = world.topAt(x, z);
+    return top === undefined ? y + 9 : Math.max(y, top);
+  }, (x, z) => world.surfaceY(x, z));
+  // regions get the same see-through scenery as the hub (cutout.js) as soon as they are built
+  on('region:built', (id) => applyCutout(scene.getObjectByName(`region:${id}`)));
   const input = createInput(worldEl);
   const tour = createTour(world);
 
@@ -241,6 +253,9 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       },
     },
   });
+  // play-mode toys: emotes (X), the crowd and islanders reacting, Bit's commentary; balls, food stands, flyers
+  const emotes = createEmotes({ hudEl, director, ambient, input, touch });
+  createToys({ hubCtx, ambient });
 
   // ---- renderer ----
   progress('compiling shaders');
@@ -282,6 +297,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       placeBuddy();
       rig.settle();
       stage.update(0, 0);
+      applyCutout(hub);              // see-through scenery in play (cutout.js), before the shaders compile
       await r.compileAsync(scene, rig.cam);
       pipeline = build(r);
       pipeline.render();
@@ -325,7 +341,11 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     const bob = player.walking && player.grounded && !veh ? Math.abs(Math.sin(player.t)) * 0.22 : 0;
     const roll = player.roll || 0;
     m.position.set(player.x, visY + bob + (roll ? Math.sin(roll / 2) * 1.1 : 0) + (veh === 'sword' ? 0.05 : 0), player.z);
-    m.rotation.set(roll, player.yaw + spinYaw(), 0);
+    // an emote or a dizzy wobble leans / hops the body in its own frame (YXZ: yaw first, then pitch and roll)
+    const pose = emotes.pose();
+    if (m.rotation.order !== 'YXZ') m.rotation.order = 'YXZ';
+    m.position.y += pose.dy;
+    m.rotation.set(roll + pose.rx, player.yaw + spinYaw() + pose.ry, pose.rz);
     m.userData.setFrame(player.walking ? Math.floor(player.t / 1.6) % 2 : 0);
     // first person: only the blade stays visible (the camera sits inside the head)
     const fp = mode.play && rig.firstPerson;
@@ -363,6 +383,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
       updateLoot(dt);
       updateNpcs(dt);
       updateRegions(dt, t);
+      emotes.update(dt);
       questT -= dt;
       if (questT <= 0) { questT = 0.5; checkQuests(); }
     }
@@ -531,6 +552,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   }
   input.onKey = (key, e) => {
     if (modalOpen()) { if (modalKey(e)) return true; return key !== 'Escape'; }
+    if (emotes.onKey(e)) return true;
     switch (e.code) {
       case 'KeyJ': doAttack(); return true;
       case 'Digit1': doSpell('fireball'); return true;
@@ -647,8 +669,8 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     coach = h('div', { class: 'g__coach', role: 'dialog', 'aria-label': 'How to play' },
       h('p', { class: 'g__coach-title' }, 'You have the controls'),
       coarse
-        ? h('p', null, 'Left thumb anywhere: move (push far to sprint) · right side: drag to look, pinch to zoom · ⚔ attack · ⤒ jump · E talks and uses (it lights up) · hold the spell button to pick a spell · ☰ menu: quests, bag, settings, back to the page.')
-        : h('p', null, k('W'), k('A'), k('S'), k('D'), ' move · click: mouse look · ', k('Space'), ' jump · ', k('Shift'), ' sprint · ', k('K'), ' dodge · ', k('J'), '/click attack (combo) · ', k('E'), ' use · ', k('V'), ' vehicle · ', k('M'), ' map · ', k('C'), ' first person · ', k('Esc'), ' back to the page'),
+        ? h('p', null, 'Left thumb anywhere: move (push far to sprint) · right side: drag to look, pinch to zoom · ⚔ attack · ⤒ jump · E talks and uses (it lights up) · hold the spell button to pick a spell · o/ emotes · ☰ menu: quests, bag, settings, back to the page.')
+        : h('p', null, k('W'), k('A'), k('S'), k('D'), ' move · click: mouse look · ', k('Space'), ' jump · ', k('Shift'), ' sprint · ', k('K'), ' dodge · ', k('J'), '/click attack (combo) · ', k('E'), ' use · ', k('V'), ' vehicle · ', k('M'), ' map · ', k('C'), ' first person · ', k('X'), ' emote · ', k('Esc'), ' back to the page'),
       h('p', { class: 'muted small' }, `Your journey, the Road to Dr.: collect a diploma, 6 badges, 4 relics and 2 seals (${roadCount()} / ${ROAD.length}). Every landmark on the island is a door: the gate, the CSE building, the flags, the monuments, Geisel. The boat on the pier goes anywhere you have been.`),
       h('button', { type: 'button', class: 'btn btn--small btn--primary', onclick: () => { S.settings.tutorial4 = true; save(); coach.remove(); coach = null; } }, 'Let’s go'),
     );
@@ -681,6 +703,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   function exitPlay() {
     if (!mode.play) return;
     closeAllModals();
+    emotes.reset();
     input.detach();
     touch?.show(false);
     stopMusic();
@@ -769,7 +792,7 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
     invalidate: wake,
     dispose() { renderer.setAnimationLoop(null); },
   };
-  window.__g = { api, S, player, buddy, clock, world, stage, rig, director, scene, renderer, backend, lowfx, bosses, enemies, foes, patternBosses, npcs, liveTargets, emit, on, modalOpen, closeAllModals, teleport, mode, ZONES, where, input, vehicles, VEHICLES, sim, regions: regionsApi, ensureRegion, travelApi, ...api };
+  window.__g = { api, S, player, buddy, emotes, clock, world, stage, rig, director, scene, renderer, backend, lowfx, bosses, enemies, foes, patternBosses, npcs, liveTargets, emit, on, modalOpen, closeAllModals, teleport, mode, ZONES, where, input, vehicles, VEHICLES, sim, regions: regionsApi, ensureRegion, travelApi, ...api };
   try { initPageLink(api); } catch (err) { console.warn('[pagelink] failed to start:', err); }
   // ?region=<id>: jump straight into a region (for region authors); implies play
   const startRegion = q.get('region');

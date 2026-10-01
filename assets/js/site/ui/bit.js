@@ -221,7 +221,25 @@ function bubbleEl(who, text) {
   el.append(h('span', { class: 'bubble__t' }, text));
   return el;
 }
-/** Place a bubble next to Bit, extending away from `dir` ('left' = grows leftwards). */
+/**
+ * Lift a bubble (viewport box x, y, bw, bh) above any line of the card's own text it would cover: on a phone
+ * the hero's "Ph.D. student" eyebrow sits right above Bit's perch by the name. Returns the new top.
+ */
+function clearOfText(x, y, bw, bh) {
+  if (!host) return y;
+  const lines = [...host.querySelectorAll('h1, h2, h3, p, li, dt, dd, .eyebrow')].filter((e) => !e.closest('.bit'));
+  for (let pass = 0; pass < 4; pass++) {
+    let moved = false;
+    for (const e of lines) {
+      const r = e.getBoundingClientRect();
+      if (!r.width || r.bottom <= y + 2 || r.top >= y + bh - 2 || r.right <= x || r.left >= x + bw) continue;
+      y = r.top - bh - 6;
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  return y;
+}
 /** A bubble next to Bit (a child of Bit, so it follows a slide), growing towards `dir`. */
 function showBubble(who, text, dir, ms) {
   closeSay();
@@ -235,7 +253,9 @@ function showBubble(who, text, dir, ms) {
   if (r.top - bh - 10 > barBottom() + 4) {
     // above Bit, growing away from the card's inner side
     x = clamp(dir === 'left' ? r.right + 6 - bw : r.left - 6, 8, W - bw - 8);
-    y = r.top - bh - 10;
+    y = clearOfText(x, r.top - bh - 10, bw, bh);
+    // no clear room between the bar and the text: say it as a toast instead of covering the card
+    if (y < barBottom() + 4) { el.remove(); speechToast(who, text, ms + 800); return null; }
     el.style.setProperty('--tx', `${clamp(r.left + r.width / 2 - x, 14, bw - 14)}px`);
     el.classList.add('bubble--above');
   } else {

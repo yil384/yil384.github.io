@@ -219,10 +219,14 @@ export function updateNpcs(dt) {
   for (const n of npcs) {
     if (!isLive(n.region)) continue;
     n.anim += dt * 2;
-    n.mesh.position.y = n.y + Math.abs(Math.sin(n.anim)) * 0.08;
+    // a little hop when they react to the player (emotes.js sets hopT; turnT keeps them facing you)
+    let hop = 0;
+    if (n.hopT > 0) { n.hopT = Math.max(0, n.hopT - dt); hop = Math.sin((1 - n.hopT / 0.45) * Math.PI) * 0.55; }
+    if (n.turnT > 0) n.turnT = Math.max(0, n.turnT - dt);
+    n.mesh.position.y = n.y + Math.abs(Math.sin(n.anim)) * 0.08 + hop;
     const near = Math.hypot(player.x - n.x, player.z - n.z) < 4;
     if (near !== n.near) { n.near = near; n.plate.classList.toggle('is-near', near); }
-    if (near) n.mesh.rotation.y = Math.atan2(player.x - n.x, player.z - n.z);
+    if (near || n.turnT > 0) n.mesh.rotation.y = Math.atan2(player.x - n.x, player.z - n.z);
   }
 }
 

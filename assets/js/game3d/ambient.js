@@ -149,13 +149,45 @@ export function createAmbient(world, parent, { lowfx = false, loop } = {}) {
   const place = (mesh, i, x, y, z, yaw, s = 1) => { m4.compose(pos.set(x, y, z), q.setFromAxisAngle(up, yaw), sc.set(s, s, s)); mesh.setMatrixAt(i, m4); };
   let t = 0;
 
+  /**
+   * Walkers and skaters near (x, z) stop and react to the player: 'wave' (face you, two little hops),
+   * 'dance' (bob along on the beat), 'bump' (a startled hop). Cyclists keep riding. Returns how many joined.
+   */
+  function react(x, z, r, kind, dur, max = 99) {
+    let n = 0;
+    for (const a of agents) {
+      if (n >= max || a.mode === 'loop' || Math.hypot(a.x - x, a.z - z) > r) continue;
+      a.react = { kind, t: dur + rnd() * 0.3, x, z };
+      n++;
+    }
+    return n;
+  }
+
   function update(dt, camera) {
     if (where.id !== 'hub') return;
     const calm = reducedMotion.matches;
+    const rdt = dt;                   // reactions time out even when reduced motion freezes the crowd
     if (calm) dt = 0;
     t += dt;
     camera.getWorldPosition(cam);
     agents.forEach((a, i) => {
+      if (a.react) {
+        const r = a.react;
+        r.t -= rdt;
+        if (r.t <= 0) a.react = null;
+        else {
+          // stand still, turn to the player, hop / bob (no motion at all under reduced motion)
+          const face = Math.atan2(r.x - a.x, r.z - a.z);
+          const k = calm ? 0 : 1;
+          const hop = r.kind === 'dance' ? Math.abs(Math.sin(t * Math.PI * 2.2 + a.phase)) * 0.38 : r.kind === 'wave' ? Math.max(0, Math.sin(r.t * 9)) * 0.28 : Math.max(0, Math.sin(Math.min(1, r.t / 0.8) * Math.PI)) * 0.45;
+          const sway = r.kind === 'dance' ? Math.sin(t * Math.PI * 1.1 + a.phase) * 0.6 : 0;
+          const gy = ground(a.x, a.z);
+          a.y += (gy - a.y) * Math.min(1, dt * 10 || 1);
+          const far = Math.hypot(a.x - cam.x, a.z - cam.z) > HIDE;
+          place(crowd.mesh, i, a.x, a.y + hop * k, a.z, face + sway * k, far ? 0 : 0.95);
+          return;
+        }
+      }
       if (a.mode === 'lane') {
         if (a.pause > 0) a.pause -= dt;
         else {
@@ -201,5 +233,5 @@ export function createAmbient(world, parent, { lowfx = false, loop } = {}) {
     bus.rotation.y = byaw - Math.PI / 2;
     bus.visible = Math.hypot(x - cam.x, z - cam.z) < HIDE + 40;
   }
-  return { update, agents, bus };
+  return { update, react, agents, bus };
 }

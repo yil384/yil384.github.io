@@ -132,11 +132,13 @@ export function buildDistricts(world, parent, { lowfx = false } = {}) {
     }
     block(x0, x1, z0, z1);
     sign({ id: 'rimac', text: 'RIMAC Arena', sub: 'Go Tritons!', colour: '#1d4ed8', x: (x0 + x1) / 2, y: y + 6, z: z1 + 0.55, yaw: 0, w: 6.5, h: 1.35, back: false });
-    // goals on the field
+    // goals on the field (three blocks wide, with a net behind: toys.js scores a ball rolled in between the posts)
     const F = LAYOUT.rimac.field;
     for (const gx of [F.x - 4, F.x + 4]) {
-      for (const gz of [F.z - 1, F.z + 1]) { put(gx, y + 1, gz, '#f8fafc'); put(gx, y + 2, gz, '#f8fafc'); hub.block(gx, gz); }
-      put(gx, y + 3, F.z - 1, '#f8fafc'); put(gx, y + 3, F.z, '#f8fafc'); put(gx, y + 3, F.z + 1, '#f8fafc');
+      for (const gz of [F.z - 2, F.z + 2]) { put(gx, y + 1, gz, '#f8fafc'); put(gx, y + 2, gz, '#f8fafc'); hub.block(gx, gz); }
+      for (let gz = F.z - 2; gz <= F.z + 2; gz++) put(gx, y + 3, gz, '#f8fafc');
+      const nx = gx + Math.sign(gx - F.x);
+      for (let gz = F.z - 1; gz <= F.z + 1; gz++) { for (let yy = 1; yy <= 2; yy++) put(nx, y + yy, gz, (gz + yy) % 2 ? '#cbd5e1' : '#94a3b8'); hub.block(nx, gz); }
     }
   }
 

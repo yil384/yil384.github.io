@@ -53,6 +53,31 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
 - Probe: `node tools/dev/pflip.mjs [desk,world,plain,phone,rm]` (real double-click / CDP double-tap, 3 and 5 clicks,
   ended -> flip back + egg, Esc; screenshots `/tmp/yl/pf-*`). The test Chromium has no H.264, so it plays the WebM.
 
+## Play-mode toys (round 6)
+- `game3d/emotes.js`: X (then 1-4 / click) or the touch `o/` button under the top row opens Wave / Dance / Think /
+  Bow. Poses go through `emotes.pose()` (index.js `placeActors`, the scholar's rotation order is now YXZ so pitch and
+  roll are in his own frame) and `weapon.setArmPose()`; any move, jump, swing, spell, vehicle cancels. Islanders in
+  reach turn, hop (`npcs.js` `hopT` / `turnT`) and answer (per-id lines, `tsinghua-zhuo` counts as Zhuo); the crowd
+  waves / dances along (`ambient.react()`); walking into a student gets "sorry!", cyclists ring. Bit comments
+  (`bitSay`, rate-limited) on bunny hops, spinning on the spot (a dizzy wobble), dodging nothing, hard landings, kill
+  streaks, standing idle (the scholar then thinks out loud). Eggs: `social`, `flashmob`, `bunnyhop`, `dizzy`.
+- `game3d/toys.js`: two Triton-blue/gold balls (plaza by the spawn, RIMAC field) kicked by walking/driving into them
+  or swinging at them; goals on the RIMAC field (now three blocks wide with nets, `districts.js`) score (egg `goal`);
+  a ball lost at sea comes home. Price Center stands: E · order (free HP/MP, egg `foodcourt`). Library Walk club
+  tables: E · take a flyer (six joke flyers, egg `flyers`). State in `S.world.data.hub`.
+- Hits squash the target (`actors.flash`: wider and shorter for 140 ms) on top of the hit-stop.
+- Reduced motion: poses hold still, the crowd does not hop. `__g.emotes` for tests (`emotes.play('dance')`).
+
+## Ground, camera and overlap audit (round 6)
+- Feet height: the tour walker sets `player.y` from `surfaceY` every step (it sank on slopes) and blinks to its goal
+  after 1.5 s without progress. Scenery blocks the cells it is drawn on (world.js bake, stage.js prop footprints,
+  regions.js `props()`, `walk: true` opts out). `tools/dev/ground.mjs` raycasts every cell of the hub and each region
+  against `surfaceY` / `isBlocked`: keep it clean after terrain or prop changes.
+- Play camera: `game3d/cutout.js` dithers a see-through cone of scenery between the camera and the scholar (play only;
+  actors and shadows untouched); `camera.js` checks the sight line to the lens every 0.5 units and pulls in; blocked
+  cells carry their real prop height (`worldgrid.js` `setTop` / `topAt`). Metrics: `node tools/dev/sweep.mjs cam`.
+- `tools/dev/sweep.mjs` (layout, overlays, tour, play, cam, portals, save, rm, trap, spawns) is the general self-check.
+
 ## TODO (priority order)
 1. Real-device check on an iPhone and an Android phone (emulation only so far): floating stick feel, pinch zoom, iOS
    Safari bars, audio, frame rate on a mid-range phone. The new hub costs ~+75% sim CPU vs the old one at 4x
