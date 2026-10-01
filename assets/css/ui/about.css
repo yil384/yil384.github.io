@@ -153,3 +153,58 @@ html.rm .party__pan.is-flip, html.rm .party__pan.is-flip .party__food, html.rm .
   .party .token { grid-column: 1 / -1; grid-row: 5; justify-self: center; margin: 0; }
   .affinities::before { flex-basis: 100%; }
 }
+
+/* ---------------------------------------------------------------- the portrait's back side (portrait-flip.js)
+   A clean double-click flips the photo over like a card and plays assets/video/intro.*. The card lives in a
+   fixed overlay on <body>; the portrait keeps its slot (hidden) while the card is out. Works in every mode. */
+.portrait { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.portrait.is-flipped { visibility: hidden; }
+.pflip { position: fixed; inset: 0; z-index: 125; }
+.pflip__backdrop {
+  position: absolute; inset: 0; touch-action: none;
+  background: radial-gradient(circle at 50% 50%, rgba(24, 43, 73, 0.42), rgba(4, 6, 12, 0.66) 70%);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+}
+.pflip__card { position: absolute; transform-style: preserve-3d; will-change: transform; touch-action: none; }
+.pflip__face {
+  position: absolute; inset: 0; overflow: hidden; border-radius: 14px; background: var(--ucsd-navy-3);
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  box-shadow: 0 0 0 1px var(--line-2), 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.pflip__back { transform: rotateY(180deg); }
+.pflip__front img, .pflip__px, .pflip__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pflip__front img { filter: saturate(0.9); }
+.pflip__front.is-voxel img { filter: none; image-rendering: pixelated; }
+.pflip__px { display: none; image-rendering: pixelated; }
+.pflip__front.has-px .pflip__px { display: block; }
+.pflip__video { background: #000; }
+/* the game look: the portrait's gold double ring with clipped corners */
+html.is-game .pflip__face {
+  border-radius: 0;
+  box-shadow: 0 0 0 2px var(--ucsd-navy-3), 0 0 0 4px var(--gold), 0 0 0 6px var(--ucsd-navy-3), 0 0 0 7px var(--gold-a45), 0 24px 60px rgba(0, 0, 0, 0.55);
+  clip-path: polygon(-3px -7px, calc(100% + 3px) -7px, calc(100% + 3px) -3px, calc(100% + 7px) -3px, calc(100% + 7px) calc(100% + 3px), calc(100% + 3px) calc(100% + 3px), calc(100% + 3px) calc(100% + 7px), -3px calc(100% + 7px), -3px calc(100% + 3px), -7px calc(100% + 3px), -7px -3px, -3px -3px);
+}
+html.is-game .pflip__back { background: #000; }
+html.is-plain .pflip__face { border-radius: 12px; box-shadow: 0 0 0 1px var(--line-2), 0 18px 44px rgba(0, 0, 0, 0.5); }
+
+.pflip__btns { position: absolute; top: 10px; right: 10px; display: flex; gap: 8px; }
+.pflip__btn {
+  display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid rgba(255, 255, 255, 0.28); border-radius: 50%;
+  background: rgba(8, 11, 22, 0.62); color: #fff; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.2s;
+}
+.pflip__btn:hover { background: rgba(8, 11, 22, 0.85); border-color: var(--accent); }
+.pflip__btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pflip__btn svg { display: block; }
+html.is-game .pflip__btn { border-radius: 0; border: 2px solid var(--gold); background: rgba(15, 29, 51, 0.82); color: var(--gold); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.5); }
+html.is-game .pflip__btn:hover { background: var(--ucsd-navy-2); }
+html.is-game .pflip__btn:focus-visible { outline-color: #fff; }
+.pflip__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(0, 0, 0, 0.35); pointer-events: none; }
+.pflip__bar i { display: block; height: 100%; background: var(--accent); transform: scaleX(0); transform-origin: 0 50%; }
+html.is-game .pflip__bar i { background: var(--gold); }
+/* reduced motion: no flip at all, the back face simply fades in at the target size */
+.pflip.is-rm .pflip__front { display: none; }
+.pflip.is-rm .pflip__back { transform: none; }
+.pflip.is-out { pointer-events: none; }
+.pflip.is-out .pflip__btns { opacity: 0; transition: opacity 0.12s; }
+@media (pointer: coarse) { .pflip__btn { width: 40px; height: 40px; } }
+@media print { .pflip { display: none; } .portrait.is-flipped { visibility: visible; } }

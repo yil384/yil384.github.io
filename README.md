@@ -30,6 +30,7 @@ assets/js/site/                page-side scripts
   chrome.js                    top bar (zone, progress, nav, sound, play), card reveals, scroll spy
   eggs.js                      easter-egg registry, persistence, toasts
   eggs-dom.js                  page-level eggs (Konami, portrait, name, tab-away, bottom, print, console)
+  portrait-flip.js             double-click the photo: it flips over and plays assets/video/intro.*
   notes.js                     the Field Notes panel
   terminal.js                  the backtick terminal
 assets/js/game3d/              the world

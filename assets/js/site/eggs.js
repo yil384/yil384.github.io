@@ -16,6 +16,7 @@ export const EGGS = [
   { id: 'vim',      kind: 'page',  name: 'Trapped', hint: 'A famous trap for the unwary.', done: 'Still inside. Try :q!' },
   { id: 'nvidia',   kind: 'page',  name: 'GPU-poor', hint: 'Ask the terminal about graphics cards.', done: 'Eight of them, apparently. All busy.' },
   { id: 'portrait', kind: 'page',  name: 'Say cheese', hint: 'Click the photo. More than once.', done: 'The photo became a little voxel scholar.' },
+  { id: 'secret',   kind: 'page',  name: 'Secret identity', hint: 'Double-click the photo.', done: 'By day, a Ph.D. student. By night, also a Ph.D. student, but green.' },
   { id: 'alias',    kind: 'page',  name: 'Who is yil384?', hint: 'Click the big name a few times.', done: 'A name is just a handle with better fonts.' },
   { id: 'tabaway',  kind: 'page',  name: 'Defeated by Claude', hint: 'Leave the tab for a bit. Watch its title. Then return.', done: 'You wandered off. The tab title had a whole saga without you.' },
   { id: 'bottom',   kind: 'page',  name: 'Camera-ready', hint: 'Reach the very end of the page.', done: 'Submitted with four minutes to spare.' },

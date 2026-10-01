@@ -40,6 +40,19 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
   index.html); the intro is a small push-in from that same shot.
 - Probe: `tools/dev/mplay.mjs [w] [h] [out] [shots]` (real CDP touch: stick, look, jump, map, battle, menu, spell picker).
 
+## Portrait flip (secret identity)
+- A clean double-click / double-tap on the About photo (`#portrait`) flips it over like a card and plays a 14 s comic
+  intro video on the back (the user's green-ninja minifigure clip, re-cut with captions); on `ended` / close / Esc /
+  backdrop / tab hidden / error it flips back into the portrait's slot. Code: `assets/js/site/portrait-flip.js`
+  (wired from `eggs-dom.js`, which ignores its 5-click voxel counter while the card is out), CSS at the end of
+  `assets/css/ui/about.css`. Page egg `secret` (found on `ended` or a close after >= 3 s); Bit has an About hint.
+- Files: `assets/video/intro.mp4` (H.264/AAC, listed first), `intro.webm` (VP9/Opus, for open-source Chromium),
+  `intro-poster.jpg`; nothing is fetched before the first double-click. Re-render them with
+  `tools/dev/introvid/render.mjs` (see its header); keep the `<source type>` codecs in portrait-flip.js in sync.
+- Sound follows `S.settings.sound` (falls back to muted if play() is refused); html.rm crossfades instead of flipping.
+- Probe: `node tools/dev/pflip.mjs [desk,world,plain,phone,rm]` (real double-click / CDP double-tap, 3 and 5 clicks,
+  ended -> flip back + egg, Esc; screenshots `/tmp/yl/pf-*`). The test Chromium has no H.264, so it plays the WebM.
+
 ## TODO (priority order)
 1. Real-device check on an iPhone and an Android phone (emulation only so far): floating stick feel, pinch zoom, iOS
    Safari bars, audio, frame rate on a mid-range phone. The new hub costs ~+75% sim CPU vs the old one at 4x
