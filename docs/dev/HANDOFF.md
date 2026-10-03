@@ -53,6 +53,19 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
 - Probe: `node tools/dev/pflip.mjs [desk,world,plain,phone,rm]` (real double-click / CDP double-tap, 3 and 5 clicks,
   ended -> flip back + egg, Esc; screenshots `/tmp/yl/pf-*`). The test Chromium has no H.264, so it plays the WebM.
 
+## Portrait swap (minifigure face)
+- A lone click / tap on `#portrait` (no second one within `DOUBLE_MS` = 350 ms, so it never fires on a double-click or
+  the 5-click voxel run) builds the minifigure version `assets/img/portrait-lego.webp` (640x640 crop of the user's
+  LEGO portrait, WebP q78) out of 5x5 studded bricks pressed in row by row from the bottom; the next lone click pops
+  them off from the top and the photo is back. Code: `assets/js/site/portrait-swap.js` (wired from `eggs-dom.js`,
+  which counts the clicks: 1 = swap, 2 = flip, 5 = voxel; any click lands a running swap at once), CSS at the end of
+  `assets/css/ui/about.css`, `sfx('snap')` per row. The `<img>` src / alt and the button's aria-label follow the face,
+  so the flip card's front, the game's 48px pixel version and the voxel egg's way back all show the current face.
+- Page egg `minifig` (first build); Bit has an About hint. html.rm crossfades. Nothing is fetched before the pointer
+  or focus reaches the portrait.
+- Probe: `node tools/dev/pswap.mjs [desk,plain,phone,rm,world]` (screenshots `/tmp/yl/ps-*`, bricks frozen mid-build
+  and mid-pop).
+
 ## Play-mode toys (round 6)
 - `game3d/emotes.js`: X (then 1-4 / click) or the touch `o/` button under the top row opens Wave / Dance / Think /
   Bow. Poses go through `emotes.pose()` (index.js `placeActors`, the scholar's rotation order is now YXZ so pitch and

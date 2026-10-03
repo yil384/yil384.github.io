@@ -46,7 +46,7 @@ html.rm .phone.is-ring .phone__i { animation: none; }
 @keyframes pigeon-flap { 50% { transform: scaleY(0.82) translateY(2px); } }
 
 /* ================================================================ portals */
-html.is-game #contact .portals { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+html.is-game #contact .portals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
 html.is-game #contact .portal {
   --pc: var(--gold);
   position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: 74px auto; justify-items: center; align-items: center; gap: 8px;
@@ -59,6 +59,7 @@ html.is-game #contact .portal::before { content: none; display: none; }
 html.is-game #contact .portal[data-portal='scholar'] { --pc: #5FB3FF; }
 html.is-game #contact .portal[data-portal='github'] { --pc: #B58CFF; }
 html.is-game #contact .portal[data-portal='linkedin'] { --pc: #00C6D7; }
+html.is-game #contact .portal[data-portal='x'] { --pc: #E7E9EA; }
 html.is-game #contact .portal:hover, html.is-game #contact .portal:focus-visible {
   color: var(--ink); transform: translateY(-2px); border-color: color-mix(in srgb, var(--pc) 70%, transparent);
   box-shadow: 0 0 22px color-mix(in srgb, var(--pc) 28%, transparent), inset 0 0 18px color-mix(in srgb, var(--pc) 10%, transparent);
@@ -152,7 +153,7 @@ html.rm .sealion.is-awake { animation: none; }
 /* ================================================================ phones */
 @media (max-width: 720px) {
   html.is-game #mail-link { font-size: 17px; }
-  html.is-game #contact .portals { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  html.is-game #contact .portals { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   html.is-game #contact .portal { grid-template-rows: 66px auto; padding: 8px 4px; }
   html.is-game .portal__ring { width: 62px; height: 62px; }
   html.is-game .portal__l { font-size: 10px; letter-spacing: 0.02em; }

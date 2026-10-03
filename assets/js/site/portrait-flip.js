@@ -19,7 +19,7 @@ const LINES = [
   'Superpowers: AI for science & chip design; architecture for agentic workloads; harnesses & benchmarks',
   'To be continued... (in the next paper)',
 ];
-const DOUBLE_MS = 350;   // max gap between the two clicks
+export const DOUBLE_MS = 350;   // max gap between the two clicks (a lone click waits this long: portrait-swap.js)
 const QUIET_MS = 280;    // then this long without a third (3+ clicks = the 5-click voxel egg instead)
 const START_MS = 6000;   // the video must be playing by then, or the card quietly flips back
 const OPEN_MS = 720, CLOSE_MS = 560;
@@ -87,7 +87,7 @@ export function initPortraitFlip(portrait, { onOpen } = {}) {
     const dx = r.left + r.width / 2 - (t.x + t.s / 2), dy = r.top + r.height / 2 - (t.y + t.s / 2);
     return `translate(${dx}px, ${dy}px) scale(${r.width / t.s})`;
   }
-  // the front face shows what the portrait shows right now (photo, voxel sprite, or the game's pixel version)
+  // the front face shows what the portrait shows right now (photo, minifigure, voxel sprite, or the game's pixel version)
   // (photo: the portrait is about to get focus back, and focus shows the photo)
   function paintFront(photo = false) {
     const img = portrait.querySelector('img');

@@ -158,7 +158,7 @@ export function init(ctx) {
       if (!lastEmit[name] || now - lastEmit[name] > 1200) { lastEmit[name] = now; kit.emit('page:portal', { name }); }
       if (!hopped.has(name)) {
         hopped.add(name);
-        if (hopped.size >= 3) kit.found('portalhop');
+        if (hopped.size >= portals.length) kit.found('portalhop');
       }
     };
     a.addEventListener('pointerenter', hot);

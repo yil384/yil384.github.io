@@ -49,7 +49,7 @@ export function frameImg(name, scale = 2, i = 0, cls = '', edit = null, key = ''
 // ---------------------------------------------------------------- copy
 const TIPS = {
   top: [['The letters look bumpable.', 'blocks'], ['Some keyboards know his name.', 'typename'], ['Press start. Or Enter. Same thing.', 'start']],
-  about: [['That photo has more than one face.', 'portrait'], ['Cards have a back side. Try two quick taps on that photo.', 'secret'], ['Chef Zhuo keeps something in the pan.', 'zhuo'], ['Try every interest chip.', 'specialist']],
+  about: [['One click on that photo and it snaps together.', 'minifig'], ['That photo has more than one face.', 'portrait'], ['Cards have a back side. Try two quick taps on that photo.', 'secret'], ['Chef Zhuo keeps something in the pan.', 'zhuo'], ['Try every interest chip.', 'specialist']],
   education: [['Something sits between the two gates.', 'zerogap'], ['Locked doors like persistence.', 'thesis'], ['Inspect the badges.', null]],
   publications: [['Stars travel in pairs.', 'asterisk'], ['Water has a subscript.', 'h2o'], ['Reviewer #2 takes requests.', 'rebuttal']],
   experience: [['Some quests overlapped. Find when.', 'multithread'], ['The Lark logo looks like it could fly.', 'lark'], ['Voice-controlled teammates take orders.', 'teammate']],

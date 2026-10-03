@@ -1,7 +1,7 @@
-// Page-level easter eggs (they work without the 3D world): Konami code, the portrait (5 clicks; a clean
-// double-click flips it over instead, see portrait-flip.js), the name, tab-away, reaching the bottom,
-// speed-reading, printing, copying the email, the DevTools console, and the keys that open the terminal
-// or hand over the controls.
+// Page-level easter eggs (they work without the 3D world): Konami code, the portrait (one click builds the
+// minifigure, see portrait-swap.js; a clean double-click flips it over, see portrait-flip.js; 5 clicks go
+// voxel), the name, tab-away, reaching the bottom, speed-reading, printing, copying the email, the DevTools
+// console, and the keys that open the terminal or hand over the controls.
 import { found, foundCount, total, EGGS } from './eggs.js';
 import { on } from '../game3d/bus.js';
 import { spriteUrl } from '../game3d/pixelart.js';
@@ -9,7 +9,8 @@ import { toggleTerminal } from './terminal.js';
 import { openNotes } from './notes.js';
 import { isEditable as editable } from '../game3d/util.js';
 import { toast } from './ui/kit.js';
-import { initPortraitFlip } from './portrait-flip.js';
+import { initPortraitFlip, DOUBLE_MS } from './portrait-flip.js';
+import { initPortraitSwap } from './portrait-swap.js';
 /* global CustomEvent */
 
 
@@ -73,23 +74,32 @@ export function initDomEggs(getWorld) {
     }
   });
 
-  // ---- the portrait turns into the little scholar (and back)
+  // ---- the portrait: one click builds the minifigure (and back), five turn it into the little scholar
   const portrait = document.getElementById('portrait');
   const img = portrait?.querySelector('img');
   if (portrait && img) {
-    const original = img.src;
-    let clicks = 0, last = 0, voxel = false;
+    let clicks = 0, last = 0, burst = 0, lastBurst = 0, single = 0, voxel = false;
+    const swap = initPortraitSwap(portrait, {
+      photo: img.src,
+      onDone: (face) => { if (face === 'lego' && found('minifig')) say('me', 'Now in brick form. Please do not step on me.'); },
+    });
     // a clean double-click flips the card over instead (portrait-flip.js); clicks while it is out do not count
-    const flip = initPortraitFlip(portrait, { onOpen: () => { clicks = 0; } });
+    const flip = initPortraitFlip(portrait, { onOpen: () => { clicks = 0; clearTimeout(single); } });
     portrait.addEventListener('click', () => {
       if (flip.isOpen()) return;
       const now = performance.now();
       clicks = now - last < 1500 ? clicks + 1 : 1;
       last = now;
+      burst = now - lastBurst < DOUBLE_MS ? burst + 1 : 1;
+      lastBurst = now;
+      swap.settle();
+      clearTimeout(single);
+      // a lone click: once no second one follows, the faces swap
+      if (burst === 1 && !voxel) single = setTimeout(() => { if (!flip.isOpen() && !voxel) swap.toggle(); }, DOUBLE_MS);
       if (clicks >= 5) {
         clicks = 0;
         voxel = !voxel;
-        img.src = voxel ? spriteUrl('scholar') : original;
+        img.src = voxel ? spriteUrl('scholar') : swap.src();
         portrait.classList.toggle('is-voxel', voxel);
         if (voxel) { found('portrait'); say('me', 'Oh no. They found the low-poly one.'); }
       }

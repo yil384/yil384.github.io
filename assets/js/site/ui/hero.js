@@ -1,6 +1,6 @@
 /* global MutationObserver */
 // HERO: the title screen (SPEC §4.1). The big name becomes nine bumpable letter blocks, the links become
-// skill slots (keys 1-4), a JRPG title menu with a sliding pixel-hand cursor, PRESS START, and a boot log
+// skill slots (keys 1-5), a JRPG title menu with a sliding pixel-hand cursor, PRESS START, and a boot log
 // typed as the island wakes up. Everything here is game-only chrome: the h1 text, the role line and the
 // links stay the real, readable HTML.
 import { capabilities, onChange as onEggs } from '../eggs.js';
@@ -105,7 +105,7 @@ export function init({ kit, progress, mode, P }) {
     found('typename');
   });
 
-  // ------------------------------------------------------------ skill slots (links 1-4)
+  // ------------------------------------------------------------ skill slots (links 1-5)
   const links = $$('.hero__links a', hero);
   let heroVisible = true;
   observe(hero, { threshold: 0.5, once: false }, (_e, ok) => { heroVisible = ok; });

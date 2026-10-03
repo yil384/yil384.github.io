@@ -30,6 +30,7 @@ Projects: Starry-Next (networking stack for a monolithic-kernel OS, Rust, gradua
 chat, WebSocket + Django + TypeScript) · CST-OJ (online judge for data-structure coursework, Rust, sandboxed grading,
 submission queue) · TritonGym (benchmark harness).
 Skills: Python, C++, Rust, Go, TypeScript, JavaScript, Verilog; Linux, Vim, LaTeX, WebSocket, Django, MongoDB.
+Profiles: yil384@ucsd.edu, Google Scholar, GitHub (yil384), LinkedIn, X (x.com/yil384).
 Places: UCSD (Geisel Library = Dr. Seuss, Sun God, King Triton, sea lions, Fallen Star, Snake Path, Scripps pier,
 Torrey Pines gliders, "Fiat lux"); Tsinghua (二校门 Second Gate, motto 自强不息，厚德载物, 清华学堂, 大礼堂 auditorium,
 荷塘 lotus pond / 荷塘月色, bicycles everywhere, 紫荆 dorms, Yao Class).
