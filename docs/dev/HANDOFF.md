@@ -58,7 +58,8 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
   the 5-click voxel run) builds the minifigure version `assets/img/portrait-lego.webp` (the user's LEGO portrait,
   framed like the photo: crop box (192,140,1036,984) of the 1254px upload in commit e2e2f62, centered on the head
   (x 614), head = 54% of the frame, 7% above the hair; the "NINJAGO" lettering on the mountain was painted out first
-  (letter mask, feathered clone of the rock 92 px above); 640x640 WebP q78; bump the `?v=` on `LEGO` in
+  (letter mask, feathered clone of the rock 92 px above, level-matched on the filled pixels; Poisson blending
+  brings the letter outlines back, avoid it); 640x640 WebP q78; bump the `?v=` on `LEGO` in
   portrait-swap.js after a re-crop) out of 5x5 studded bricks pressed in row by row from the bottom; the next lone click pops
   them off from the top and the photo is back. Code: `assets/js/site/portrait-swap.js` (wired from `eggs-dom.js`,
   which counts the clicks: 1 = swap, 2 = flip, 5 = voxel; any click lands a running swap at once), CSS at the end of
