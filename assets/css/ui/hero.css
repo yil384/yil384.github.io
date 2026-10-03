@@ -78,15 +78,16 @@ html.is-game .hero__class { text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 12px 
 html.is-game .hero__role { font-size: 17.5px; line-height: 1.55; }
 
 /* ---------------------------------------------------------------- skill slots (links 1-5) */
-html.is-game .hero__links { gap: 12px 20px; margin-top: 20px; }
-/* the five slots fit on one line on a desktop: they may run a little past the 600px text column */
-html.is-game .scene--hero .hero__links { width: max-content; max-width: calc(100vw - 160px); }
+/* compact enough that all five fit on one line inside the 600px text column (~590px); where the viewport has room
+   the row may also run a little past it, so a wider font fallback still does not wrap */
+html.is-game .hero__links { --slot: 34px; gap: 12px 14px; margin-top: 20px; }
+html.is-game .scene--hero .hero__links { width: max-content; max-width: max(100%, calc(100vw - 160px)); }
 html.is-game .hero__links a {
-  display: grid; grid-template-columns: 36px auto; grid-template-rows: 36px auto; column-gap: 10px; row-gap: 4px; align-items: center;
-  font: 500 14px/1.2 var(--sans); color: var(--ink-2); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  display: grid; grid-template-columns: var(--slot) auto; grid-template-rows: var(--slot) auto; column-gap: 8px; row-gap: 4px; align-items: center;
+  font: 500 13.5px/1.2 var(--sans); color: var(--ink-2); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 html.is-game .hero__links a::before {
-  content: ''; grid-area: 1 / 1; width: 36px; height: 36px; border-radius: 3px;
+  content: ''; grid-area: 1 / 1; width: var(--slot); height: var(--slot); border-radius: 3px;
   background: linear-gradient(180deg, rgba(34, 64, 110, 0.92), rgba(15, 29, 51, 0.95));
   box-shadow: 0 0 0 1px var(--ucsd-navy-3), 0 0 0 2px var(--gold-a45), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -3px 0 rgba(0, 0, 0, 0.3);
   transition: box-shadow var(--t-ui), transform 120ms var(--ease);
@@ -198,10 +199,10 @@ html.rm .press-start { animation: none; }
   .hero__blocks { right: -20px; }
   html.is-game .hero__class { font-size: 14px; margin-bottom: 10px; }
   html.is-game .hero__role { font-size: 16px; }
-  html.is-game .hero__links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin-top: 16px; }
+  html.is-game .hero__links { --slot: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; margin-top: 16px; }
   html.is-game .scene--hero .hero__links { width: auto; max-width: none; }
   html.is-game .scene--hero .hero__links li:first-child { grid-column: 1 / -1; }
-  html.is-game .hero__links a { grid-template-rows: 36px; font-size: 13px; min-height: 44px; }
+  html.is-game .hero__links a { grid-template-rows: var(--slot); column-gap: 10px; font-size: 13px; min-height: 44px; }
   html.is-game .hero__links li { min-width: 0; }
   .slot-key { display: none; }
   .title-menu { width: 100%; min-width: 0; margin-top: 18px; padding: 6px 14px 6px 40px; }
