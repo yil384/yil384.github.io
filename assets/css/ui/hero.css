@@ -80,7 +80,7 @@ html.is-game .hero__role { font-size: 17.5px; line-height: 1.55; }
 /* ---------------------------------------------------------------- skill slots (links 1-5) */
 /* compact enough that all five fit on one line inside the 600px text column (~590px); where the viewport has room
    the row may also run a little past it, so a wider font fallback still does not wrap */
-html.is-game .hero__links { --slot: 34px; gap: 12px 14px; margin-top: 20px; }
+html.is-game .hero__links { --slot: 34px; gap: 12px; margin-top: 20px; }
 html.is-game .scene--hero .hero__links { width: max-content; max-width: max(100%, calc(100vw - 160px)); }
 html.is-game .hero__links a {
   display: grid; grid-template-columns: var(--slot) auto; grid-template-rows: var(--slot) auto; column-gap: 8px; row-gap: 4px; align-items: center;
@@ -103,6 +103,7 @@ html.is-game .hero__links a.is-slot-hit::before { animation: slot-hit 360ms var(
 @keyframes slot-hit { 40% { transform: scale(0.9); box-shadow: 0 0 0 1px var(--ucsd-navy-3), 0 0 0 2px #fff, 0 0 20px rgba(255, 205, 0, 0.6); } }
 .slot-key { grid-area: 2 / 1; justify-self: center; font: 400 8px/1 var(--px-num); color: var(--gold); opacity: 0.8; text-shadow: none; }
 .scene--hero:not(.has-keys) .slot-key { display: none; }
+@media (pointer: coarse) { html.is-game .scene--hero .hero__links a { min-height: 44px; } }
 
 /* ---------------------------------------------------------------- title menu: a JRPG window with a pixel hand */
 .title-menu {

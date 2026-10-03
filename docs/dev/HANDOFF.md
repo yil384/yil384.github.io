@@ -57,7 +57,7 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
 - A lone click / tap on `#portrait` (no second one within `DOUBLE_MS` = 350 ms, so it never fires on a double-click or
   the 5-click voxel run) builds the minifigure version `assets/img/portrait-lego.webp` (the user's LEGO portrait,
   crop box (302,152,926,776) of the 1254px upload in commit e2e2f62: centered on the head, left of the "NINJAGO" text
-  on the mountain; 640x640 WebP q78) out of 5x5 studded bricks pressed in row by row from the bottom; the next lone click pops
+  on the mountain; 640x640 WebP q78; bump the `?v=` on `LEGO` in portrait-swap.js after a re-crop) out of 5x5 studded bricks pressed in row by row from the bottom; the next lone click pops
   them off from the top and the photo is back. Code: `assets/js/site/portrait-swap.js` (wired from `eggs-dom.js`,
   which counts the clicks: 1 = swap, 2 = flip, 5 = voxel; any click lands a running swap at once), CSS at the end of
   `assets/css/ui/about.css`, `sfx('snap')` per row. The `<img>` src / alt and the button's aria-label follow the face,

@@ -64,7 +64,7 @@ for (const name of list.split(',')) {
       const pt = document.getElementById('portrait');
       const img = pt.querySelector('img');
       const eggs = await import('/assets/js/site/eggs.js');
-      return { src: img.src.replace(/.*\//, ''), alt: img.alt, label: pt.getAttribute('aria-label'), bricks: !!pt.querySelector('.portrait__bricks'), voxel: pt.classList.contains('is-voxel'), egg: eggs.has('minifig') };
+      return { src: img.src.replace(/.*\//, '').replace(/\?.*/, ''), alt: img.alt, label: pt.getAttribute('aria-label'), bricks: !!pt.querySelector('.portrait__bricks'), voxel: pt.classList.contains('is-voxel'), egg: eggs.has('minifig') };
     });
     // freeze every brick animation at the same moment (t ms after the swap began) for a screenshot
     const freeze = async (t, file) => {
@@ -120,7 +120,7 @@ for (const name of list.split(',')) {
     await p.waitForTimeout(500);
     await clicks(2);
     await p.waitForFunction(() => document.querySelector('.pflip'), null, { timeout: 2000 }).catch(() => bad('double-click did not open the card'));
-    res.cardFront = await p.evaluate(() => document.querySelector('.pflip__front img')?.src.replace(/.*\//, ''));
+    res.cardFront = await p.evaluate(() => document.querySelector('.pflip__front img')?.src.replace(/.*\//, '').replace(/\?.*/, ''));
     if (res.cardFront !== 'portrait-lego.webp') bad(`card front shows ${res.cardFront}`);
     await p.waitForTimeout(900);
     await p.keyboard.press('Escape');

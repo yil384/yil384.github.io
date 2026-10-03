@@ -7,7 +7,7 @@
 import { sfx } from '../game3d/audio.js';
 import { h, live } from './ui/kit.js';
 
-export const LEGO = 'assets/img/portrait-lego.webp';   // square, like the slot it fills
+export const LEGO = 'assets/img/portrait-lego.webp?v=2';   // square, like the slot it fills (bump ?v= on a re-crop)
 const N = 5;                    // bricks per side
 const ROW_MS = 85;              // stagger between rows
 const DROP_MS = 400, POP_MS = 520, FADE_MS = 220;
