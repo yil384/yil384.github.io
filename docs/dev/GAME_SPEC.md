@@ -19,7 +19,7 @@ Papers: TritonGym (Yue Guan*, Yichen Lin* equal contribution; under review, ICML
 workflows writing Triton GPU kernels) · (Re)²H₂O (Haoyi Niu*, Kun Ren*, Yichen Lin et al.; IEEE IV 2023; autonomous-
 driving scenario generation via reversely regularized hybrid offline-and-online RL).
 Experience: Picasso Lab UCSD CSE research intern Mar 2024–Feb 2025 (CXL system simulator for large-model communication;
-lab websites; RAG pipeline for reading papers) · Samsung Semiconductor summer research intern Jun–Sep 2026, San Jose (architecture for agentic AI workloads: runtime
+sole developer of the lab websites yufeiding.ucsd.edu and picasso-lab.com; RAG pipeline for reading papers) · Samsung Semiconductor summer research intern Jun–Sep 2026, San Jose (architecture for agentic AI workloads: runtime
 optimizations for agent pipelines, simulating how future accelerators should support agent workloads; agentic test-debug
 framework prototype for MLOps; multi-agent coordination, adaptive memory, human-AI collaboration) · Metabit quant developer intern Sep–Nov 2024 (faster data parsing,
 streaming reads for the internal AI platform) · Tencent TiMi Studio game dev intern Jun–Jul 2024 (Monster Hunter
