@@ -40,6 +40,34 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
   index.html); the intro is a small push-in from that same shot.
 - Probe: `tools/dev/mplay.mjs [w] [h] [out] [shots]` (real CDP touch: stick, look, jump, map, battle, menu, spell picker).
 
+## Opening animation (2026-10-07)
+- ~4 s before the page: a green slash cuts the dark open onto a night skyline where UC San Diego (Geisel, eucalyptus,
+  Sun God, the Fallen Star house) meets an original ninja city; Lord Deadline (original: four arms, horned helmet, a
+  clock on his chest creeping to midnight) rises behind it with a WARNING banner, a fighting-game VS card ("THE GREEN
+  NINJA · Yichen Lin" vs "LORD DEADLINE"), the ninja's tornado gathers four elements, beam clash, manga impact frames,
+  a SUBMITTED 23:59:59 AoE stamp, then the screen cracks around the hit and shatters like glass into the page (~1.2 s).
+- Code: `assets/js/intro/` - `intro.js` (gating, overlay, clock, skip, hand-off), `scene.js` (the 2D canvas stage:
+  parallax layers painted once into offscreen canvases, character sprites, live particles/effects; `BEAT` = the
+  timeline), `fracture.js` (radial/concentric crack pattern, crack drawing, shard motion, the 2D shatter fallback),
+  `shatter3d.js` (three.js WebGPURenderer forced to WebGL2: shards as slabs textured with the last 2D frame, all
+  motion in the vertex shader, glass dust). CSS `assets/css/intro.css`. No image files, everything is drawn.
+- Gating (inline script in index.html, before first paint): `html.intro-on` once per browser session
+  (`sessionStorage yl.intro`), never in Reviewer mode, with reduced motion, on a `#section` deep link or when
+  `navigator.webdriver` (so every existing probe is unaffected). `?intro=1` forces it, `?intro=0` turns it off. A black
+  cover stands in until the overlay mounts; if the script never mounts it, the cover lifts after 3 s.
+- Any click / tap / key / wheel jumps to the impact (then plays 1.6x); a second one or Esc ends it. Keys never reach the
+  page while it runs. The hero entrance and the bar wait (`html.intro-on`) and play as the glass falls.
+- The 3D world waits for `window.__intro.done` (page.js), so the intro never competes with the world build. three.js
+  for the shatter is skipped on software GL / no WebGL / Save-Data, and if it is not ready 1.4 s after the cracks the
+  2D shatter runs instead. Terminal: `intro` replays it.
+- Characters: the user wants them to look exactly like LEGO Ninjago (the Green Ninja vs Lord Garmadon), from images
+  they generate (exception to "original characters only", for the opening only). Image slots in `intro/art.js`
+  (hero, heroJump, heroVs, villain, villainVs, skyline), prompts and file specs in `docs/dev/INTRO_ART.md`; until the
+  files exist the scene draws stand-ins (an original green ninja, "Lord Deadline"). Not merged to main yet: the user
+  rejected the drawn ninja, so it goes live together with their images.
+- Probe: `node tools/dev/intro.mjs [w] [h] [times] [extra query] [out]` (one load, the clock held at each time via
+  `__intro.hold`, screenshots `/tmp/yl/intro_*`; `&intro3d=1` forces the three.js shatter on the software GPU).
+
 ## Portrait flip (secret identity)
 - A clean double-click / double-tap on the About photo (`#portrait`) flips it over like a card and plays a 14 s comic
   intro video on the back (the user's green-ninja minifigure clip, re-cut with captions); on `ended` / close / Esc /
@@ -109,7 +137,7 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
 - Latest job: Samsung Semiconductor, summer research intern, Jun-Sep 2026, San Jose, architecture for agentic AI
   workloads (see the Experience row in index.html).
 - TritonGym: Yue Guan*, Yichen Lin* (equal contribution), **under review, ICML 2026**. (Re)^2H_2O: IEEE IV 2023.
-- Original characters only (no third-party IP / logos in sprites). Never punish the player (deaths and falls cost
+- Original characters only (no third-party IP / logos in sprites), except the opening animation's Ninjago look (above). Never punish the player (deaths and falls cost
   nothing). Every CV fact stays in HTML; phone, reduced motion, no-WebGL and Reviewer mode (R) must keep working.
 - Humour target: "学术圈最好玩、彩蛋最多" (the most fun, most easter-egg-packed academic homepage). Tab-away
   titles like "Yichen Lin · Defeated by Claude". No "AI-flavoured" corporate copy.
@@ -133,7 +161,8 @@ The software GPU renders ~1 fps: prefer `__g.sim(seconds)` (runs the game withou
   (`performance.mark('yl:*')` from `game3d/index.js`). `WEBGPU=1` for the WebGPU backend, `PROFILE=1` for a CPU profile,
   `OUT=<label>` keeps the raw entries (`--summarize <files>` re-reads them). See its header.
 - Lint: `npx eslint -c tools/dev/eslint.config.mjs "assets/js/**/*.js" --ignore-pattern "assets/vendor/**"`.
-- URL flags: `force=1` (world even on weak devices), `intro=0`, `lowfx=1`, `dpr=<n>`, `region=<id>`, `road=all`
+- URL flags: `force=1` (world even on weak devices), `intro=0` (no opening, no world fly-in), `intro=1` (force the
+  opening), `introAt=<s>` (hold the opening there), `intro3d=0|1`, `lowfx=1`, `dpr=<n>`, `region=<id>`, `road=all`
   (debug grant, with region), `perf=1`, `norender=1`, `world=0`, `webgl=1`.
 
 ## Lessons learned

@@ -72,7 +72,7 @@ function build() {
   setPS();
 }
 
-const COMMANDS = ['help', 'ls', 'cd', 'pwd', 'cat', 'whoami', 'sudo', 'rm', 'vim', 'nvidia-smi', 'ping', 'git', 'fortune', 'geisel', 'tritons', 'hire', 'play', 'eggs', 'clear', 'exit', 'coffee', 'make', 'echo', 'date', 'uname', 'top'];
+const COMMANDS = ['help', 'ls', 'cd', 'pwd', 'cat', 'whoami', 'sudo', 'rm', 'vim', 'nvidia-smi', 'ping', 'git', 'fortune', 'geisel', 'tritons', 'hire', 'play', 'eggs', 'clear', 'exit', 'coffee', 'make', 'echo', 'date', 'uname', 'top', 'intro'];
 function complete() {
   const v = input.value;
   const parts = v.split(' ');
@@ -112,7 +112,7 @@ async function run(raw) {
   const rest = args.join(' ');
   switch (cmd) {
     case 'help':
-      print('help ls cd pwd cat whoami sudo vim nvidia-smi ping git fortune geisel tritons hire play eggs coffee clear exit\n(and one or two you should not run)', 'dim');
+      print('help ls cd pwd cat whoami sudo vim nvidia-smi ping git fortune geisel tritons hire play eggs intro coffee clear exit\n(and one or two you should not run)', 'dim');
       break;
     case 'ls': {
       const target = args[0] && !args[0].startsWith('-') ? args[0].replace(/\/$/, '') : cwd;
@@ -179,6 +179,15 @@ async function run(raw) {
     case 'hire': case 'hire-me': print('Yichen is a Ph.D. student, not a job posting. But: yil384@ucsd.edu.'); break;
     case 'play': { const w = getWorld(); if (w) { close(); w.enterPlay(); } else print('The island is not running on this device.', 'err'); break; }
     case 'eggs': print(`${foundCount()} / ${total()} eggs found.`); break;
+    case 'intro': {
+      // the opening animation again: reload with ?intro=1 (intro/intro.js)
+      print('Rewinding to 23:59 AoE…', 'dim');
+      const u = new window.URL(location.href);
+      u.searchParams.set('intro', '1');
+      u.hash = '';
+      setTimeout(() => location.assign(u.href), 450);
+      break;
+    }
     // phones have no arrow keys and nowhere to type a name: the shell takes both
     case 'yichen': case 'lin': case 'yil384': print(found('typename') ? 'Autocomplete: yichen → Yichen Lin, Ph.D. student, UC San Diego.' : 'Yes, that is him.'); break;
     case 'konami': case 'uuddlrlrba': case '↑↑↓↓←→←→ba': print(found('konami') ? 'Thirty lives granted. All of them will be spent on rebuttals.' : 'You already have thirty lives.'); break;

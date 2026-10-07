@@ -51,6 +51,10 @@ if (vmapEl && 'IntersectionObserver' in window) {
   io.observe(vmapEl.closest('footer') || vmapEl.parentElement);
 }
 
+// the opening animation (intro/intro.js) gets the main thread to itself: the world starts once it is over
 const start = () => mountWorld();
-if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 900 });
-else setTimeout(start, 120);
+const introDone = window.__intro?.done ?? Promise.resolve();
+introDone.then(() => {
+  if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 900 });
+  else setTimeout(start, 120);
+});

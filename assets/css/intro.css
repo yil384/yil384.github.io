@@ -1,0 +1,27 @@
+/* The opening animation (assets/js/intro/intro.js). html.intro-on is set before first paint by the inline
+   script in index.html when the intro will play; until the overlay mounts, a black cover stands in so the
+   page never flashes first. The hero's entrance and the bar wait under the intro and play as the glass falls. */
+html.intro-on:not(.intro-live)::after {
+  content: ''; position: fixed; inset: 0; z-index: 2147483000; background: #000;
+}
+html.intro-on .hero > *, html.intro-on .scene--hero .eyebrow { animation-play-state: paused !important; }
+html.intro-on .bar { transform: translateY(-100%); }
+
+.intro {
+  position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; background: #000;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer;
+}
+.intro.is-shattering { background: transparent; pointer-events: none; }
+.intro.is-out { opacity: 0; transition: opacity 0.25s ease-out; }
+.intro__c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.intro__skip {
+  position: absolute; z-index: 2; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
+  padding: 9px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(8, 6, 20, 0.6); color: #ece9ff; font: 600 13px/1 Inter, system-ui, sans-serif; letter-spacing: 0.04em;
+  cursor: pointer; opacity: 0; animation: intro-skip 0.4s 0.7s forwards;
+}
+.intro__skip span { margin-left: 4px; color: #3dff8f; }
+.intro__skip:hover, .intro__skip:focus-visible { background: rgba(61, 255, 143, 0.16); border-color: #3dff8f; outline: none; }
+.intro.is-shattering .intro__skip { display: none; }
+@keyframes intro-skip { to { opacity: 1; } }
+@media print { .intro { display: none; } }
