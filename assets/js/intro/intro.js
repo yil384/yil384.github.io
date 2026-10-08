@@ -57,11 +57,12 @@ async function run() {
   c2.width = Math.round(w * R);
   c2.height = Math.round(h * R);
 
-  // the titles use the pixel fonts and the characters may be images (art.js): give them a moment (the opening is
-  // black for the first beat anyway); whatever is not there by then is drawn instead
+  // the titles use the pixel fonts and the characters are images (art.js): give them a moment (the opening is black
+  // for the first beat anyway, and a cached visit has them at once). If the fight's images are not all there by then,
+  // the scene draws its own stand-ins for this visit.
   const art = loadArt();
   const fontWait = Promise.all(['700 20px Silkscreen', '20px "Press Start 2P"'].map((f) => (document.fonts ? document.fonts.load(f).catch(() => null) : null)));
-  await Promise.race([Promise.all([fontWait, art.ready]), new Promise((r) => setTimeout(r, art.any ? 1200 : 350))]);
+  await Promise.race([Promise.all([fontWait, art.core]), new Promise((r) => setTimeout(r, art.any ? 1500 : 350))]);
 
   const scene = createScene(c2, { w, h, R, art: art.art });
   const ctx = c2.getContext('2d');

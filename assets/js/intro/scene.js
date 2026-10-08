@@ -5,7 +5,7 @@
 // (parallax planes), characters into sprites, and the effects live, every frame, in "units" where the
 // screen is 1000 units tall. All characters are original.
 import { drawCracks } from './fracture.js';
-import { ART } from './art.js';
+import { ART, CORE } from './art.js';
 
 const TAU = Math.PI * 2;
 export const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
@@ -431,6 +431,35 @@ export function createScene(canvas, { w, h, R, art = {} }) {
   };
   L.W = W; L.U = U; L.portrait = portrait;
 
+  // ---- image art (art.js), all or nothing: A is null when the drawn stand-ins play this visit
+  const A = art && CORE.every((k) => art[k]?.naturalWidth) ? art : null;
+  let SKY = null, MOON = null;
+  if (A) {
+    // the skyline fills the width (taller on tall screens, centred between Geisel and the moon), bottom on the floor;
+    // its moon goes back where it was cut from, or hangs free above the city on a phone
+    // (on very wide screens it would grow too tall for him to rise over it: it stops at 1.25x and mirrored copies of
+    // its own edges fill the sides)
+    const sk = A.skyline, iw = sk.naturalWidth, ih = sk.naturalHeight;
+    const kTall = (portrait ? 780 : 900) / ih;
+    const k = portrait ? Math.max((W + 2 * mU) / iw, kTall) : Math.min(Math.max((W + 2 * mU) / iw, kTall), kTall * 1.25);
+    const mirror = iw * k < W + 2 * mU;
+    const x0 = mirror ? W / 2 - iw * k / 2 : Math.min(-mU, Math.max(W + mU - iw * k, W / 2 - (portrait ? 0.6 : 0.5) * iw * k));
+    const y0 = 1000 + mU - ih * k;
+    SKY = { x0, y0, k, w: iw * k, h: ih * k, mirror, at: (fx, fy) => [x0 + fx * iw * k, y0 + fy * ih * k] };
+    const [mx, my] = SKY.at(ART.moon.at[0], ART.moon.at[1]);
+    const mr = ART.moon.at[2] * iw * k;
+    MOON = portrait ? { x: W * 0.6, y: 260, k: k * 0.8, free: true } : { x: mx, y: my, k };
+    MOON.r = mr * (MOON.free ? 0.8 : 1);
+    // Garmadon: his energy ball parked just above the rooftops (between Geisel and the bell tower on wide screens,
+    // over Geisel on tall ones), sized so his eyes sit near the top fifth of the screen
+    // (the whole helmet stays below the letterbox)
+    const [gx, gy] = portrait ? SKY.at(0.6, 0.31) : SKY.at(0.748, 0.42);
+    const ball = gy - (portrait ? 40 : 20);
+    const tall = Math.max(400, Math.min(portrait ? W * 1.04 : 760, (ball - (portrait ? 30 : 58)) / ART.villain.beam[1]));
+    L.lord = { x: gx, y: ball, s: tall / 1000 };
+    if (portrait) { L.clash = { x: W * 0.38, y: 640 }; L.spin = { x: W * 0.22, y: 860, s: 0.8 }; }
+  }
+
   const glow = {}, hot = {};
   for (const [k, v] of Object.entries(RGB)) { glow[k] = glowSprite(v); hot[k] = glowSprite(v, true); }
 
@@ -473,6 +502,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       g.fillStyle = `rgba(255,${235 + rand() * 20 | 0},${215 + rand() * 40 | 0},${((0.35 + rand() * 0.65) * (1 - y / 760)).toFixed(2)})`;
       g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
     }
+    if (A) return;
     const { x, y, r } = L.moon;
     const halo = g.createRadialGradient(x, y, r * 0.8, x, y, r * 3.6);
     halo.addColorStop(0, 'rgba(255,232,205,0.36)'); halo.addColorStop(0.4, 'rgba(230,170,220,0.12)'); halo.addColorStop(1, 'rgba(230,170,220,0)');
@@ -761,14 +791,12 @@ export function createScene(canvas, { w, h, R, art = {} }) {
 
   const lordK = Math.max(L.lord.s, portrait ? 0.7 : W * 0.4 / 640);
 
-  // image art (art.js) replaces the drawn stand-ins; each slot is decided the first time it is drawn
+  // the art in use (the VS portraits are decided the first time they are drawn: they may still be loading)
   const chosen = {};
-  const pic = (k) => (k in chosen ? chosen[k] : (chosen[k] = art[k]?.naturalWidth ? art[k] : null));
-  const drawPic = (im, x, y, hU, ax, ay, flip) => {
+  const pic = (k) => (k in chosen ? chosen[k] : (chosen[k] = A?.[k]?.naturalWidth ? A[k] : null));
+  const drawPic = (im, x, y, hU, ax, ay) => {
     const wU = hU * (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
-    c.save(); c.translate(x, y); if (flip) c.scale(-1, 1);
-    c.drawImage(im, -ax * wU, -ay * hU, wU, hU);
-    c.restore();
+    c.drawImage(im, x - ax * wU, y - ay * hU, wU, hU);
   };
   // the villain rises out of the city: his image fades out toward its lower edge so no cut ever shows
   let villainCv;
@@ -784,38 +812,52 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     g.fillStyle = fade; g.fillRect(0, 0, cv.width, cv.height);
     return (villainCv = cv);
   };
+  // the villain image is placed by its energy ball (L.lord) and L.lord.s * 1000 tall
   const villainBox = (lx, ly) => {
-    const v = ART.villain, hU = 1000 * L.lord.s * v.h, wU = hU * villainCv.width / villainCv.height, sx = v.flip ? -1 : 1;
-    return { hU, wU, at: (f) => [lx + (f[0] - v.anchor[0]) * wU * sx, ly + (f[1] - v.anchor[1]) * hU] };
+    const v = ART.villain, hU = 1000 * L.lord.s, wU = hU * villainCv.width / villainCv.height;
+    return { hU, wU, at: (f) => [lx + (f[0] - v.beam[0]) * wU, ly + (f[1] - v.beam[1]) * hU] };
   };
   const heroAir = (x, y, k) => {
     const jump = pic('heroJump'), im = jump || pic('hero');
     if (!im) return false;
     const cfg = jump ? ART.heroJump : ART.hero, hU = L.ninja.s * 100 * cfg.h * k;
-    drawPic(im, x, y - hU / 2, hU, 0.5, 0.5, cfg.flip);
+    const [ax, ay] = jump ? ART.heroJump.centre : [0.5, 0.5];
+    drawPic(im, x, y - hU / 2, hU, ax, ay);
     return true;
   };
-  // a skyline image: with a transparent sky it is a layer in front of the villain, otherwise the whole backdrop
-  let skyMode = null;
-  const skyPic = () => {
-    const im = pic('skyline');
-    if (im && !skyMode) {
-      try {
-        const cv = mk(32, 32), g = cv.getContext('2d', { willReadFrequently: true });
-        g.drawImage(im, 0, 0, 32, 32);
-        const d = g.getImageData(0, 0, 32, 4).data;
-        let a = 0;
-        for (let i = 3; i < d.length; i += 4) a += d[i];
-        skyMode = a / (d.length / 4) < 128 ? 'layer' : 'backdrop';
-      } catch { skyMode = 'backdrop'; }
+  const drawSkyline = () => {
+    c.drawImage(A.skyline, SKY.x0, SKY.y0, SKY.w, SKY.h);
+    if (!SKY.mirror) return;
+    for (const x of [SKY.x0, SKY.x0 + 2 * SKY.w]) {
+      c.save(); c.translate(x, 0); c.scale(-1, 1);
+      c.drawImage(A.skyline, 0, SKY.y0, SKY.w, SKY.h);
+      c.restore();
     }
-    return im;
   };
-  const drawSkyline = (im) => {
-    const tall = skyMode === 'layer' ? (portrait ? 640 : 560) : 1000 + 2 * mU;
-    const sc = Math.max((W + 2 * mU) / im.naturalWidth, tall / im.naturalHeight);
-    const iw = im.naturalWidth * sc, ih = im.naturalHeight * sc;
-    c.drawImage(im, W / 2 - iw / 2, 1000 + mU - ih, iw, ih);
+  // the moon, and a blood-red copy of it to fade in as he rises
+  let redMoon = null;
+  const drawMoon = (blood) => {
+    const m = A.moon, mw = m.naturalWidth * MOON.k, mh = m.naturalHeight * MOON.k;
+    c.globalCompositeOperation = 'lighter';
+    c.globalAlpha = 0.5;
+    c.drawImage(glow.white, MOON.x - MOON.r * 3, MOON.y - MOON.r * 3, MOON.r * 6, MOON.r * 6);
+    c.globalAlpha = 1;
+    c.globalCompositeOperation = 'source-over';
+    c.drawImage(m, MOON.x - mw / 2, MOON.y - mh / 2, mw, mh);
+    if (blood <= 0) return;
+    if (!redMoon) {
+      redMoon = mk(m.naturalWidth, m.naturalHeight);
+      const g = redMoon.getContext('2d');
+      g.drawImage(m, 0, 0);
+      g.globalCompositeOperation = 'source-atop';
+      g.fillStyle = 'rgba(205,25,45,0.62)'; g.fillRect(0, 0, redMoon.width, redMoon.height);
+    }
+    c.globalAlpha = blood * 0.85;
+    c.globalCompositeOperation = 'lighter';
+    c.drawImage(glow.red, MOON.x - MOON.r * 3.2, MOON.y - MOON.r * 3.2, MOON.r * 6.4, MOON.r * 6.4);
+    c.globalCompositeOperation = 'source-over';
+    c.drawImage(redMoon, MOON.x - mw / 2, MOON.y - mh / 2, mw, mh);
+    c.globalAlpha = 1;
   };
   const lord = sprite(-470, -520, 470, 548, px * lordK, paintLord);
   const ninja = {
@@ -877,7 +919,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       for (let n = 0; n < rate * dt; n++) {
         let [ax, ay] = auraPts[Math.floor(Math.random() * auraPts.length)];
         const s = L.lord.s;
-        if (villainCv) { const b = villainBox(0, 0); ax = (Math.random() - 0.5) * b.wU * 0.9 / s; ay = (-Math.random() * ART.villain.anchor[1] * b.hU + 40) / s; }
+        if (villainCv) { const b = villainBox(0, 0); ax = (Math.random() - 0.5) * b.wU * 0.9 / s; ay = (-Math.random() * ART.villain.beam[1] * b.hU + 40) / s; }
         emit({ k: 'aura', x: L.lord.x + (ax + (Math.random() - 0.5) * 60) * s, y: L.lord.y + lordRise(t) + (ay + (Math.random() - 0.5) * 50) * s, vx: (Math.random() - 0.5) * 40, vy: -70 - Math.random() * 110, life: 0.6 + Math.random() * 0.6, size: (40 + Math.random() * 60) * s, col: Math.random() < 0.8 ? 'purple' : 'red', layer: 0, a: 0.55 });
       }
     }
@@ -1074,7 +1116,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
   function caption(t) {
     const k = seg(t, BEAT.open + 0.2, BEAT.open + 0.35), out = seg(t, BEAT.vs - 0.15, BEAT.vs);
     if (k <= 0 || out >= 1) return;
-    const lines = ['UC SAN DIEGO · NINJA CITY', 'LA JOLLA · 23:59 AoE'];
+    const lines = A ? ART.names.placeArt : ART.names.place;
     const chars = Math.floor((t - BEAT.open - 0.2) * 72);
     const x = portrait ? 26 : 58, y = portrait ? 96 : 92;
     c.globalAlpha = k * (1 - out);
@@ -1156,14 +1198,14 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       }
       c.globalCompositeOperation = 'source-over';
       const drift = k * 26;
-      const hv = ninjaSide && pic('heroVs'), vv = !ninjaSide && pic('villainVs');
+      const hv = ninjaSide && (pic('heroVs') || pic('hero')), vv = !ninjaSide && (pic('villainVs') || villainPic());
       if (hv) {
         c.globalCompositeOperation = 'lighter'; c.globalAlpha = 0.5;
         const gx = portrait ? W * 0.4 : W * 0.25, gy = portrait ? 760 : 520, gs = portrait ? 560 : 1000;
         c.drawImage(glow.green, gx - gs / 2, gy - gs / 2, gs, gs);
         c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
-        if (portrait) drawPic(hv, W * 0.42 - drift * 0.4, 1008, 600 * ART.heroVs.h, 0.5, 1, ART.heroVs.flip);
-        else drawPic(hv, W * 0.25 + drift, 1008, 1000 * ART.heroVs.h, 0.5, 1, ART.heroVs.flip);
+        if (portrait) drawPic(hv, W * 0.42 - drift * 0.4, 1008, 600 * ART.heroVs.h, 0.5, 1);
+        else drawPic(hv, W * 0.25 + drift, 1008, 1000 * ART.heroVs.h, 0.5, 1);
       } else if (ninjaSide && late.bust) {
         const s = vsBustS;
         if (portrait) put(late.bust, W * 0.36 - drift * 0.4, 1000 - 470 * s + 52, s);
@@ -1174,8 +1216,8 @@ export function createScene(canvas, { w, h, R, art = {} }) {
         c.drawImage(glow.purple, gx - gs / 2, gy - gs / 2, gs, gs);
         c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
         if (vv) {
-          if (portrait) drawPic(vv, W * 0.6 + drift * 0.4, 600, 600 * ART.villainVs.h, 0.5, 1, ART.villainVs.flip);
-          else drawPic(vv, W * 0.76 - drift, 1008, 1000 * ART.villainVs.h, 0.5, 1, ART.villainVs.flip);
+          if (portrait) drawPic(vv, W * 0.6 + drift * 0.4, 600, 600 * ART.villainVs.h, 0.5, 1);
+          else drawPic(vv, W * 0.76 - drift, 1008, 1000 * ART.villainVs.h, 0.5, 1);
         } else {
           if (portrait) put(lord, W * 0.64 + drift * 0.4, 360, 0.7);
           else put(lord, W * 0.76 - drift, 640, W * 0.4 / 640);
@@ -1230,7 +1272,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
         c.fillText(small, tx, portrait ? 17 : 24);
         c.restore();
       };
-      const N = ART.names, foe = pic('villainVs') || pic('villain') ? N.villainArt : N.villain;
+      const N = ART.names, foe = A ? N.villainArt : N.villain;
       if (portrait) {
         plate(16, 920, N.hero[0], N.hero[2], '61,255,143', -1);
         plate(W - 16, 80, foe[0], foe[1], '200,110,255', 1);
@@ -1324,22 +1366,19 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     const defeated = seg(t, BEAT.flash, BEAT.shatter);
 
     // sky + blood moon + lightning
-    const sk = skyPic();
     const blood = seg(t, BEAT.rise + 0.2, BEAT.rise + 0.8) * (1 - defeated * 0.7);
-    if (sk && skyMode === 'backdrop') {
-      view(0.15); drawSkyline(sk);
-      if (blood > 0) { c.fillStyle = `rgba(120,10,60,${blood * 0.28})`; c.fillRect(-mU, -mU, W + 2 * mU, 1000 + 2 * mU); }
-    } else {
-      view(0.04); drawLayer(sky);
-      if (blood > 0) { c.globalAlpha = blood * 0.85; put(bloodMoon, L.moon.x, L.moon.y, 1); c.globalAlpha = 1; }
-    }
+    view(0.04); drawLayer(sky);
+    if (A) { view(MOON.free ? 0.1 : 0.35); drawMoon(blood); view(0.04); }
+    else if (blood > 0) { c.globalAlpha = blood * 0.85; put(bloodMoon, L.moon.x, L.moon.y, 1); c.globalAlpha = 1; }
     const boltK = t > BEAT.bolt && t < BEAT.bolt + 0.22;
     if (boltK) {
       const r = rng(Math.floor(t * 40));
       const k = 1 - (t - BEAT.bolt) / 0.22;
       c.fillStyle = `rgba(200,150,255,${0.25 * k})`; c.fillRect(-mU, -mU, W + 2 * mU, 1000 + 2 * mU);
-      drawLightning(boltPath(lx + 248 * s + 120, -40, lx + 248 * s, ly - 505 * s, 140, r), 'purple', 3.2 * k + 1);
-      drawLightning(boltPath(lx - 300 * s - 160, -40, lx - 248 * s, ly - 505 * s, 120, r), 'purple', 2.2 * k + 0.6);
+      const hornR = villainPic() ? villainBox(lx, ly).at(ART.villain.horns[1]) : [lx + 248 * s, ly - 505 * s];
+      const hornL = villainPic() ? villainBox(lx, ly).at(ART.villain.horns[0]) : [lx - 248 * s, ly - 505 * s];
+      drawLightning(boltPath(hornR[0] + 120, -40, hornR[0], hornR[1], 140, r), 'purple', 3.2 * k + 1);
+      drawLightning(boltPath(hornL[0] - 160, -40, hornL[0], hornL[1], 120, r), 'purple', 2.2 * k + 0.6);
     }
 
     // Lord Deadline behind the city
@@ -1353,7 +1392,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       drawParticles(0);
       c.globalAlpha = 1 - defeated * 0.75;
       const vi = villainPic();
-      if (vi) drawPic(vi, lx, ly, 1000 * s * ART.villain.h, ART.villain.anchor[0], ART.villain.anchor[1], ART.villain.flip);
+      if (vi) drawPic(vi, lx, ly, 1000 * s, ART.villain.beam[0], ART.villain.beam[1]);
       else put(lord, lx, ly, s);
       c.globalAlpha = 1;
       if (t > BEAT.flash) {
@@ -1367,7 +1406,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
         clockHands(lx, ly, s, t);
         c.globalAlpha = 1;
         eyes(lx, ly, s, seg(t, BEAT.eyes - 0.04, BEAT.eyes + 0.06) * (1 - defeated), t);
-      } else if (ART.villain.eyes) {
+      } else {
         const b = villainBox(lx, ly), k = seg(t, BEAT.eyes - 0.04, BEAT.eyes + 0.06) * (1 - defeated);
         const fl = t > BEAT.eyes ? Math.exp(-(t - BEAT.eyes) * 5) : 0;
         c.globalCompositeOperation = 'lighter';
@@ -1380,11 +1419,11 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       }
     } else drawParticles(0);
 
-    if (sk && skyMode === 'layer') { view(0.35); drawSkyline(sk); }
-    else if (!sk) { view(0.25); drawLayer(far); view(0.5); drawLayer(mid); }
+    if (A) { view(0.35); drawSkyline(); }
+    else { view(0.25); drawLayer(far); view(0.5); drawLayer(mid); }
     view(0.5);
     // lantern strings between the buildings
-    const strings = sk ? [] : portrait ? [[W * 0.04, 760, W * 0.24, 790, 36]] : [[W * 0.165, 770, W * 0.24, 742, 30], [W * 0.555, 712, W * 0.75, 740, 44], [W * 0.75, 690, W * 0.845, 740, 30]];
+    const strings = A ? [] : portrait ? [[W * 0.04, 760, W * 0.24, 790, 36]] : [[W * 0.165, 770, W * 0.24, 742, 30], [W * 0.555, 712, W * 0.75, 740, 44], [W * 0.75, 690, W * 0.845, 740, 30]];
     c.lineWidth = 1.4; c.strokeStyle = 'rgba(10,6,20,0.9)';
     for (const [x1, y1, x2, y2, sag] of strings) {
       const sw = Math.sin(t * 2 + x1) * 4;
@@ -1414,7 +1453,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       c.fillStyle = '#ffb35c'; c.beginPath(); c.ellipse(bx, by + 14, 6, 11, 0, 0, TAU); c.fill();
       c.fillStyle = '#140a12'; c.fillRect(bx - 6, by - 2, 12, 3); c.fillRect(bx - 6, by + 27, 12, 3);
     }
-    put(branch, W + 8, 0, portrait ? 0.75 : 1);
+    if (!A) put(branch, W + 8, 0, portrait ? 0.75 : 1);
 
     // the Green Ninja
     const n = ninjaAt(t);
@@ -1426,7 +1465,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       const gs = 260 * L.ninja.s;
       c.drawImage(glow.green, n.x - gs / 2, n.y - 60 * L.ninja.s - gs / 2, gs, gs);
       c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
-      if (!leapK || !heroAir(n.x, n.y, 1)) drawPic(heroImg, n.x, n.y, L.ninja.s * 100 * ART.hero.h, ART.hero.foot[0], ART.hero.foot[1], ART.hero.flip);
+      if (!leapK || !heroAir(n.x, n.y, 1)) drawPic(heroImg, n.x, n.y, L.ninja.s * 100 * ART.hero.h, ART.hero.foot[0], ART.hero.foot[1]);
     } else if (!spinning) {
       const ns = L.ninja.s;
       const P0 = POSE[n.pose];
