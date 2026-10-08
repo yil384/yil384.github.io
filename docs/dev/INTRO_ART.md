@@ -4,23 +4,27 @@ The user (2026-10-07): the intro's ninja must not be drawn in code, it should lo
 (幻影忍者) and fight Lord Garmadon (加满都), from images the user generates in the GPT web chat (no Codex / OpenAI key in
 the cloud sessions). This is a deliberate exception to "original characters only", for the opening only.
 
-Until the files exist, `assets/js/intro/scene.js` draws stand-ins (an original green ninja and "Lord Deadline"). The
-slots live in `assets/js/intro/art.js`: when a file arrives, convert it to WebP, set `src`, tune the anchors (feet,
-chest, beam point, eye points) and the `h` factors, check with `ART='{"hero":"…"}' node tools/dev/intro.mjs …`
-(the env var tries files before they are switched on), then switch them on. With villain art the plate reads
-LORD GARMADON (`ART.names.villainArt`).
+Status (2026-10-08): all six images are in. The user uploaded them; the sources live in `assets/img/intro/src/`, and
+`python3 tools/dev/introart.py` exports what the page loads (`assets/img/intro/*.webp`) and prints the anchors that
+`assets/js/intro/art.js` uses. To replace one: overwrite its PNG in `src/` (same name), re-run the tool, copy any
+changed anchors into `art.js`, bump `V` there, check with `node tools/dev/intro.mjs ...` at a few sizes.
+If an image is missing or fails, the scene falls back to its drawn stand-ins for the whole visit (never a mix).
 
-| file (upload to `assets/img/intro/`) | slot | size | background |
+| source (`assets/img/intro/src/`) | slot | export | notes |
 |---|---|---|---|
-| `hero.png` | `hero`: on the rooftop, full body | 1024x1536 | transparent |
-| `hero-jump.png` | `heroJump`: mid-leap / spinning, full body | 1024x1536 | transparent |
-| `hero-vs.png` | `heroVs`: VS card, waist up | 1024x1536 | transparent |
-| `garmadon.png` | `villain`: rising behind the city, waist up | 1024x1536 | transparent |
-| `garmadon-vs.png` | `villainVs`: VS card, waist up | 1024x1536 | transparent |
-| `skyline.png` (optional) | `skyline`: the city | 1536x1024 | transparent sky preferred |
+| `hero.png` | `hero`: on the rooftop, full body | `hero.webp` 640 px tall | `foot` = balance point between the feet |
+| `hero-jump.png` | `heroJump`: mid-leap with the swirl | `hero-jump.webp` 600 px | `centre` = the body, not the swirl |
+| `hero-vs.png` | `heroVs`: VS card, waist up | `hero-vs.webp` 1000 px | bottom-anchored in the panel |
+| `garmadon.png` | `villain`: rising behind the city | `garmadon.webp` 1000 px | `beam` = energy ball, `eyes`, `horns` |
+| `garmadon-vs.png` | `villainVs`: VS card, waist up | `garmadon-vs.webp` 1000 px | |
+| `skyline.png` | `skyline` + `moon` | `skyline.webp` 1672x941, `moon.webp` | the moon is cut out of the skyline |
 
-References worth attaching in the chat: the user's own green-ninja minifigure (`assets/video/intro-poster.jpg`) and
-LEGO face (`assets/img/portrait-lego.webp`).
+Notes on the current set: all on-model and cleanly cut out (real alpha). The skyline's tall white bell tower right of
+the moon is not a UC San Diego building (it reads like UC Berkeley's Sather Tower); fine as fantasy, or re-generate the
+skyline without it.
+
+Prompts used (for re-generating). References worth attaching in the chat: the user's own green-ninja minifigure
+(`assets/video/intro-poster.jpg`) and LEGO face (`assets/img/portrait-lego.webp`).
 
 Style line, appended to every prompt: "3D LEGO minifigure render in the style of The LEGO Ninjago Movie, glossy
 plastic, cinematic night lighting, strong rim light, crisp edges, no text, no watermark."

@@ -40,17 +40,27 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
   index.html); the intro is a small push-in from that same shot.
 - Probe: `tools/dev/mplay.mjs [w] [h] [out] [shots]` (real CDP touch: stick, look, jump, map, battle, menu, spell picker).
 
-## Opening animation (2026-10-07)
-- ~4 s before the page: a green slash cuts the dark open onto a night skyline where UC San Diego (Geisel, eucalyptus,
-  Sun God, the Fallen Star house) meets an original ninja city; Lord Deadline (original: four arms, horned helmet, a
-  clock on his chest creeping to midnight) rises behind it with a WARNING banner, a fighting-game VS card ("THE GREEN
-  NINJA · Yichen Lin" vs "LORD DEADLINE"), the ninja's tornado gathers four elements, beam clash, manga impact frames,
-  a SUBMITTED 23:59:59 AoE stamp, then the screen cracks around the hit and shatters like glass into the page (~1.2 s).
+## Opening animation (2026-10-07/08)
+- ~4 s before the page, LEGO Ninjago style (the user's own GPT renders): a green slash cuts the dark open onto a night
+  skyline where LEGO Ninjago City meets UC San Diego (Geisel Library, eucalyptus, the bay) under a full moon; Lord
+  Garmadon (four arms, energy ball between his lower hands) rises between the moon and the city, the moon turns red,
+  WARNING banner ("A DEADLINE IS APPROACHING FAST"), a fighting-game VS card ("THE GREEN NINJA · Yichen Lin" vs "LORD
+  GARMADON"), Lloyd leaps into a tornado that gathers four elements, beam clash, manga impact frames, a SUBMITTED
+  23:59:59 AoE stamp, then the screen cracks around the hit and shatters like glass into the page (~1.2 s).
 - Code: `assets/js/intro/` - `intro.js` (gating, overlay, clock, skip, hand-off), `scene.js` (the 2D canvas stage:
-  parallax layers painted once into offscreen canvases, character sprites, live particles/effects; `BEAT` = the
-  timeline), `fracture.js` (radial/concentric crack pattern, crack drawing, shard motion, the 2D shatter fallback),
-  `shatter3d.js` (three.js WebGPURenderer forced to WebGL2: shards as slabs textured with the last 2D frame, all
-  motion in the vertex shader, glass dust). CSS `assets/css/intro.css`. No image files, everything is drawn.
+  parallax layers, sprites, live particles/effects; `BEAT` = the timeline), `art.js` (image slots, anchors, loading),
+  `fracture.js` (radial/concentric crack pattern, crack drawing, shard motion, the 2D shatter fallback), `shatter3d.js`
+  (three.js WebGPURenderer forced to WebGL2: shards as slabs textured with the last 2D frame, all motion in the vertex
+  shader, glass dust). CSS `assets/css/intro.css`.
+- Art: sources `assets/img/intro/src/*.png` (the user's uploads), exported by `python3 tools/dev/introart.py` to
+  `assets/img/intro/*.webp` (~850 KB total; trimmed, sized to how big they are drawn) with the anchors it prints (copy
+  them into `art.js`, bump its `?v=`). The skyline's moon is cut into `moon.webp` (whole disc, the part Geisel covers
+  filled from the other side) so Garmadon rises between moon and city. Art is all or nothing per visit: only if every
+  CORE slot decoded within 1.5 s, else the drawn stand-ins (an original green ninja and "Lord Deadline", a vector
+  skyline) play that visit; the VS portraits fall back to the fight images. Layout comes from the skyline (Garmadon's
+  ball parked above the rooftops, helmet below the letterbox; the moon hangs free on phones; mirrored edges on very wide
+  screens). Ninjago look = the user's explicit exception to "original characters only", for the opening only.
+  Prompts and specs for re-generating: `docs/dev/INTRO_ART.md`.
 - Gating (inline script in index.html, before first paint): `html.intro-on` once per browser session
   (`sessionStorage yl.intro`), never in Reviewer mode, with reduced motion, on a `#section` deep link or when
   `navigator.webdriver` (so every existing probe is unaffected). `?intro=1` forces it, `?intro=0` turns it off. A black
@@ -60,13 +70,9 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
 - The 3D world waits for `window.__intro.done` (page.js), so the intro never competes with the world build. three.js
   for the shatter is skipped on software GL / no WebGL / Save-Data, and if it is not ready 1.4 s after the cracks the
   2D shatter runs instead. Terminal: `intro` replays it.
-- Characters: the user wants them to look exactly like LEGO Ninjago (the Green Ninja vs Lord Garmadon), from images
-  they generate (exception to "original characters only", for the opening only). Image slots in `intro/art.js`
-  (hero, heroJump, heroVs, villain, villainVs, skyline), prompts and file specs in `docs/dev/INTRO_ART.md`; until the
-  files exist the scene draws stand-ins (an original green ninja, "Lord Deadline"). Not merged to main yet: the user
-  rejected the drawn ninja, so it goes live together with their images.
 - Probe: `node tools/dev/intro.mjs [w] [h] [times] [extra query] [out]` (one load, the clock held at each time via
-  `__intro.hold`, screenshots `/tmp/yl/intro_*`; `&intro3d=1` forces the three.js shatter on the software GPU).
+  `__intro.hold`, screenshots `/tmp/yl/intro_*`; `&intro3d=1` forces the three.js shatter on the software GPU;
+  `ART='{"skyline":null}'` forces the drawn fallback, `ART='{"hero":"path"}'` tries a new image before it is wired in).
 
 ## Portrait flip (secret identity)
 - A clean double-click / double-tap on the About photo (`#portrait`) flips it over like a card and plays a 14 s comic
