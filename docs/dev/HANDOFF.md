@@ -88,8 +88,9 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
 
 ## Chinese name and play start (2026-10-08)
 - The hero h1 reads "Yichen Lin 林奕辰" (`.hero__cn`, lang zh-Hans; Noto Serif SC 500 subset to those three glyphs,
-  `assets/fonts/noto-serif-sc-name-500.woff2`, 1.5 KB, OFL; re-subset if the text changes). `<title>`, og:title, the
-  description and JSON-LD `alternateName` carry it too. Bit perches after it (bit.js `perchXY`).
+  `assets/fonts/noto-serif-sc-name-500.woff2`, 1.5 KB, OFL; re-subset if the text changes). The meta
+  description and JSON-LD `alternateName` carry it too; the tab title and og:title stay "Yichen Lin · UC San Diego"
+  (the user's call). Bit perches after it (bit.js `perchXY`).
 - Play never starts against a wall (`game3d/index.js` `playStart`): from a cramped spot (every tour stand hugs a
   landmark; the end of the page leaves the scholar by Geisel's plaza) the scholar steps out to the nearest wide flat
   open ground (open radius >= 7, scanned once; from the end of the page the lawn around (-9, 21)), camera on the
