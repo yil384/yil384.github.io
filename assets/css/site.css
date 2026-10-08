@@ -165,6 +165,12 @@ html.is-play .page, html.is-play .foot { opacity: 0; visibility: hidden; pointer
   -webkit-background-clip: text; background-clip: text; color: transparent;
   text-shadow: none; filter: drop-shadow(0 4px 30px rgba(0, 0, 0, 0.5));
 }
+/* the Chinese name beside the big one: its own colour (the h1 paints its text with a clipped gradient) */
+.hero__cn {
+  font-family: 'Noto Serif SC Name', 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun', serif;
+  font-weight: 500; font-size: clamp(17px, 0.3em, 34px); letter-spacing: 0.14em; white-space: nowrap;
+  color: var(--ink-2); -webkit-text-fill-color: var(--ink-2);
+}
 .hero__role { max-width: 33em; font-size: clamp(17px, 1.5vw, 20px); color: var(--ink); }
 .hero__links { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 24px; font-size: 15px; }
 .hero__links a { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink-2); }
@@ -482,6 +488,7 @@ body.is-glitch #page { filter: hue-rotate(90deg) saturate(1.6); }
 }
 
 @media print {
+  .hero__cn { color: #333; -webkit-text-fill-color: #333; }
   #world, .bar, .scroll-cue, .egg-toasts, .term, .notes, #game-root, .hero__hint, .hero__boot, .eggline, .fx-layer, [data-game], .game-only { display: none !important; }
   body { background: #fff; color: #000; }
   .page { pointer-events: auto; }

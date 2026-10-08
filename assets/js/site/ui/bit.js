@@ -120,7 +120,11 @@ function perchXY() {
     if (name) {
       const r = name.getBoundingClientRect();
       const fs = parseFloat(getComputedStyle(name).fontSize) || 60;
-      const x = Math.min(r.right - hr.left + 12, document.documentElement.clientWidth - 16 - 44 - hr.left);
+      // the Chinese name (林奕辰) follows on the same line when it fits: perch after it, not on it
+      const cn = host.querySelector('.hero__cn');
+      const cr = cn?.getClientRects().length ? cn.getBoundingClientRect() : null;
+      const end = cr && Math.abs(cr.bottom - r.bottom) < r.height * 0.5 ? Math.max(r.right, cr.right) : r.right;
+      const x = Math.min(end - hr.left + 12, document.documentElement.clientWidth - 16 - 44 - hr.left);
       return { x, y: r.bottom - hr.top - fs * 0.24 - 42 };
     }
     return { x: 0, y: -44 };
