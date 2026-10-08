@@ -432,20 +432,18 @@ export function createScene(canvas, { w, h, R, art = {} }) {
   L.W = W; L.U = U; L.portrait = portrait;
 
   // ---- image art (art.js), all or nothing: A is null when the drawn stand-ins play this visit
-  const A = art && CORE.every((k) => art[k]?.naturalWidth) ? art : null;
+  const A = art && CORE.every((k) => art[k]?.width) ? art : null;
   let SKY = null, MOON = null;
   if (A) {
     // the skyline fills the width (taller on tall screens, centred between Geisel and the moon), bottom on the floor;
-    // its moon goes back where it was cut from, or hangs free above the city on a phone
-    // (on very wide screens it would grow too tall for him to rise over it: it stops at 1.25x and mirrored copies of
-    // its own edges fill the sides)
-    const sk = A.skyline, iw = sk.naturalWidth, ih = sk.naturalHeight;
-    const kTall = (portrait ? 780 : 900) / ih;
-    const k = portrait ? Math.max((W + 2 * mU) / iw, kTall) : Math.min(Math.max((W + 2 * mU) / iw, kTall), kTall * 1.25);
-    const mirror = iw * k < W + 2 * mU;
-    const x0 = mirror ? W / 2 - iw * k / 2 : Math.min(-mU, Math.max(W + mU - iw * k, W / 2 - (portrait ? 0.6 : 0.5) * iw * k));
-    const y0 = 1000 + mU - ih * k;
-    SKY = { x0, y0, k, w: iw * k, h: ih * k, mirror, at: (fx, fy) => [x0 + fx * iw * k, y0 + fy * ih * k] };
+    // on very wide screens, where filling the width makes it much taller than the screen, it slides down instead (its
+    // foreground goes below the edge) so the moon and the sky above the city stay in view. Its moon goes back where it
+    // was cut from, or hangs free above the city on a phone.
+    const sk = A.skyline, iw = sk.width, ih = sk.height;
+    const k = Math.max((W + 2 * mU) / iw, (portrait ? 780 : 900) / ih);
+    const x0 = Math.min(-mU, Math.max(W + mU - iw * k, W / 2 - (portrait ? 0.6 : 0.5) * iw * k));
+    const y0 = portrait ? 1000 + mU - ih * k : Math.max(1000 + mU - ih * k, 230 - ART.moon.at[1] * ih * k);
+    SKY = { x0, y0, k, w: iw * k, h: ih * k, at: (fx, fy) => [x0 + fx * iw * k, y0 + fy * ih * k] };
     const [mx, my] = SKY.at(ART.moon.at[0], ART.moon.at[1]);
     const mr = ART.moon.at[2] * iw * k;
     MOON = portrait ? { x: W * 0.6, y: 260, k: k * 0.8, free: true } : { x: mx, y: my, k };
@@ -453,11 +451,20 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     // Garmadon: his energy ball parked just above the rooftops (between Geisel and the bell tower on wide screens,
     // over Geisel on tall ones), sized so his eyes sit near the top fifth of the screen
     // (the whole helmet stays below the letterbox)
-    const [gx, gy] = portrait ? SKY.at(0.6, 0.31) : SKY.at(0.748, 0.42);
+    // (his raised claws reach almost the image's full width: they stay on screen, with room for the fight's zoom)
+    let [gx, gy] = portrait ? SKY.at(0.6, 0.31) : SKY.at(0.748, 0.42);
     const ball = gy - (portrait ? 40 : 20);
-    const tall = Math.max(400, Math.min(portrait ? W * 1.04 : 760, (ball - (portrait ? 30 : 58)) / ART.villain.beam[1]));
+    const aspect = A.villain.width / A.villain.height;
+    const tall = Math.max(380, Math.min(portrait ? W * 0.92 / aspect : Math.min(760, W * 0.55 / aspect), (ball - (portrait ? 30 : 58)) / ART.villain.beam[1]));
+    const half = tall * aspect / 2;
+    gx = Math.max(half + W * 0.04, Math.min(gx, W * (portrait ? 0.96 : 0.93) - half));
     L.lord = { x: gx, y: ball, s: tall / 1000 };
-    if (portrait) { L.clash = { x: W * 0.38, y: 640 }; L.spin = { x: W * 0.22, y: 860, s: 0.8 }; }
+    if (portrait) {
+      // the clash halfway between his energy ball and the top of Lloyd's tornado, so both beams have length
+      L.spin = { x: W * 0.27, y: 880, s: 0.8 };
+      const top = L.spin.y + 20 * L.spin.s - 250 * L.spin.s;
+      L.clash = { x: (gx + L.spin.x) / 2, y: (ball + top) / 2 };
+    }
   }
 
   const glow = {}, hot = {};
@@ -523,7 +530,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       g.restore();
     }
   });
-  const bloodMoon = sprite(-L.moon.r * 3, -L.moon.r * 3, L.moon.r * 3, L.moon.r * 3, px, (g) => {
+  const bloodMoon = !A && sprite(-L.moon.r * 3, -L.moon.r * 3, L.moon.r * 3, L.moon.r * 3, px, (g) => {
     const r = L.moon.r;
     const gl = g.createRadialGradient(0, 0, r * 0.8, 0, 0, r * 3);
     gl.addColorStop(0, 'rgba(255,40,60,0.45)'); gl.addColorStop(1, 'rgba(255,40,60,0)');
@@ -535,7 +542,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
 
   // ---- far: the ninja city, stacked towers in the haze
   const farBase = portrait ? 832 : 800;
-  const far = layer(140, (g) => {
+  const far = !A && layer(140, (g) => {
     const col = '#1c1446';
     g.fillStyle = col; g.fillRect(-mU, farBase - 4, W + 2 * mU, 1000 + mU - farBase + 4);
     for (let x = -mU; x < W + mU;) {
@@ -706,7 +713,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     g.fillRect(x - bw * 0.3, base - bh - 12, bw * 0.6, 14);
     windows(g, rand, x - bw / 2 + 6, base - bh + 10, bw - 12, bh - 16, rgb || '255,200,140', 0.3, 4, 5, 10, 12);
   };
-  const mid = layer(420, (g) => {
+  const mid = !A && layer(420, (g) => {
     g.fillStyle = midCol; g.fillRect(-mU, midBase - 6, W + 2 * mU, 1000 + mU - midBase + 6);
     for (let x = -mU; x < W + mU;) {
       const bw = 40 + rand() * 70, bh = 30 + rand() * 70;
@@ -738,7 +745,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
   });
 
   // ---- near: the rooftop the ninja stands on
-  const near = layer(760, (g) => {
+  const near = !A && layer(760, (g) => {
     const tip = L.tip, yR = L.ridge, col = '#06040c';
     const top = () => {
       g.moveTo(-mU, yR + 4);
@@ -763,8 +770,20 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     g.beginPath(); g.moveTo(tip + 18, yR - 34); g.quadraticCurveTo(tip + 34, yR - 52, tip + 22, yR - 60); g.quadraticCurveTo(tip + 10, yR - 62, tip + 14, yR - 50); g.stroke();
   });
 
+  // ---- with the art: a plain dark ledge for Lloyd (an out-of-focus foreground; no drawn props beside the LEGO render)
+  const ledge = A && layer(760, (g) => {
+    const tip = L.tip, yR = L.ridge;
+    const edge = () => { g.moveTo(-mU, yR + 4); g.quadraticCurveTo(tip * 0.55, yR + 12, tip - 30, yR + 8); };
+    const gr = g.createLinearGradient(0, yR - 10, 0, 1000 + mU);
+    gr.addColorStop(0, '#0e0a1a'); gr.addColorStop(1, '#030207');
+    g.fillStyle = gr;
+    g.beginPath(); edge(); g.quadraticCurveTo(tip + 12, yR + 10, tip + 26, yR + 64); g.lineTo(tip + 8, 1000 + mU); g.lineTo(-mU, 1000 + mU); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(190,160,255,0.3)'; g.lineWidth = 1.6;
+    g.beginPath(); edge(); g.stroke();
+  });
+
   // ---- a blossom branch in the top corner (frames the moon)
-  const branch = sprite(-420, -40, 60, 240, px, (g) => {
+  const branch = !A && sprite(-420, -40, 60, 240, px, (g) => {
     g.strokeStyle = g.fillStyle = '#07040e'; g.lineCap = 'round';
     const pts = [[60, -10], [-60, 30], [-170, 48], [-280, 92], [-380, 110]];
     for (let i = 0; i < pts.length - 1; i++) {
@@ -793,9 +812,9 @@ export function createScene(canvas, { w, h, R, art = {} }) {
 
   // the art in use (the VS portraits are decided the first time they are drawn: they may still be loading)
   const chosen = {};
-  const pic = (k) => (k in chosen ? chosen[k] : (chosen[k] = A?.[k]?.naturalWidth ? A[k] : null));
+  const pic = (k) => (k in chosen ? chosen[k] : (chosen[k] = A?.[k]?.width ? A[k] : null));
   const drawPic = (im, x, y, hU, ax, ay) => {
-    const wU = hU * (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
+    const wU = hU * im.width / im.height;
     c.drawImage(im, x - ax * wU, y - ay * hU, wU, hU);
   };
   // the villain rises out of the city: his image fades out toward its lower edge so no cut ever shows
@@ -804,7 +823,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     if (villainCv !== undefined) return villainCv;
     const im = pic('villain');
     if (!im) return (villainCv = null);
-    const cv = mk(im.naturalWidth, im.naturalHeight), g = cv.getContext('2d');
+    const cv = mk(im.width, im.height), g = cv.getContext('2d');
     g.drawImage(im, 0, 0);
     g.globalCompositeOperation = 'destination-in';
     const fade = g.createLinearGradient(0, 0, 0, cv.height);
@@ -825,19 +844,15 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     drawPic(im, x, y - hU / 2, hU, ax, ay);
     return true;
   };
-  const drawSkyline = () => {
-    c.drawImage(A.skyline, SKY.x0, SKY.y0, SKY.w, SKY.h);
-    if (!SKY.mirror) return;
-    for (const x of [SKY.x0, SKY.x0 + 2 * SKY.w]) {
-      c.save(); c.translate(x, 0); c.scale(-1, 1);
-      c.drawImage(A.skyline, 0, SKY.y0, SKY.w, SKY.h);
-      c.restore();
-    }
-  };
+  const drawSkyline = () => c.drawImage(A.skyline, SKY.x0, SKY.y0, SKY.w, SKY.h);
   // the moon, and a blood-red copy of it to fade in as he rises
   let redMoon = null;
-  const drawMoon = (blood) => {
-    const m = A.moon, mw = m.naturalWidth * MOON.k, mh = m.naturalHeight * MOON.k;
+  const drawMoon = (blood, prepOnly = false) => {
+    const m = A.moon, mw = m.width * MOON.k, mh = m.height * MOON.k;
+    if (prepOnly) {
+      if (!redMoon) { redMoon = mk(m.width, m.height); const g = redMoon.getContext('2d'); g.drawImage(m, 0, 0); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(205,25,45,0.62)'; g.fillRect(0, 0, redMoon.width, redMoon.height); }
+      return;
+    }
     c.globalCompositeOperation = 'lighter';
     c.globalAlpha = 0.5;
     c.drawImage(glow.white, MOON.x - MOON.r * 3, MOON.y - MOON.r * 3, MOON.r * 6, MOON.r * 6);
@@ -846,7 +861,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     c.drawImage(m, MOON.x - mw / 2, MOON.y - mh / 2, mw, mh);
     if (blood <= 0) return;
     if (!redMoon) {
-      redMoon = mk(m.naturalWidth, m.naturalHeight);
+      redMoon = mk(m.width, m.height);
       const g = redMoon.getContext('2d');
       g.drawImage(m, 0, 0);
       g.globalCompositeOperation = 'source-atop';
@@ -859,8 +874,8 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     c.drawImage(redMoon, MOON.x - mw / 2, MOON.y - mh / 2, mw, mh);
     c.globalAlpha = 1;
   };
-  const lord = sprite(-470, -520, 470, 548, px * lordK, paintLord);
-  const ninja = {
+  const lord = !A && sprite(-470, -520, 470, 548, px * lordK, paintLord);
+  const ninja = !A && {
     ready: sprite(-48, -128, 92, 10, px * L.ninja.s, (g) => paintNinja(g, POSE.ready)),
     leap: sprite(-48, -128, 92, 10, px * L.ninja.s, (g) => paintNinja(g, POSE.leap)),
   };
@@ -868,7 +883,8 @@ export function createScene(canvas, { w, h, R, art = {} }) {
   const late = {};
   const vsBustS = portrait ? Math.min(0.62, W / 700) : 1.05;
   const lateJobs = [
-    () => { late.bust = sprite(-330, -360, 320, 470, px * vsBustS, paintNinjaBust); },
+    // with the art: its two derived canvases now, not in the frame where they are first needed
+    () => { if (A) { villainPic(); drawMoon(1, true); } else late.bust = sprite(-330, -360, 320, 470, px * vsBustS, paintNinjaBust); },
     () => { late.vs = sprite(-200, -110, 190, 110, px * (portrait ? 0.9 : 1.25), paintVS); },
     () => { late.stamp = sprite(-260, -106, 260, 106, px * (portrait ? 0.78 : 1), paintStamp); },
     () => {
@@ -1113,24 +1129,36 @@ export function createScene(canvas, { w, h, R, art = {} }) {
 
   // ---------------------------------------------------------------- screen-space pieces
   const pixelFont = (size) => `${size}px "Press Start 2P", Silkscreen, monospace`;
+  // a size in units that never renders below `minPx` CSS pixels (a phone held sideways is ~390 px tall)
+  const fpx = (units, minPx) => Math.max(units, minPx / U);
   function caption(t) {
     const k = seg(t, BEAT.open + 0.2, BEAT.open + 0.35), out = seg(t, BEAT.vs - 0.15, BEAT.vs);
     if (k <= 0 || out >= 1) return;
     const lines = A ? ART.names.placeArt : ART.names.place;
     const chars = Math.floor((t - BEAT.open - 0.2) * 72);
-    const x = portrait ? 26 : 58, y = portrait ? 96 : 92;
+    const x = portrait ? 26 : 58;
+    // the plate fits the full text (measured, not the typed part), shrunk to the screen width if it must
+    let ts = fpx(portrait ? 19 : 24, 12), ss = fpx(portrait ? 11 : 13, 8);
+    const measure = () => {
+      c.font = `700 ${ts}px Silkscreen, monospace`; const a = c.measureText(lines[0]).width;
+      c.font = pixelFont(ss); const b = c.measureText(`${lines[1]}_`).width;
+      return Math.max(a, b) + 26;
+    };
+    let bw = measure();
+    if (bw > W - 2 * (x - 12)) { const f = (W - 2 * (x - 12)) / bw; ts *= f; ss *= f; bw = measure(); }
+    const y = (portrait ? 70 : 62) + ts, gap = 12 + ss;
     c.globalAlpha = k * (1 - out);
     c.fillStyle = 'rgba(5,4,16,0.55)';
-    c.fillRect(x - 12, y - 30, portrait ? 300 : 420, 76);
-    c.fillStyle = '#ffd36b'; c.fillRect(x - 12, y - 30, 4, 76);
+    c.fillRect(x - 12, y - ts - 6, bw, ts + gap + 18);
+    c.fillStyle = '#ffd36b'; c.fillRect(x - 12, y - ts - 6, 4, ts + gap + 18);
     c.textBaseline = 'alphabetic'; c.textAlign = 'left';
-    c.font = `700 ${portrait ? 19 : 24}px Silkscreen, monospace`;
+    c.font = `700 ${ts}px Silkscreen, monospace`;
     c.fillStyle = '#f4ecff';
     c.fillText(lines[0].slice(0, chars), x, y);
-    c.font = pixelFont(portrait ? 11 : 13);
+    c.font = pixelFont(ss);
     c.fillStyle = '#ffd36b';
     const c2 = Math.max(0, chars - lines[0].length);
-    c.fillText(lines[1].slice(0, c2) + (Math.floor(t * 6) % 2 ? '_' : ''), x, y + 30);
+    c.fillText(lines[1].slice(0, c2) + (Math.floor(t * 6) % 2 ? '_' : ''), x, y + gap);
     c.globalAlpha = 1;
   }
 
@@ -1138,7 +1166,9 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     const a = seg(t, BEAT.warn, BEAT.warn + 0.09), z = seg(t, BEAT.vs - 0.12, BEAT.vs - 0.02);
     const open = a * (1 - z);
     if (open <= 0) return;
-    const y = portrait ? 700 : 640, hh = (portrait ? 100 : 124) * open;
+    // (with the art, Lloyd is taller: the band sits higher so it clears his head)
+    const ws = fpx(portrait ? 28 : 46, 16), ss = fpx(portrait ? 9 : 13, 8);
+    const y = A ? (portrait ? 640 : 560) : (portrait ? 700 : 640), hh = Math.max(portrait ? 100 : 124, ws + ss + 64) * open;
     c.save();
     c.fillStyle = 'rgba(20,0,6,0.78)'; c.fillRect(0, y - hh / 2, W, hh);
     c.beginPath(); c.rect(0, y - hh / 2, W, hh); c.clip();
@@ -1151,10 +1181,10 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     const flick = Math.floor(t * 14) % 2 ? 1 : 0.55;
     c.globalAlpha = open * flick;
     c.textAlign = 'center'; c.textBaseline = 'middle';
-    if (late.warn) put(late.warn, W / 2, y - (portrait ? 10 : 12), 1);
-    c.font = pixelFont(portrait ? 9 : 13);
+    if (late.warn) put(late.warn, W / 2, y - ss * 0.9, ws / (portrait ? 28 : 46));
+    c.font = pixelFont(ss);
     c.fillStyle = '#ffe1e5';
-    c.fillText('A DEADLINE IS APPROACHING FAST', W / 2, y + (portrait ? 20 : 26));
+    c.fillText('A DEADLINE IS APPROACHING FAST', W / 2, y + ws * 0.5 + ss * 0.4);
     c.restore();
     c.globalAlpha = 1;
   }
@@ -1256,20 +1286,24 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     const nk = eo(seg(t, BEAT.vs + 0.2, BEAT.vs + 0.36));
     if (nk > 0 && out < 1) {
       const plate = (x, y, big, small, rgb, dir) => {
+        // sized from both lines (measured), never below a readable size, kept between the letterbox bars
+        const bs = fpx(portrait ? 17 : 28, 11), ss = fpx(portrait ? 8 : 11, 7.5);
+        c.font = pixelFont(bs); const wb = c.measureText(big).width;
+        c.font = pixelFont(ss); const ws = c.measureText(small).width;
+        const pad = bs * 0.85, bw = Math.max(wb, ws) + pad * 2, ph = bs * 1.5 + ss + pad * 0.9;
+        const lim = portrait ? 12 : 54;
+        y = Math.min(Math.max(y, lim + ph / 2), 1000 - lim - ph / 2);
         c.save();
         c.translate(x + (1 - nk) * dir * 300, y);
         c.globalAlpha = nk * (1 - out);
         c.transform(1, 0, -0.25, 1, 0, 0);
-        c.font = pixelFont(portrait ? 17 : 28);
-        const bw = c.measureText(big).width + (portrait ? 30 : 46);
-        const x0 = dir < 0 ? 0 : -bw;
-        c.fillStyle = 'rgba(4,2,10,0.85)'; c.fillRect(x0, -(portrait ? 30 : 44), bw, portrait ? 62 : 88);
-        c.fillStyle = `rgb(${rgb})`; c.fillRect(x0, -(portrait ? 30 : 44), bw, 5);
+        const x0 = dir < 0 ? 0 : -bw, top = -ph / 2;
+        c.fillStyle = 'rgba(4,2,10,0.85)'; c.fillRect(x0, top, bw, ph);
+        c.fillStyle = `rgb(${rgb})`; c.fillRect(x0, top, bw, 5);
         c.textBaseline = 'middle'; c.textAlign = dir < 0 ? 'left' : 'right';
-        const tx = dir < 0 ? (portrait ? 15 : 23) : -(portrait ? 15 : 23);
-        c.fillStyle = '#ffffff'; c.fillText(big, tx, portrait ? -6 : -10);
-        c.font = pixelFont(portrait ? 8 : 11); c.fillStyle = `rgb(${rgb})`;
-        c.fillText(small, tx, portrait ? 17 : 24);
+        const tx = dir < 0 ? pad : -pad;
+        c.font = pixelFont(bs); c.fillStyle = '#ffffff'; c.fillText(big, tx, top + pad * 0.45 + bs * 0.6);
+        c.font = pixelFont(ss); c.fillStyle = `rgb(${rgb})`; c.fillText(small, tx, top + pad * 0.45 + bs * 1.2 + ss * 0.8);
         c.restore();
       };
       const N = ART.names, foe = A ? N.villainArt : N.villain;
@@ -1362,8 +1396,9 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
     const s = L.lord.s;
     const rise = lordRise(t);
-    const lx = L.lord.x, ly = L.lord.y + rise;
     const defeated = seg(t, BEAT.flash, BEAT.shatter);
+    // beaten, he sinks back behind the city (fading him instead would show the moon through his face)
+    const lx = L.lord.x, ly = L.lord.y + rise + defeated * defeated * (A ? 480 : 380) * s;
 
     // sky + blood moon + lightning
     const blood = seg(t, BEAT.rise + 0.2, BEAT.rise + 0.8) * (1 - defeated * 0.7);
@@ -1390,7 +1425,7 @@ export function createScene(canvas, { w, h, R, art = {} }) {
       c.drawImage(glow.purple, lx - gs / 2, ly - 200 * s - gs / 2, gs, gs);
       c.globalAlpha = 1; c.globalCompositeOperation = 'source-over';
       drawParticles(0);
-      c.globalAlpha = 1 - defeated * 0.75;
+      c.globalAlpha = 1 - defeated * 0.3;
       const vi = villainPic();
       if (vi) drawPic(vi, lx, ly, 1000 * s, ART.villain.beam[0], ART.villain.beam[1]);
       else put(lord, lx, ly, s);
@@ -1440,9 +1475,9 @@ export function createScene(canvas, { w, h, R, art = {} }) {
     }
     drawParticles(0.5);
 
-    view(1); drawLayer(near);
-    // the paper lantern swinging at the eave
-    {
+    view(1); drawLayer(A ? ledge : near);
+    // the paper lantern swinging at the eave (drawn scene only)
+    if (!A) {
       const ax = L.tip + 20, ay = L.ridge - 36, sw = Math.sin(t * 2.2) * 0.12;
       const bx = ax + Math.sin(sw) * 40, by = ay + Math.cos(sw) * 40;
       c.strokeStyle = '#0a0612'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();

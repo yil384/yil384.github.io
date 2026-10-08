@@ -8,7 +8,8 @@ Status (2026-10-08): all six images are in. The user uploaded them; the sources 
 `python3 tools/dev/introart.py` exports what the page loads (`assets/img/intro/*.webp`) and prints the anchors that
 `assets/js/intro/art.js` uses. To replace one: overwrite its PNG in `src/` (same name), re-run the tool, copy any
 changed anchors into `art.js`, bump `V` there, check with `node tools/dev/intro.mjs ...` at a few sizes.
-If an image is missing or fails, the scene falls back to its drawn stand-ins for the whole visit (never a mix).
+If an image is missing, fails or is too slow, there is no intro that visit (the page shows); the drawn stand-ins are
+for tests only (`?introArt=0`). The CORE file list also lives in index.html's head script (it fetches them early).
 
 | source (`assets/img/intro/src/`) | slot | export | notes |
 |---|---|---|---|

@@ -1,9 +1,10 @@
 // Image art for the opening: the user's LEGO Ninjago renders (sources in assets/img/intro/src/, exported to WebP by
-// tools/dev/introart.py, which also prints the anchors used here). The look is all or nothing: the scene uses the
-// images only if every CORE slot has decoded when the intro starts; otherwise scene.js draws its own stand-ins (an
-// original green ninja and "Lord Deadline") for that whole visit, never a mix. The VS portraits may still be on their
-// way then: until they arrive the VS card shows the fight images. Fractions are of each image's own width / height.
-// Tests can swap any src via window.__introArt ({ slot: url }, null turns a slot off).
+// tools/dev/introart.py, which also prints the anchors used here). The intro plays only once every CORE slot has
+// decoded (play.js waits a moment for them; if they do not make it, the visitor goes straight to the page). The drawn
+// stand-ins in scene.js (an original green ninja and "Lord Deadline") are kept for tests only (?introArt=0). The VS
+// portraits may still be on their way at the VS card: until they arrive it shows the fight images. Fractions are of
+// each image's own width / height. Tests can swap any src via window.__introArt ({ slot: url }, null turns it off).
+// Bump V when a file changes (index.html's preload list carries the same ?v=).
 const DIR = 'assets/img/intro/';
 const V = '?v=1';
 
@@ -33,33 +34,49 @@ export const ART = {
   },
 };
 
-/** The slots the scene needs before it switches to the images. */
+/** The slots the fight needs (index.html preloads these files while the page parses: keep the two lists in step). */
 export const CORE = ['hero', 'heroJump', 'villain', 'skyline', 'moon'];
+/** Needed only at the VS card, fetched once the CORE art is in (until they arrive the card uses the fight images). */
+const LATE = ['heroVs', 'villainVs'];
 
 /**
- * Start loading every slot that has a file. Returns { art, core, all, any }: `art` fills in (slot -> decoded image) as
- * each one arrives; `core` resolves when the CORE slots have all arrived or one has failed; `all` when every slot is
- * settled.
+ * Start loading the art. Returns { art, core, late }: `art` fills in (slot -> decoded image) as files arrive; `core`
+ * resolves true once every CORE slot has decoded (false if one fails); `late()` starts the VS portraits.
+ * Images are decoded off the main thread into ImageBitmaps (fetch -> blob -> createImageBitmap): an <img> that is only
+ * decode()d gets decoded again, synchronously, the first time it is drawn, which stalls the frame it first appears in.
  */
 export function loadArt() {
-  const over = (typeof window !== 'undefined' && window.__introArt) || {};
+  const over = window.__introArt || {};
   const art = {};
-  const jobs = {};
-  for (const k of Object.keys(ART)) {
-    if (!ART[k] || typeof ART[k] !== 'object' || !('src' in ART[k])) continue;
-    const src = k in over ? over[k] : ART[k].src;
-    if (!src) continue;
-    const im = new Image();
-    im.decoding = 'async';
-    if ('fetchPriority' in im) im.fetchPriority = 'high';
-    im.src = src;
-    jobs[k] = im.decode().then(() => { art[k] = im; return true; }).catch(() => { console.warn(`[intro] art "${k}" did not load:`, src); return false; });
+  const get = (k, priority) => {
+    const src = k in over ? over[k] : ART[k]?.src;
+    if (!src) return Promise.resolve(false);
+    return decode(src, priority).then((im) => { art[k] = im; return true; })
+      .catch((err) => { console.warn(`[intro] art "${k}" did not load:`, src, err?.message || err); return false; });
+  };
+  const core = Promise.all(CORE.map((k) => get(k, 'high'))).then((ok) => ok.every(Boolean));
+  let late = null;
+  return { art, core, late: () => (late ??= Promise.all(LATE.map((k) => get(k, 'low')))) };
+}
+
+async function decode(src, priority) {
+  if (typeof window.createImageBitmap === 'function' && typeof window.fetch === 'function') {
+    let blob = null;
+    try {
+      // the request index.html's head script already started for this file, if any
+      const early = window.__ylArt?.[src];
+      if (early) delete window.__ylArt[src];
+      const r = await (early || window.fetch(src, { priority }));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      blob = await r.blob();
+    } catch (err) { if (/^HTTP/.test(err?.message)) throw err; }
+    if (blob) {
+      try { return await window.createImageBitmap(blob); } catch { /* a browser that cannot: the <img> way below */ }
+    }
   }
-  const core = CORE.every((k) => jobs[k])
-    ? new Promise((res) => {
-      let left = CORE.length;
-      for (const k of CORE) jobs[k].then((ok) => { if (!ok) res(false); else if (--left === 0) res(true); });
-    })
-    : Promise.resolve(false);
-  return { art, core, all: Promise.all(Object.values(jobs)), any: Object.keys(jobs).length > 0 };
+  const im = new Image();
+  im.decoding = 'async';
+  im.src = src;
+  await im.decode();
+  return im;
 }

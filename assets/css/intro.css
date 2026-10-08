@@ -1,17 +1,23 @@
-/* The opening animation (assets/js/intro/intro.js). html.intro-on is set before first paint by the inline
-   script in index.html when the intro will play; until the overlay mounts, a black cover stands in so the
-   page never flashes first. The hero's entrance and the bar wait under the intro and play as the glass falls. */
+/* The opening animation (assets/js/intro/). html.intro-on is set before first paint by the inline script in
+   index.html when the intro will play; until the overlay mounts, a black cover stands in so the page never flashes
+   first. The bar and the hero's entrance (.hero.is-held, set by intro.js: a class on the small hero, not a rule keyed
+   off <html>, so lifting it restyles a few elements instead of the whole page) wait and play as the glass falls.
+   The world poster is held back too until the intro's art is in (html.intro-art), so it does not compete for the
+   bandwidth the art needs. */
 html.intro-on:not(.intro-live)::after {
   content: ''; position: fixed; inset: 0; z-index: 2147483000; background: #000;
 }
-html.intro-on .hero > *, html.intro-on .scene--hero .eyebrow { animation-play-state: paused !important; }
+.hero.is-held > * { animation-play-state: paused !important; }
+html.intro-on:not(.intro-art) .world__poster { background-image: none !important; }
 html.intro-on .bar { transform: translateY(-100%); }
 
 .intro {
   position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; background: #000;
   touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer;
 }
-.intro.is-shattering { background: transparent; pointer-events: none; }
+/* during the shatter the overlay still takes the clicks: a second tap ends it rather than hitting a link below */
+.intro.is-shattering { background: transparent; }
+/* fading out it still takes the clicks: the tap that ended it must not land on the page (removed 260 ms later) */
 .intro.is-out { opacity: 0; transition: opacity 0.25s ease-out; }
 .intro__c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .intro__skip {
@@ -21,6 +27,15 @@ html.intro-on .bar { transform: translateY(-100%); }
   cursor: pointer; opacity: 0; animation: intro-skip 0.4s 0.7s forwards;
 }
 .intro__skip span { margin-left: 4px; color: #3dff8f; }
+/* the art is still on its way: a quiet caption, only if the wait runs past 0.4 s */
+.intro__wait {
+  position: absolute; left: max(20px, env(safe-area-inset-left)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 56px); margin: 0;
+  font: 400 11px/1 'Press Start 2P', Silkscreen, monospace; letter-spacing: 0.08em; color: #3dff8f;
+  opacity: 0; animation: intro-skip 0.3s 0.4s forwards;
+}
+.intro__wait::after { content: '_'; animation: intro-blink 0.8s steps(2) infinite; }
+.intro.is-on .intro__wait { display: none; }
+@keyframes intro-blink { 50% { opacity: 0; } }
 .intro__skip:hover, .intro__skip:focus-visible { background: rgba(61, 255, 143, 0.16); border-color: #3dff8f; outline: none; }
 .intro.is-shattering .intro__skip { display: none; }
 @keyframes intro-skip { to { opacity: 1; } }

@@ -47,32 +47,53 @@ HTML, readable with no JS / no WebGL / Reviewer mode) layered over a persistent 
   WARNING banner ("A DEADLINE IS APPROACHING FAST"), a fighting-game VS card ("THE GREEN NINJA · Yichen Lin" vs "LORD
   GARMADON"), Lloyd leaps into a tornado that gathers four elements, beam clash, manga impact frames, a SUBMITTED
   23:59:59 AoE stamp, then the screen cracks around the hit and shatters like glass into the page (~1.2 s).
-- Code: `assets/js/intro/` - `intro.js` (gating, overlay, clock, skip, hand-off), `scene.js` (the 2D canvas stage:
-  parallax layers, sprites, live particles/effects; `BEAT` = the timeline), `art.js` (image slots, anchors, loading),
-  `fracture.js` (radial/concentric crack pattern, crack drawing, shard motion, the 2D shatter fallback), `shatter3d.js`
-  (three.js WebGPURenderer forced to WebGL2: shards as slabs textured with the last 2D frame, all motion in the vertex
-  shader, glass dust). CSS `assets/css/intro.css`.
+- Code: `assets/js/intro/` - `intro.js` (the small gate every view loads: overlay, inputs, hand-off), `play.js` (fetched
+  only when it plays: the art wait, the clock, the shatter), `scene.js` (the 2D canvas stage; `BEAT` = the timeline),
+  `art.js` (image slots, anchors, ImageBitmap loading), `fracture.js` (crack pattern, cracks, shard motion, the 2D
+  shatter), `shatter3d.js` (three.js WebGPURenderer forced to WebGL2: slabs textured with the last 2D frame, motion in
+  the vertex shader, glass dust). CSS `assets/css/intro.css`.
 - Art: sources `assets/img/intro/src/*.png` (the user's uploads), exported by `python3 tools/dev/introart.py` to
-  `assets/img/intro/*.webp` (~850 KB total; trimmed, sized to how big they are drawn) with the anchors it prints (copy
-  them into `art.js`, bump its `?v=`). The skyline's moon is cut into `moon.webp` (whole disc, the part Geisel covers
-  filled from the other side) so Garmadon rises between moon and city. Art is all or nothing per visit: only if every
-  CORE slot decoded within 1.5 s, else the drawn stand-ins (an original green ninja and "Lord Deadline", a vector
-  skyline) play that visit; the VS portraits fall back to the fight images. Layout comes from the skyline (Garmadon's
-  ball parked above the rooftops, helmet below the letterbox; the moon hangs free on phones; mirrored edges on very wide
-  screens). Ninjago look = the user's explicit exception to "original characters only", for the opening only.
-  Prompts and specs for re-generating: `docs/dev/INTRO_ART.md`.
-- Gating (inline script in index.html, before first paint): `html.intro-on` once per browser session
-  (`sessionStorage yl.intro`), never in Reviewer mode, with reduced motion, on a `#section` deep link or when
-  `navigator.webdriver` (so every existing probe is unaffected). `?intro=1` forces it, `?intro=0` turns it off. A black
-  cover stands in until the overlay mounts; if the script never mounts it, the cover lifts after 3 s.
-- Any click / tap / key / wheel jumps to the impact (then plays 1.6x); a second one or Esc ends it. Keys never reach the
-  page while it runs. The hero entrance and the bar wait (`html.intro-on`) and play as the glass falls.
-- The 3D world waits for `window.__intro.done` (page.js), so the intro never competes with the world build. three.js
-  for the shatter is skipped on software GL / no WebGL / Save-Data, and if it is not ready 1.4 s after the cracks the
-  2D shatter runs instead. Terminal: `intro` replays it.
+  `assets/img/intro/*.webp` (~850 KB; trimmed, sized to how big they are drawn) with the anchors it prints (copy them
+  into `art.js`, bump `V` there AND the `?v=` in index.html's head script). The skyline's moon is cut into `moon.webp`
+  (whole disc, the part Geisel covers filled from the other side) so Garmadon rises between moon and city. Layout comes
+  from the skyline (Garmadon's ball parked above the rooftops, claws and helmet on screen; the moon hangs free on
+  phones; on very wide screens the skyline slides down instead of growing taller). Ninjago look = the user's explicit
+  exception to "original characters only", for the opening only. Re-generating: `docs/dev/INTRO_ART.md`.
+- Loading (measured, cold cache, HTTP/2 + gzip like Pages): the head script itself fetch()es the 5 CORE images when the
+  intro will play (art.js picks up those very requests: a `<link rel=preload>` was not matched by fetch() and every
+  file came down twice) and modulepreloads the intro modules; the world poster and three.js preloads wait until the art
+  is in (`window.__ylPreload`; the poster's CSS background too, `html.intro-art`). Images decode off the main thread
+  (fetch -> blob -> createImageBitmap; a decode()d <img> was decoded again on first draw: 100-400 ms stalls). The wait
+  ends when the art is in, at most 1.5 s after the overlay and 3 s into the visit; no art by then = no intro, the page
+  shows (the drawn stand-ins, an original ninja and "Lord Deadline", are test-only: `?introArt=0`). Result: plays with
+  art at 6 and 9 Mbps (about 1 s of black before the slash, "Loading Ninjago City" after 0.4 s), skipped at 3 Mbps and
+  below; Save-Data / 2g / 3g skip it up front. At 4x CPU the worst intro frame is ~13 ms of JS (the GPU probe, sprite
+  painting and the scene build all happen in the black wait; lifting `inert` waits until the glass is gone).
+- Gating (inline script in index.html, before first paint): `html.intro-on` once per browser session (a session cookie
+  `yl_intro`, shared by tabs), never in Reviewer mode, with reduced motion, on a slow connection, on a `#section` deep
+  link or when `navigator.webdriver` (so every existing probe is unaffected). `?intro=1` forces it (and is stripped from
+  the URL so reload / Back do not replay it), `?intro=0` turns it off. A black cover stands in until the overlay
+  mounts; if the script never mounts it, the cover lifts after 3 s.
+- Inputs (all owned by the gate from the first moment, also during the art wait): any click / tap / key / wheel jumps to
+  the impact (then 1.6x); a later one or Esc ends it. One gesture counts once (450 ms; a wheel stream, even momentum
+  after the end, is one gesture; held keys repeat-ignored). Nothing reaches the page: no scrolling, no shortcuts, the
+  page is `inert` with focus on Skip, and the overlay keeps taking clicks until it is gone (the tap that ends it must
+  not press a button under the glass). The hero entrance (`.hero.is-held`) and the bar wait and play as the glass falls.
+- The 3D world waits for `window.__intro.done` (page.js). three.js for the shatter is requested at the VS card, skipped
+  on software GL / no WebGL / Save-Data; if it is not ready 1.4 s after the cracks the 2D shatter runs (a late renderer
+  is released). Terminal: `intro` replays it.
 - Probe: `node tools/dev/intro.mjs [w] [h] [times] [extra query] [out]` (one load, the clock held at each time via
   `__intro.hold`, screenshots `/tmp/yl/intro_*`; `&intro3d=1` forces the three.js shatter on the software GPU;
-  `ART='{"skyline":null}'` forces the drawn fallback, `ART='{"hero":"path"}'` tries a new image before it is wired in).
+  `&introArt=0` shows the drawn stand-ins, `ART='{"hero":"path"}'` tries a new image before it is wired in).
+
+## Chinese name and play start (2026-10-08)
+- The hero h1 reads "Yichen Lin 林奕辰" (`.hero__cn`, lang zh-Hans; Noto Serif SC 500 subset to those three glyphs,
+  `assets/fonts/noto-serif-sc-name-500.woff2`, 1.5 KB, OFL; re-subset if the text changes). `<title>`, og:title, the
+  description and JSON-LD `alternateName` carry it too. Bit perches after it (bit.js `perchXY`).
+- Play never starts against a wall (`game3d/index.js` `playStart`): from a cramped spot (every tour stand hugs a
+  landmark; the end of the page leaves the scholar by Geisel's plaza) the scholar steps out to the nearest wide flat
+  open ground (open radius >= 7, scanned once; from the end of the page the lawn around (-9, 21)), camera on the
+  clearest side behind him, facing roughly the middle of campus.
 
 ## Portrait flip (secret identity)
 - A clean double-click / double-tap on the About photo (`#portrait`) flips it over like a card and plays a 14 s comic

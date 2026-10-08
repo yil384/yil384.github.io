@@ -12,8 +12,10 @@
     // Progressive enhancement: reveal animations only when scripts run, and never hold the page back for long.
     // Mode classes are set before first paint: is-plain (Reviewer mode: ?plain=1, ?mode=cv or the saved flag)
     // or is-game (the interactive CV); rm mirrors reduced motion (the OS setting or the saved Field Notes toggle).
-    // intro-on: the opening animation plays (assets/js/intro/intro.js): once per browser session, never in Reviewer
-    // mode, with reduced motion, on a deep link (#section) or in an automated browser; ?intro=1 forces it, ?intro=0 not.
+    // intro-on: the opening animation plays (assets/js/intro/): once per browser session (a session cookie, shared by
+    // all tabs), never in Reviewer mode, with reduced motion, on a known-slow connection (Save-Data, 2g/3g), on a deep
+    // link (#section) or in an automated browser; ?intro=1 forces it, ?intro=0 not. When it plays, its art and modules are preloaded right here and the page's own
+    // big preloads (the world poster, three.js) wait until the art is in (window.__ylPreload, called by the intro).
     (function () {
       var d = document.documentElement, plain = false, rm = false, intro = false, q = null;
       d.classList.add('js', 'is-booting');
@@ -29,13 +31,41 @@
       if (rm) d.classList.add('rm');
       try {
         var iq = q && q.get('intro');
-        intro = iq === '1' || (iq !== '0' && !plain && !rm && !navigator.webdriver && !location.hash && !sessionStorage.getItem('yl.intro'));
+        var cn = navigator.connection, slow = !!(cn && (cn.saveData || /2g|3g/.test(cn.effectiveType || '')));
+        intro = iq === '1' || (iq !== '0' && !plain && !rm && !slow && !navigator.webdriver && !location.hash && document.cookie.indexOf('yl_intro=1') < 0);
       } catch (e) { intro = false; }
+      var link = function (rel, href, as, prio, media) {
+        var l = document.createElement('link');
+        l.rel = rel; l.href = href;
+        if (as) l.as = as;
+        if (prio) l.setAttribute('fetchpriority', prio);
+        if (media) l.media = media;
+        document.head.appendChild(l);
+      };
+      var pagePreloads = function () {
+        link('preload', 'assets/img/world-poster.jpg?v=hub2', 'image', 'high', '(min-aspect-ratio: 4/5)');
+        link('preload', 'assets/img/world-poster-tall.jpg?v=hub2', 'image', 'high', '(max-aspect-ratio: 4/5)');
+        link('modulepreload', 'assets/vendor/three/build/three.core.js', null, 'low');
+        link('modulepreload', 'assets/vendor/three/build/three.webgpu.js', null, 'low');
+      };
       if (intro) {
         d.classList.add('intro-on');
+        // the fight's art (art.js CORE, same URLs) is requested right here, first in the queue; art.js picks up these
+        // very requests (a preload would not be matched by its fetch() and the files would come down twice)
+        window.__ylArt = {};
+        if (window.fetch) ['hero', 'hero-jump', 'garmadon', 'skyline', 'moon'].forEach(function (n) {
+          var u = 'assets/img/intro/' + n + '.webp?v=1';
+          try { window.__ylArt[u] = fetch(u, { priority: 'high' }); } catch (e) { /* art.js fetches it then */ }
+        });
+        ['play', 'scene', 'fracture', 'art'].forEach(function (n) { link('modulepreload', 'assets/js/intro/' + n + '.js'); });
+        window.__ylPreload = function () { window.__ylPreload = null; pagePreloads(); };
         // the intro script mounts within a beat; if it never does, never keep the page covered
-        setTimeout(function () { if (!d.classList.contains('intro-live')) d.classList.remove('intro-on'); }, 3000);
-      }
+        setTimeout(function () {
+          if (d.classList.contains('intro-live')) return;
+          d.classList.remove('intro-on');
+          if (window.__ylPreload) window.__ylPreload();
+        }, 3000);
+      } else pagePreloads();
       setTimeout(function () { d.classList.remove('is-booting'); }, 4500);
     })();
   </script>
@@ -57,8 +87,6 @@
   <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/silkscreen-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/img/world-poster.jpg?v=hub2" as="image" fetchpriority="high" media="(min-aspect-ratio: 4/5)">
-  <link rel="preload" href="assets/img/world-poster-tall.jpg?v=hub2" as="image" fetchpriority="high" media="(max-aspect-ratio: 4/5)">
   <link rel="stylesheet" href="assets/css/fonts.css">
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/game.css">
@@ -89,8 +117,6 @@
     }
   }
   </script>
-  <link rel="modulepreload" href="assets/vendor/three/build/three.core.js" fetchpriority="low">
-  <link rel="modulepreload" href="assets/vendor/three/build/three.webgpu.js" fetchpriority="low">
 
   <script type="application/ld+json">
   {
