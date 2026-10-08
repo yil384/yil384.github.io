@@ -757,15 +757,69 @@ export async function createGame({ worldEl, root, progress = () => {} }) {
   }
 
   // ---- modes ----
+  // ---- where play starts. Every tour stand hugs a landmark (and the end of the page leaves the scholar by Geisel's
+  // plaza), so starting play there puts walls between the camera and him and inside the first-person view. From a
+  // cramped spot he steps out to the nearest wide, flat open ground (scanned once), the camera behind him on the
+  // clearest side, facing roughly the middle of campus.
+  function openRadius(x, z, max) {
+    const h0 = world.height(x, z);
+    if (!(h0 > -Infinity) || world.isBlocked(x, z)) return 0;
+    for (let r = 1; r <= max; r++) {
+      for (let a = 0; a < 32; a++) {
+        const px = x + Math.cos(a / 16 * Math.PI) * r, pz = z + Math.sin(a / 16 * Math.PI) * r;
+        const h = world.height(px, pz);
+        if (!(h > -Infinity) || world.isBlocked(px, pz) || Math.abs(h - h0) > 1.01) return r - 1;
+      }
+    }
+    return max;
+  }
+  let openSpots = null;
+  function playStart() {
+    if (where.id !== 'hub' || openRadius(player.x, player.z, 4) >= 4) return null;
+    if (!openSpots) {
+      openSpots = [];
+      for (let x = -62; x <= 62; x++) for (let z = -62; z <= 62; z++) { const r = openRadius(x, z, 10); if (r >= 7) openSpots.push({ x, z, r }); }
+    }
+    let best = null, bestCost = Infinity;
+    for (const o of openSpots) {
+      const cost = Math.hypot(o.x - player.x, o.z - player.z) - 2 * o.r;
+      if (cost < bestCost) { bestCost = cost; best = o; }
+    }
+    if (!best) return null;
+    // the camera's side: the direction with the longest clear run behind him (no blocked cell taller than a bench),
+    // as close as it can be to "looking back toward the middle of campus"
+    const h0 = world.height(best.x, best.z), toMiddle = Math.atan2(best.x, best.z);
+    const clear = (yaw) => {
+      for (let d = 1; d <= 18; d += 0.5) {
+        const px = best.x + Math.sin(yaw) * d, pz = best.z + Math.cos(yaw) * d, top = world.topAt(px, pz);
+        if (!(world.height(px, pz) > -Infinity) || (world.isBlocked(px, pz) && (top === undefined || top - h0 > 2.5))) return d;
+      }
+      return 18;
+    };
+    let yaw = toMiddle, bestScore = -Infinity;
+    for (let i = 0; i < 32; i++) {
+      const y = toMiddle + (i / 32) * Math.PI * 2, off = Math.abs(Math.atan2(Math.sin(y - toMiddle), Math.cos(y - toMiddle)));
+      const score = clear(y) - 7 * off / Math.PI;
+      if (score > bestScore) { bestScore = score; yaw = y; }
+    }
+    return { x: best.x, z: best.z, yaw };
+  }
+
   function enterPlay({ dive = true } = {}) {
     if (mode.play || paused) return;
     mode.play = true;
     document.documentElement.classList.add('is-play');
     director.setEnabled(false);
-    tour.stand(player.x, player.z, null, { instant: true });
+    const open = playStart();
+    if (open) {
+      tour.stand(open.x, open.z, open.yaw + Math.PI, { instant: true });
+      player.yaw = open.yaw + Math.PI;
+      placeBuddy();
+    } else tour.stand(player.x, player.z, null, { instant: true });
     player.vx = player.vz = player.vy = 0; player.grounded = true; visY = player.y;
     input.attach();
     rig.setPlay(true, player);
+    if (open) rig.want.yaw = open.yaw;
     if (dive) rig.dive(1.2);
     if (!S.settings.soundTouched) { S.settings.sound = true; }
     grace(1500);
