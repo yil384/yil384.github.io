@@ -50,6 +50,56 @@ assets/vendor/three/           three.js (MIT), minified builds + the addons used
 assets/img/world-poster.jpg    baked hero frame (fallback + first paint), og.jpg share image
 ```
 
+## How it got here
+
+From a one-column CV to a 2D pixel RPG to a 3D voxel campus. Each picture is that commit's first screen at
+1440×900, rendered straight from git (`node tools/dev/history.mjs`, phone number blurred); the commit link
+browses the code as it was. The current version is live at <https://yil384.github.io/>.
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/history/2025-10-23-725582b.webp" alt="A plain white one-column academic page"><br>
+<b>2025-10-23</b> · A plain academic page: one column of cards for education, publications and internships.
+<a href="https://github.com/yil384/yil384.github.io/tree/725582b"><code>725582b</code></a></td>
+<td width="50%" valign="top"><img src="docs/history/2026-03-25-0bd5056.webp" alt="A dark pixel-art RPG character sheet"><br>
+<b>2026-03-25</b> · A 2D pixel RPG: the CV as a character sheet, skill tree, quests and equipment, with coins,
+NPCs, enemies and a boss fight. <a href="https://github.com/yil384/yil384.github.io/tree/0bd5056"><code>0bd5056</code></a></td>
+</tr>
+<tr>
+<td valign="top"><img src="docs/history/2026-06-01-eac566e.webp" alt="A 2D monster-trainer world with a HUD and profile card"><br>
+<b>2026-04 → 06</b> · A bigger 2D game: title screen, parallax world, minimap, mini-games and bosses that come
+back stronger, restyled as a monster-trainer world. <a href="https://github.com/yil384/yil384.github.io/tree/eac566e"><code>eac566e</code></a></td>
+<td valign="top"><img src="docs/history/2026-09-28-5032046.webp" alt="A modular profile page with a Read / Play switch"><br>
+<b>2026-09-28</b> · A modular rebuild, still 2D: a profile page with a Read / Play switch, quests and a buddy
+that fights beside you. The last 2D version. <a href="https://github.com/yil384/yil384.github.io/tree/5032046"><code>5032046</code></a></td>
+</tr>
+<tr>
+<td valign="top"><img src="docs/history/2026-09-29-131b0d7.webp" alt="A quiet dark academic page"><br>
+<b>2026-09-29</b> · The first 3D version: a quiet academic page, with a separate three.js island game.
+<a href="https://github.com/yil384/yil384.github.io/tree/131b0d7"><code>131b0d7</code></a></td>
+<td valign="top"><img src="docs/history/2026-09-30a-bc69f34.webp" alt="The page over a small voxel island at night"><br>
+<b>2026-09-30</b> · The island moves behind the page: one persistent world, the CV on glass cards, and
+scrolling walks a little scholar around campus. <a href="https://github.com/yil384/yil384.github.io/tree/bc69f34"><code>bc69f34</code></a></td>
+</tr>
+<tr>
+<td valign="top"><img src="docs/history/2026-09-30b-53442b3.webp" alt="Education shown as a class-change path over the island"><br>
+<b>2026-09-30</b> · The CV becomes game UI (status strip, tour menu, Education as a class-change path), and the
+open world gets its regions the same day. <a href="https://github.com/yil384/yil384.github.io/tree/53442b3"><code>53442b3</code></a></td>
+<td valign="top"><img src="docs/history/2026-09-30c-27d9288.webp" alt="The page over a large round voxel island in the sea"><br>
+<b>2026-09-30</b> · The island grows 2.6× into a round diorama in a moving sea; a visitor map joins the footer.
+Then a comic ninja video behind a double-click on the photo (10-01, <a href="https://github.com/yil384/yil384.github.io/tree/7476cfe"><code>7476cfe</code></a>) and a LEGO
+portrait built brick by brick (10-03, <a href="https://github.com/yil384/yil384.github.io/tree/c4bd429"><code>c4bd429</code></a>). <a href="https://github.com/yil384/yil384.github.io/tree/27d9288"><code>27d9288</code></a></td>
+</tr>
+<tr>
+<td valign="top"><img src="docs/history/2026-10-07-8ca467c-intro.webp" alt="Opening animation, VS card with characters drawn in code"><br>
+<b>2026-10-07</b> · An opening animation: a short ninja battle over a UCSD / ninja-city skyline that shatters
+like glass into the page, with characters drawn in code. <a href="https://github.com/yil384/yil384.github.io/tree/8ca467c"><code>8ca467c</code></a></td>
+<td valign="top"><img src="docs/history/2026-10-08-f21bb39-intro.webp" alt="Opening animation, VS card with LEGO Ninjago art"><br>
+<b>2026-10-08</b> · The same opening with LEGO Ninjago art, and 林奕辰 beside the name.
+<a href="https://github.com/yil384/yil384.github.io/tree/f21bb39"><code>f21bb39</code></a></td>
+</tr>
+</table>
+
 ## How the page drives the world
 
 Markup carries the choreography; no JavaScript needs editing to change what is said or where the

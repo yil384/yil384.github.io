@@ -188,6 +188,9 @@ The software GPU renders ~1 fps: prefer `__g.sim(seconds)` (runs the game withou
   throttle, scrolling during load): long frames (LoAF), long tasks, time to live, and the world build phases
   (`performance.mark('yl:*')` from `game3d/index.js`). `WEBGPU=1` for the WebGPU backend, `PROFILE=1` for a CPU profile,
   `OUT=<label>` keeps the raw entries (`--summarize <files>` re-reads them). See its header.
+- `history.mjs <outdir> <sha>:<name>[:enter|wait=<ms>|scroll=<px>|introAt=<s>] ...`: screenshots of past versions
+  for the README's "How it got here" table (`docs/history/*.webp`, 1000 px). Serves each commit straight from git
+  objects (no checkout) and blurs the phone number. For a new milestone: add a shot and a table cell.
 - Lint: `npx eslint -c tools/dev/eslint.config.mjs "assets/js/**/*.js" --ignore-pattern "assets/vendor/**"`.
 - URL flags: `force=1` (world even on weak devices), `intro=0` (no opening, no world fly-in), `intro=1` (force the
   opening), `introAt=<s>` (hold the opening there), `intro3d=0|1`, `lowfx=1`, `dpr=<n>`, `region=<id>`, `road=all`
